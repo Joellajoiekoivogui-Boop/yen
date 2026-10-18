@@ -87,3 +87,15 @@ export async function loadPartnerCandidateView(candidateId: string): Promise<Par
     results: (attempts.data ?? []).map((a) => ({ title: (a.assessments as unknown as { title: string }).title, score: a.score_percent != null ? Number(a.score_percent) : null, passed: a.passed, date: a.graded_at })),
   };
 }
+
+/**
+ * Identifiants publics YEN des candidats des candidatures listées pour un
+ * partenaire. À n'appeler QU'avec des identifiants issus de lignes déjà
+ * filtrées par RLS (candidatures visibles par l'organisation).
+ */
+export async function publicCodesForVisibleApplications(candidateIds: string[]): Promise<Map<string, string>> {
+  const ids = [...new Set(candidateIds)];
+  if (!ids.length) return new Map();
+  const { data } = await createAdminClient().from("candidate_profiles").select("id, public_code").in("id", ids);
+  return new Map((data ?? []).map((c) => [c.id, c.public_code]));
+}

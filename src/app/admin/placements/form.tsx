@@ -9,7 +9,7 @@ type Opt = { value: string; label: string };
 export function PlacementForm({ candidates, organizations, managers, applications, defaults }: { candidates: Opt[]; organizations: Opt[]; managers: Opt[]; applications: Opt[]; defaults?: Record<string, unknown> }) {
   return (
     <EntityForm
-      schema={z.object({ candidate_id: z.uuid({ error: "Candidat requis." }), organization_name: z.string().trim().min(2, "Organisation requise."), position_title: z.string().trim().min(2, "Poste requis."), start_date: z.string().min(10, "Date requise.") }).passthrough()}
+      schema={z.object({ candidate_id: z.guid({ error: "Candidat requis." }), organization_name: z.string().trim().min(2, "Organisation requise."), position_title: z.string().trim().min(2, "Poste requis."), start_date: z.string().min(10, "Date requise.") }).passthrough()}
       defaultValues={{ placement_type: "stage", contract_type: "stage", confirmation_status: "declare", ...defaults }}
       resetOnSuccess={!defaults?.id}
       action={(v) => savePlacementAction({ ...v, id: defaults?.id })}

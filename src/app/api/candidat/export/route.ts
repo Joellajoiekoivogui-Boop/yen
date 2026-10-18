@@ -15,7 +15,7 @@ export async function GET() {
   const bundle = await loadCandidateBundle(supabase, session.candidateId);
   if (!bundle) return new NextResponse("Profil introuvable", { status: 404 });
   const [applications, attempts, documents, analyses, recommendations, placements] = await Promise.all([
-    supabase.from("applications").select("id, status, origin, motivation, submitted_at, decided_at, job_offers(title, organizations(name)), application_events(from_status, to_status, note, created_at)").eq("candidate_id", session.candidateId),
+    supabase.from("applications").select("id, status, origin, motivation, submitted_at, decided_at, job_offers(title, organization_id), application_events(from_status, to_status, note, created_at)").eq("candidate_id", session.candidateId),
     supabase.from("assessment_attempts").select("id, status, started_at, submitted_at, graded_at, score_percent, passed, result_details, recommendations, assessments(title)").eq("candidate_id", session.candidateId),
     supabase.from("candidate_documents").select("id, kind, original_filename, size_bytes, version, is_current, created_at, deleted_at").eq("candidate_id", session.candidateId),
     supabase.from("ai_analyses").select("id, kind, provider, model, status, output, validation_status, created_at").eq("candidate_id", session.candidateId),

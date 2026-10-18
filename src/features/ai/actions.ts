@@ -47,7 +47,7 @@ export async function runCvExtractionAction(documentId: string): Promise<ActionR
 }
 
 const applySchema = z.object({
-  analysisId: z.uuid(),
+  analysisId: z.guid(),
   summary: z.boolean().default(false),
   education: z.array(z.number().int().min(0)).default([]),
   experiences: z.array(z.number().int().min(0)).default([]),
@@ -151,9 +151,9 @@ export async function improveMyCvAction(): Promise<ActionResult<{ analysisId: st
 }
 
 const applySuggestionSchema = z.discriminatedUnion("target", [
-  z.object({ target: z.literal("summary"), analysisId: z.uuid() }),
-  z.object({ target: z.literal("headline"), analysisId: z.uuid() }),
-  z.object({ target: z.literal("experience"), analysisId: z.uuid(), experienceId: z.uuid() }),
+  z.object({ target: z.literal("summary"), analysisId: z.guid() }),
+  z.object({ target: z.literal("headline"), analysisId: z.guid() }),
+  z.object({ target: z.literal("experience"), analysisId: z.guid(), experienceId: z.guid() }),
 ]);
 
 /** Applique une reformulation proposée (le candidat décide ; le texte vient de l'analyse enregistrée). */
@@ -227,7 +227,7 @@ export async function staffManagerSummaryAction(candidateId: string, offerId?: s
 }
 
 const reviewSchema = z.object({
-  analysisId: z.uuid(),
+  analysisId: z.guid(),
   validation_status: z.enum(["valide", "corrige", "conteste", "rejete"]),
   correction_note: z.string().trim().max(3000).optional().nullable(),
   correction: z.string().trim().max(20000).optional().nullable(),

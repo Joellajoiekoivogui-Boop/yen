@@ -6,7 +6,8 @@ const PROTECTED_PREFIXES = ["/candidat", "/admin", "/partenaire"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
-  const isProtected = PROTECTED_PREFIXES.some((p) => request.nextUrl.pathname.startsWith(p));
+  const path = request.nextUrl.pathname;
+  const isProtected = PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
 
   if (!isSupabaseConfigured()) {
     if (isProtected) {

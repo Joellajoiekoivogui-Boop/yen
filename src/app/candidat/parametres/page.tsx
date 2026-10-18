@@ -4,6 +4,7 @@ import { ButtonLink, Card, CardBody, CardHeader, PageHeader, Table, Td, Th } fro
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
+import { loadOfferOrganizations } from "@/features/offers/organizations";
 import { ConsentsForm, PasswordForm, SecurityActions } from "./settings-client";
 
 export const metadata: Metadata = { title: "Paramètres et confidentialité" };
@@ -13,8 +14,9 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const [consents, shares] = await Promise.all([
     supabase.from("candidate_consents").select("consent_type, granted, updated_at").eq("candidate_id", ctx.candidateId),
-    supabase.from("profile_shares").select("id, reason, created_at, expires_at, revoked_at, include_cv, organizations(name)").eq("candidate_id", ctx.candidateId).order("created_at", { ascending: false }),
+    supabase.from("profile_shares").select("id, reason, created_at, expires_at, revoked_at, include_cv, organization_id").eq("candidate_id", ctx.candidateId).order("created_at", { ascending: false }),
   ]);
+  const orgs = await loadOfferOrganizations(supabase, (shares.data ?? []).map((s) => s.organization_id));
   const c = Object.fromEntries((consents.data ?? []).map((x) => [x.consent_type, x.granted]));
   return (
     <div className="space-y-6">
@@ -33,7 +35,7 @@ export default async function SettingsPage() {
             <tbody>
               {(shares.data ?? []).map((s) => (
                 <tr key={s.id}>
-                  <Td>{(s.organizations as unknown as { name: string } | null)?.name}</Td>
+                  <Td>{orgs.get(s.organization_id)?.name ?? "Organisation partenaire"}</Td>
                   <Td className="max-w-xs">{s.reason}</Td>
                   <Td>{formatDate(s.created_at)}</Td>
                   <Td>{formatDate(s.expires_at)}</Td>

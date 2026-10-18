@@ -41,7 +41,7 @@ async function snapshot(offerId: string, candidateId: string) {
 
 /* ----------------------------- Candidat ---------------------------------- */
 
-const applySchema = z.object({ offerId: z.uuid(), motivation: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(5000).nullable().optional()) });
+const applySchema = z.object({ offerId: z.guid(), motivation: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(5000).nullable().optional()) });
 
 export async function applyToOfferAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ requireCandidate: true }, async (ctx) => {
@@ -86,7 +86,7 @@ export async function withdrawApplicationAction(applicationId: string): Promise<
 
 /* ----------------------------- Personnel YEN ----------------------------- */
 
-const associateSchema = z.object({ offerId: z.uuid(), candidateId: z.uuid(), note: z.string().trim().max(1000).optional().nullable() });
+const associateSchema = z.object({ offerId: z.guid(), candidateId: z.guid(), note: z.string().trim().max(1000).optional().nullable() });
 
 /** Associe un candidat à une offre (présélection YEN). Le partenaire ne le voit pas tant qu'il n'est pas proposé. */
 export async function associateCandidateAction(values: Record<string, unknown>): Promise<ActionResult> {
@@ -109,7 +109,7 @@ export async function associateCandidateAction(values: Record<string, unknown>):
 }
 
 const statusSchema = z.object({
-  applicationId: z.uuid(),
+  applicationId: z.guid(),
   status: z.enum(["soumise", "en_revue", "preselectionnee", "proposee_partenaire", "entretien_programme", "attente_decision", "acceptee", "refusee", "retiree"]),
   reason: z.string().trim().max(2000).optional().nullable(),
   internal: z.boolean().default(false),
@@ -158,7 +158,7 @@ export async function updateApplicationStatusAction(values: Record<string, unkno
 /* ----------------------------- Partenaire -------------------------------- */
 
 const partnerStatusSchema = z.object({
-  applicationId: z.uuid(),
+  applicationId: z.guid(),
   status: z.enum(["proposee_partenaire", "entretien_programme", "attente_decision", "acceptee", "refusee"]),
   reason: z.string().trim().max(2000).optional().nullable(),
   shortlisted: z.boolean().optional(),
@@ -198,7 +198,7 @@ export async function partnerToggleShortlistAction(applicationId: string, shortl
 }
 
 const interviewSchema = z.object({
-  applicationId: z.uuid(),
+  applicationId: z.guid(),
   scheduled_at: z.string().min(10, "Date requise."),
   duration_minutes: z.number().int().min(5).max(600).default(45),
   mode: z.enum(["presentiel", "visio", "telephone"]),
@@ -235,7 +235,7 @@ export async function scheduleInterviewAction(values: Record<string, unknown>): 
   });
 }
 
-const interviewUpdateSchema = z.object({ id: z.uuid(), status: z.enum(["programme", "realise", "annule", "reporte"]), outcome: z.string().trim().max(3000).optional().nullable() });
+const interviewUpdateSchema = z.object({ id: z.guid(), status: z.enum(["programme", "realise", "annule", "reporte"]), outcome: z.string().trim().max(3000).optional().nullable() });
 export async function updateInterviewAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({}, async () => {
     const v = parseInput(interviewUpdateSchema, values);
@@ -249,11 +249,11 @@ export async function updateInterviewAction(values: Record<string, unknown>): Pr
 }
 
 const feedbackSchema = z.object({
-  applicationId: z.uuid(),
+  applicationId: z.guid(),
   context: z.enum(["entretien", "stage", "emploi"]),
   overall_rating: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().int().min(1).max(5).nullable().optional()),
   comments: z.string().trim().min(10, "Commentaire trop court.").max(5000),
-  skill_ratings: z.array(z.object({ skill_id: z.uuid(), level: z.enum(["debutant", "intermediaire", "avance", "expert"]), comment: z.string().max(500).optional() })).max(20).default([]),
+  skill_ratings: z.array(z.object({ skill_id: z.guid(), level: z.enum(["debutant", "intermediaire", "avance", "expert"]), comment: z.string().max(500).optional() })).max(20).default([]),
 });
 
 /**
@@ -288,9 +288,9 @@ export async function partnerFeedbackAction(values: Record<string, unknown>): Pr
 /* ----------------------------- Partages ---------------------------------- */
 
 const shareSchema = z.object({
-  candidateId: z.uuid(),
-  organization_id: z.uuid({ error: "Organisation requise." }),
-  offer_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+  candidateId: z.guid(),
+  organization_id: z.guid({ error: "Organisation requise." }),
+  offer_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   reason: z.string().trim().min(10, "Motif requis (10 caractères minimum).").max(1000),
   include_cv: z.boolean().default(true),
   expires_in_days: z.number().int().min(1).max(365).default(90),

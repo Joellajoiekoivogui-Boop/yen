@@ -60,7 +60,7 @@ export function InfoRequestForm({ candidateId }: { candidateId: string }) {
 export function AssociateForm({ candidateId, offers }: { candidateId: string; offers: Opt[] }) {
   return (
     <EntityForm
-      schema={z.object({ offerId: z.uuid({ error: "Choisissez une offre." }), note: z.string().max(1000).optional() })}
+      schema={z.object({ offerId: z.guid({ error: "Choisissez une offre." }), note: z.string().max(1000).optional() })}
       resetOnSuccess
       submitLabel="Présélectionner pour l'offre"
       action={(v) => associateCandidateAction({ ...v, candidateId })}
@@ -76,7 +76,7 @@ export function ShareForm({ candidateId, organizations, offers, consent }: { can
   if (!consent) return <p className="text-sm text-amber-800">Le candidat n&apos;a pas consenti au partage de son profil avec les partenaires : le partage est impossible (contrôle appliqué par la base de données).</p>;
   return (
     <EntityForm
-      schema={z.object({ organization_id: z.uuid({ error: "Organisation requise." }), offer_id: z.string().nullable().optional(), reason: z.string().trim().min(10, "Motif requis.").max(1000), include_cv: z.boolean(), expires_in_days: z.number().int().min(1).max(365) })}
+      schema={z.object({ organization_id: z.guid({ error: "Organisation requise." }), offer_id: z.string().nullable().optional(), reason: z.string().trim().min(10, "Motif requis.").max(1000), include_cv: z.boolean(), expires_in_days: z.number().int().min(1).max(365) })}
       defaultValues={{ include_cv: true, expires_in_days: 90 }}
       resetOnSuccess
       submitLabel="Partager le profil"
@@ -130,7 +130,7 @@ export function InterviewForm({ applicationId }: { applicationId: string }) {
 export function EvidenceForm({ candidateId, skills, projects }: { candidateId: string; skills: Opt[]; projects: Opt[] }) {
   return (
     <EntityForm
-      schema={z.object({ skill_id: z.uuid({ error: "Choisissez une compétence." }), level: z.string(), source: z.string(), project_id: z.string().nullable().optional(), confidence: z.string(), notes: z.string().trim().min(10, "Décrivez la preuve (10 caractères minimum).").max(2000) })}
+      schema={z.object({ skill_id: z.guid({ error: "Choisissez une compétence." }), level: z.string(), source: z.string(), project_id: z.string().nullable().optional(), confidence: z.string(), notes: z.string().trim().min(10, "Décrivez la preuve (10 caractères minimum).").max(2000) })}
       defaultValues={{ level: "intermediaire", source: "evaluateur", confidence: "moyenne" }}
       resetOnSuccess
       submitLabel="Valider la compétence"

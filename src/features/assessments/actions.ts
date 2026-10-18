@@ -50,10 +50,10 @@ export async function startAttemptAction(assessmentId: string): Promise<ActionRe
 }
 
 const submitSchema = z.object({
-  attemptId: z.uuid(),
+  attemptId: z.guid(),
   answers: z.array(z.object({
-    questionId: z.uuid(),
-    selectedOptionIds: z.array(z.uuid()).max(20).default([]),
+    questionId: z.guid(),
+    selectedOptionIds: z.array(z.guid()).max(20).default([]),
     textAnswer: z.string().max(10000).nullable().optional(),
   })).max(200),
 });
@@ -116,8 +116,8 @@ export async function submitAttemptAction(values: Record<string, unknown>): Prom
 /* ----------------------------- Correction humaine ------------------------ */
 
 const reviewSchema = z.object({
-  attemptId: z.uuid(),
-  grades: z.array(z.object({ answerId: z.uuid(), points: z.number().min(0), comment: z.string().max(2000).optional().nullable() })),
+  attemptId: z.guid(),
+  grades: z.array(z.object({ answerId: z.guid(), points: z.number().min(0), comment: z.string().max(2000).optional().nullable() })),
   comment: z.string().max(3000).optional().nullable(),
 });
 
@@ -151,11 +151,11 @@ export async function reviewAttemptAction(values: Record<string, unknown>): Prom
 /* ----------------------------- Preuves par évaluateur -------------------- */
 
 const evidenceSchema = z.object({
-  candidateId: z.uuid(),
-  skill_id: z.uuid({ error: "Choisissez une compétence." }),
+  candidateId: z.guid(),
+  skill_id: z.guid({ error: "Choisissez une compétence." }),
   level: z.enum(["debutant", "intermediaire", "avance", "expert"]),
   source: z.enum(["evaluateur", "projet", "exercice"]),
-  project_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+  project_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   confidence: z.enum(["faible", "moyenne", "elevee"]),
   notes: z.string().trim().min(10, "Décrivez la preuve observée (10 caractères minimum).").max(2000),
 });
@@ -176,7 +176,7 @@ export async function addSkillEvidenceAction(values: Record<string, unknown>): P
   });
 }
 
-const evidenceStatusSchema = z.object({ id: z.uuid(), status: z.enum(["valide", "conteste", "invalide"]), notes: z.string().max(2000).optional().nullable() });
+const evidenceStatusSchema = z.object({ id: z.guid(), status: z.enum(["valide", "conteste", "invalide"]), notes: z.string().max(2000).optional().nullable() });
 export async function setEvidenceStatusAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ permission: "assessments.review" }, async () => {
     const v = parseInput(evidenceStatusSchema, values);
@@ -189,7 +189,7 @@ export async function setEvidenceStatusAction(values: Record<string, unknown>): 
 }
 
 const verifySchema = z.object({
-  projectId: z.uuid(),
+  projectId: z.guid(),
   status: z.enum(["verifie", "rejete", "non_verifie"]),
   note: z.string().trim().max(2000).optional().nullable(),
   level: z.preprocess((v) => (v === "" ? null : v), z.enum(["debutant", "intermediaire", "avance", "expert"]).nullable().optional()),
@@ -233,7 +233,7 @@ export async function verifyProjectAction(values: Record<string, unknown>): Prom
 const assessmentSchema = z.object({
   title: z.string().trim().min(3).max(200),
   description: z.string().trim().max(3000).default(""),
-  domain_id: z.uuid({ error: "Domaine requis." }),
+  domain_id: z.guid({ error: "Domaine requis." }),
   level: z.enum(["debutant", "intermediaire", "avance", "expert"]),
   assessment_type: z.enum(["questionnaire", "exercice_pratique", "etude_de_cas", "scenario", "evaluation_formateur", "portfolio"]),
   duration_minutes: z.number({ error: "Durée requise." }).int().min(1).max(480),
@@ -241,7 +241,7 @@ const assessmentSchema = z.object({
   scoring_rules: z.string().trim().min(10, "Décrivez le barème (10 caractères minimum).").max(3000),
   max_attempts: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().int().min(1).max(50).nullable()),
   cooldown_hours: z.number().int().min(0).max(720),
-  skill_ids: z.array(z.uuid()).default([]),
+  skill_ids: z.array(z.guid()).default([]),
 });
 
 export async function saveAssessmentAction(values: Record<string, unknown>): Promise<ActionResult<{ id: string }>> {
@@ -261,11 +261,11 @@ export async function saveAssessmentAction(values: Record<string, unknown>): Pro
 }
 
 const questionSchema = z.object({
-  assessmentId: z.uuid(),
+  assessmentId: z.guid(),
   question_type: z.enum(["choix_unique", "choix_multiple", "reponse_courte", "reponse_longue", "etude_de_cas", "exercice_pratique"]),
   prompt: z.string().trim().min(5).max(5000),
   points: z.number().positive().max(100),
-  skill_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+  skill_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   options: z.array(z.object({ label: z.string().trim().min(1).max(1000), is_correct: z.boolean() })).max(10).default([]),
   accepted_answers: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
   rubric: z.array(z.object({ criterion: z.string().trim().min(2).max(500), points: z.number().positive().max(100) })).max(15).default([]),

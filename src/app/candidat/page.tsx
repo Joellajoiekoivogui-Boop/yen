@@ -10,6 +10,7 @@ import { completionOf, loadCandidateBundle } from "@/features/candidates/queries
 import { aggregateDemonstrated } from "@/features/candidates/skills";
 import { computeMatch, rankMatches } from "@/features/matching/engine";
 import { loadEvidence, loadOfferTargets } from "@/features/matching/loader";
+import { loadOfferOrganizations } from "@/features/offers/organizations";
 import { InfoRequestForm } from "./info-request-form";
 
 export default async function CandidateDashboard() {
@@ -21,11 +22,12 @@ export default async function CandidateDashboard() {
   const [lastAnalysis, recs, apps, offers, infoReqs] = await Promise.all([
     supabase.from("ai_analyses").select("created_at, status").eq("candidate_id", ctx.candidateId).in("kind", ["analyse_profil"]).neq("status", "echoue").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("ai_recommendations").select("id, rec_type, title, body, origin").eq("candidate_id", ctx.candidateId).eq("status", "active").order("priority").order("created_at", { ascending: false }).limit(4),
-    supabase.from("applications").select("id, status, submitted_at, job_offers(title, organizations(name))").eq("candidate_id", ctx.candidateId).in("status", ACTIVE_APPLICATION_STATUSES).order("updated_at", { ascending: false }).limit(5),
+    supabase.from("applications").select("id, status, submitted_at, job_offers(title, organization_id)").eq("candidate_id", ctx.candidateId).in("status", ACTIVE_APPLICATION_STATUSES).order("updated_at", { ascending: false }).limit(5),
     supabase.from("job_offers").select("id").eq("status", "publiee").or(`deadline.is.null,deadline.gte.${new Date().toISOString().slice(0, 10)}`).order("published_at", { ascending: false }).limit(40),
     supabase.from("info_requests").select("id, message, created_at").eq("candidate_id", ctx.candidateId).eq("status", "ouverte"),
   ]);
 
+  const orgs = await loadOfferOrganizations(supabase, (apps.data ?? []).map((a) => (a.job_offers as unknown as { organization_id: string }).organization_id));
   const completion = completionOf(bundle);
   const demonstrated = aggregateDemonstrated(bundle.skillAssessments);
   const toEvaluate = bundle.declaredSkills.filter((d) => !demonstrated[d.skill_id]);
@@ -134,12 +136,12 @@ export default async function CandidateDashboard() {
               <p className="text-sm text-muted">Aucune candidature en cours.</p>
             ) : (
               apps.data!.map((a) => {
-                const o = a.job_offers as unknown as { title: string; organizations: { name: string } | null };
+                const o = a.job_offers as unknown as { title: string; organization_id: string };
                 return (
                   <div key={a.id} className="flex items-start justify-between gap-2 border-b border-border pb-2 last:border-0">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-navy-900">{o.title}</p>
-                      <p className="text-xs text-muted">{o.organizations?.name}</p>
+                      <p className="text-xs text-muted">{orgs.get(o.organization_id)?.name}</p>
                     </div>
                     <Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge>
                   </div>

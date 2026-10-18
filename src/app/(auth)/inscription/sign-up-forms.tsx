@@ -49,7 +49,11 @@ export function SignUpForms({ domains, initialType, phoneRequired }: { domains: 
           submitLabel="Créer mon compte"
           defaultValues={{ country: "Guinée", opportunity_types: [], status: "etudiant", availability: "immediate" }}
           action={signUpCandidateAction}
-          onSuccess={(r) => r.ok && setDone(r.message ?? "Compte créé.")}
+          onSuccess={(r) => {
+            const to = r.ok ? (r.data as { redirectTo?: string } | undefined)?.redirectTo : undefined;
+            if (to) window.location.assign(to);
+            else if (r.ok) setDone(r.message ?? "Compte créé.");
+          }}
           fields={[
             { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name" },
             { name: "last_name", label: "Nom", required: true, autoComplete: "family-name" },

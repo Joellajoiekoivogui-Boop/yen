@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { applicationStatusLabel, opportunityLabel, type ApplicationStatus, type OpportunityType } from "@/lib/labels";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { withdrawApplicationAction } from "@/features/applications/actions";
+import { loadOfferOrganizations } from "@/features/offers/organizations";
 
 export const metadata: Metadata = { title: "Mes candidatures" };
 
@@ -17,16 +18,17 @@ export default async function ApplicationsPage() {
   const supabase = await createClient();
   const { data: apps } = await supabase
     .from("applications")
-    .select("id, status, origin, submitted_at, decision_reason, job_offers(id, title, offer_type, organizations(name)), application_events(id, from_status, to_status, note, created_at), interviews(id, scheduled_at, mode, location, status)")
+    .select("id, status, origin, submitted_at, decision_reason, job_offers(id, title, offer_type, organization_id), application_events(id, from_status, to_status, note, created_at), interviews(id, scheduled_at, mode, location, status)")
     .eq("candidate_id", ctx.candidateId)
     .order("updated_at", { ascending: false });
+  const orgs = await loadOfferOrganizations(supabase, (apps ?? []).map((a) => (a.job_offers as unknown as { organization_id: string }).organization_id));
 
   return (
     <div className="space-y-6">
       <PageHeader title="Mes candidatures" description="Suivez chaque étape : présélection, proposition au partenaire, entretiens et décision." />
       {(apps ?? []).length === 0 && <EmptyState icon={Send} title="Aucune candidature" description="Consultez les offres et postulez à celles qui correspondent à votre profil." />}
       {(apps ?? []).map((a) => {
-        const o = a.job_offers as unknown as { id: string; title: string; offer_type: OpportunityType; organizations: { name: string } | null };
+        const o = a.job_offers as unknown as { id: string; title: string; offer_type: OpportunityType; organization_id: string };
         const events = ((a.application_events ?? []) as { id: string; to_status: ApplicationStatus; note: string | null; created_at: string }[]).sort((x, y) => x.created_at.localeCompare(y.created_at));
         const interviews = (a.interviews ?? []) as { id: string; scheduled_at: string; mode: string; location: string | null; status: string }[];
         const status = a.status as ApplicationStatus;
@@ -36,7 +38,7 @@ export default async function ApplicationsPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold text-navy-900">{o.title}</p>
-                  <p className="text-sm text-muted">{o.organizations?.name} · {opportunityLabel[o.offer_type]} · {a.origin === "yen" ? "Présélection YEN" : `Envoyée le ${formatDate(a.submitted_at)}`}</p>
+                  <p className="text-sm text-muted">{orgs.get(o.organization_id)?.name} · {opportunityLabel[o.offer_type]} · {a.origin === "yen" ? "Présélection YEN" : `Envoyée le ${formatDate(a.submitted_at)}`}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge tone={tone(status)}>{applicationStatusLabel[status]}</Badge>

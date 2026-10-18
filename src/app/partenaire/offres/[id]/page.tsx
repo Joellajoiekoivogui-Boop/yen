@@ -9,6 +9,7 @@ import { applicationStatusLabel, offerStatusLabel, type ApplicationStatus, type 
 import { formatDate, isUuid } from "@/lib/utils";
 import { partnerSaveOfferAction, setOfferStatusAction } from "@/features/offers/actions";
 import { partnerOfferOptions } from "../options";
+import { publicCodesForVisibleApplications } from "@/features/partners/queries";
 
 export default async function PartnerOfferPage(props: PageProps<"/partenaire/offres/[id]">) {
   const { id } = await props.params;
@@ -18,7 +19,8 @@ export default async function PartnerOfferPage(props: PageProps<"/partenaire/off
   const { data: o } = await supabase.from("job_offers").select("*, job_required_skills(skill_id, required_level, is_mandatory)").eq("id", id).eq("organization_id", ctx.organizationId).maybeSingle();
   if (!o) notFound();
   const editable = ["brouillon", "en_validation"].includes(o.status);
-  const { data: apps } = await supabase.from("applications").select("id, status, submitted_at, partner_shortlisted, candidate_profiles(public_code)").eq("offer_id", id).order("submitted_at", { ascending: false });
+  const { data: apps } = await supabase.from("applications").select("id, status, submitted_at, partner_shortlisted, candidate_id").eq("offer_id", id).order("submitted_at", { ascending: false });
+  const codes = await publicCodesForVisibleApplications((apps ?? []).map((a) => a.candidate_id));
   const opts = await partnerOfferOptions();
   return (
     <div className="space-y-6">
@@ -40,7 +42,7 @@ export default async function PartnerOfferPage(props: PageProps<"/partenaire/off
             <tbody>
               {(apps ?? []).map((a) => (
                 <tr key={a.id}>
-                  <Td className="font-mono text-xs">{(a.candidate_profiles as unknown as { public_code: string } | null)?.public_code} {a.partner_shortlisted && <Badge tone="teal">Présélectionné</Badge>}</Td>
+                  <Td className="font-mono text-xs">{codes.get(a.candidate_id)} {a.partner_shortlisted && <Badge tone="teal">Présélectionné</Badge>}</Td>
                   <Td>{formatDate(a.submitted_at)}</Td>
                   <Td><Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge></Td>
                   <Td className="text-right"><Link href={`/partenaire/candidatures/${a.id}`} className="text-sm text-electric-700 hover:underline">Ouvrir</Link></Td>

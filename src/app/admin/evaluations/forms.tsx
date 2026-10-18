@@ -15,7 +15,7 @@ export function AssessmentForm({ defaults, domains, skills }: { defaults?: Recor
   const router = useRouter();
   return (
     <EntityForm
-      schema={z.object({ title: z.string().trim().min(3).max(200), domain_id: z.uuid({ error: "Domaine requis." }), duration_minutes: z.number().int().min(1).max(480), passing_score: z.number().min(0).max(100), scoring_rules: z.string().trim().min(10, "Barème requis.").max(3000), cooldown_hours: z.number().int().min(0).max(720) }).passthrough()}
+      schema={z.object({ title: z.string().trim().min(3).max(200), domain_id: z.guid({ error: "Domaine requis." }), duration_minutes: z.number().int().min(1).max(480), passing_score: z.number().min(0).max(100), scoring_rules: z.string().trim().min(10, "Barème requis.").max(3000), cooldown_hours: z.number().int().min(0).max(720) }).passthrough()}
       defaultValues={{ level: "debutant", assessment_type: "questionnaire", duration_minutes: 20, passing_score: 60, cooldown_hours: 24, skill_ids: [], ...defaults }}
       action={async (v) => {
         const r = await saveAssessmentAction({ ...v, id: defaults?.id });

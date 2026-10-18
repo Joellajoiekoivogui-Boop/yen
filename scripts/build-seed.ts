@@ -10,7 +10,8 @@ import { domains, transversalSkills, type SkillSeed } from "../supabase/seed-dat
 
 const q = (s: string | null | undefined) => (s == null ? "null" : `'${s.replace(/'/g, "''")}'`);
 const arr = (a: string[]) => `array[${a.map(q).join(", ")}]::text[]`;
-const id = (key: string) => `md5(${q(key)})::uuid`;
+// UUID v4 déterministe (bits de version et de variante conformes à la RFC 9562)
+const id = (key: string) => `overlay(overlay(md5(${q(key)}) placing '4' from 13) placing '8' from 17)::uuid`;
 
 const lines: string[] = [
   "-- =============================================================================",

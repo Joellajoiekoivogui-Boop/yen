@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useId, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, type FieldValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,6 +48,7 @@ interface EntityFormProps {
  */
 export function EntityForm({ schema, fields, defaultValues, action, submitLabel = "Enregistrer", resetOnSuccess, onSuccess, redirectTo, footer, className }: EntityFormProps) {
   const router = useRouter();
+  const formId = useId();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const form = useForm<FieldValues>({
@@ -57,7 +58,8 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
   });
   const { register, handleSubmit, formState, setError, reset } = form;
 
-  const onSubmit = handleSubmit((values) => {
+  const onSubmit = handleSubmit(
+    (values) => {
     setStatus(null);
     startTransition(async () => {
       const res = await action(values);
@@ -74,13 +76,15 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
         }
       }
     });
-  });
+    },
+    () => setStatus({ tone: "error", text: "Certains champs sont invalides : vérifiez les messages sous les champs concernés." }),
+  );
 
   return (
     <form onSubmit={onSubmit} noValidate className={cn("space-y-4", className)}>
       <div className="grid gap-4 sm:grid-cols-2">
         {fields.map((f) => {
-          const id = `f-${f.name}`;
+          const id = `${formId}-${f.name}`;
           const err = formState.errors[f.name]?.message as string | undefined;
           const describedBy = [f.help ? `${id}-help` : null, err ? `${id}-err` : null].filter(Boolean).join(" ") || undefined;
           const common = { id, "aria-invalid": err ? true : undefined, "aria-describedby": describedBy };

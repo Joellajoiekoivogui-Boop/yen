@@ -29,7 +29,7 @@ export const candidateSignUpSchema = z
     education_level: z.string().trim().min(1, "Niveau d'études requis.").max(100),
     graduation_year: z.number({ error: "Année requise." }).int().min(1970, "Année invalide.").max(2100, "Année invalide."),
     status: z.enum(["etudiant", "diplome", "stagiaire", "en_recherche"], { error: "Statut requis." }),
-    primary_domain_id: z.uuid().optional().nullable(),
+    primary_domain_id: z.guid().optional().nullable(),
     interest_area: optional(300),
     availability: z.enum(["immediate", "moins_1_mois", "un_a_trois_mois", "plus_tard", "indisponible"], { error: "Disponibilité requise." }),
     opportunity_types: z.array(z.enum(["stage", "emploi", "alternance", "mission"])).min(1, "Choisissez au moins un type d'opportunité."),

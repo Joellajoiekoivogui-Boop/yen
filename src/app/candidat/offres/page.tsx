@@ -8,6 +8,7 @@ import { opportunityLabel, OPPORTUNITY_TYPES, type OpportunityType } from "@/lib
 import { clampInt, formatDate, param } from "@/lib/utils";
 import { computeMatch } from "@/features/matching/engine";
 import { loadEvidence, loadOfferTargets } from "@/features/matching/loader";
+import { loadOfferOrganizations } from "@/features/offers/organizations";
 
 export const metadata: Metadata = { title: "Offres d'emploi et de stage" };
 const PAGE_SIZE = 12;
@@ -24,7 +25,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
 
   let q = supabase
     .from("job_offers")
-    .select("id, title, offer_type, location, deadline, published_at, positions, is_demo, organizations(name), engineering_domains(name)", { count: "exact" })
+    .select("id, title, offer_type, location, deadline, published_at, positions, is_demo, organization_id, engineering_domains(name)", { count: "exact" })
     .eq("status", "publiee")
     .or(`deadline.is.null,deadline.gte.${today}`)
     .order("published_at", { ascending: false })
@@ -42,6 +43,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
   const applied = new Set((myApps.data ?? []).map((a) => a.offer_id));
   const evidence = await loadEvidence(supabase, ctx.candidateId, cand.data?.primary_domain_id ?? null);
   const targets = await loadOfferTargets(supabase, (offers ?? []).map((o) => o.id));
+  const orgs = await loadOfferOrganizations(supabase, (offers ?? []).map((o) => o.organization_id));
   const scores = new Map(targets.map((t) => [t.id, evidence ? computeMatch(t, evidence) : null]));
   const qs = (p: number) => `?${new URLSearchParams({ ...(type ? { type } : {}), ...(domain ? { domaine: domain } : {}), ...(qText ? { q: qText } : {}), page: String(p) })}`;
 
@@ -88,7 +90,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
                     {m && <ScorePill score={m.score} />}
                   </div>
                   <h2 className="mt-3 font-semibold text-navy-900">{o.title}</h2>
-                  <p className="text-sm text-slate-600">{(o.organizations as unknown as { name: string } | null)?.name}</p>
+                  <p className="text-sm text-slate-600">{orgs.get(o.organization_id)?.name}</p>
                   <p className="mt-2 flex items-center gap-1 text-xs text-muted"><MapPin className="size-3" aria-hidden /> {o.location} · {(o.engineering_domains as unknown as { name: string } | null)?.name ?? "Tous domaines"}</p>
                   <p className="mt-1 text-xs text-muted">Date limite : {o.deadline ? formatDate(o.deadline) : "non précisée"}</p>
                 </Card>

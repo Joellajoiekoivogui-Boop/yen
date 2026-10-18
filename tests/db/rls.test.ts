@@ -311,6 +311,15 @@ d("Sécurité base de données (RLS)", () => {
         .rejects.toThrow(/consenti/);
     });
 
+    it("un candidat voit l'employeur d'une offre publiée, sans ses coordonnées internes", async () => {
+      const r = await asUser(db, U.bob, () => db.query("select * from public.offer_organizations where id = $1", [orgId]));
+      expect(r.rows[0].name).toBe("Entreprise Test");
+      expect(Object.keys(r.rows[0])).not.toContain("contact_email");
+      const direct = await asUser(db, U.bob, () => db.query("select count(*)::int n from public.organizations where id = $1", [orgId]));
+      expect(direct.rows[0].n).toBe(0);
+      await expect(asUser(db, null, () => db.query("select * from public.offer_organizations"))).rejects.toThrow(/permission/);
+    });
+
     it("un partenaire ne peut pas modifier le statut de son organisation", async () => {
       await expect(asUser(db, U.recruiter, () => db.query("update public.organizations set is_public = true where id = $1", [orgId])))
         .rejects.toThrow(/YEN/);

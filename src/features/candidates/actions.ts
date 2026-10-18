@@ -151,7 +151,7 @@ export async function respondInfoRequestAction(values: Record<string, unknown>):
   });
 }
 
-const recStatus = z.object({ id: z.uuid(), status: z.enum(["active", "ignoree", "terminee"]) });
+const recStatus = z.object({ id: z.guid(), status: z.enum(["active", "ignoree", "terminee"]) });
 export async function setRecommendationStatusAction(id: string, status: string): Promise<ActionResult> {
   return runAction({ requireCandidate: true }, async (ctx) => {
     const v = parseInput(recStatus, { id, status });

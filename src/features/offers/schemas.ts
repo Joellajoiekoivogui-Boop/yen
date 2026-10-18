@@ -4,12 +4,12 @@ const weight = z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z
 
 export const offerSchema = z
   .object({
-    organization_id: z.uuid({ error: "Organisation requise." }),
+    organization_id: z.guid({ error: "Organisation requise." }),
     title: z.string().trim().min(3, "Titre requis.").max(200),
     description: z.string().trim().min(20, "Description trop courte (20 caractères minimum).").max(10000),
     offer_type: z.enum(["stage", "emploi", "alternance", "mission"]),
-    domain_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
-    occupation_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+    domain_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
+    occupation_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
     education_level: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(100).nullable().optional()),
     min_experience_months: z.preprocess((v) => (v === "" || v == null ? 0 : Number(v)), z.number().int().min(0).max(600)),
     location: z.string().trim().min(2, "Lieu requis.").max(200),
@@ -18,7 +18,7 @@ export const offerSchema = z
     positions: z.number({ error: "Nombre de places requis." }).int().min(1).max(1000),
     special_conditions: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(3000).nullable().optional()),
     skills: z
-      .array(z.object({ skill_id: z.uuid(), required_level: z.enum(["debutant", "intermediaire", "avance", "expert"]), is_mandatory: z.boolean() }))
+      .array(z.object({ skill_id: z.guid(), required_level: z.enum(["debutant", "intermediaire", "avance", "expert"]), is_mandatory: z.boolean() }))
       .max(30)
       .default([]),
     w_demonstrated_skills: weight,

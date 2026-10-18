@@ -37,14 +37,14 @@ export async function signInAction(values: Record<string, unknown>): Promise<Act
   });
 }
 
-export async function signUpCandidateAction(values: Record<string, unknown>): Promise<ActionResult> {
-  return runAction({ allowAnonymous: true }, async () => {
+export async function signUpCandidateAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo?: string }>> {
+  return runAction<{ redirectTo?: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(candidateSignUpSchema, values);
     if (!(await rateLimit(`signup:ip:${await clientIp()}`, 10, 3600))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
     const supabase = await createClient();
     const { password, password_confirm: _c, email, ...meta } = input;
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -58,6 +58,8 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
       // Réponse identique si le compte existe déjà (pas d'énumération des comptes)
       if (error.code !== "user_already_exists") return fail("L'inscription n'a pas pu aboutir. Vérifiez vos informations et réessayez.");
     }
+    // Si la confirmation d'e-mail est désactivée côté Supabase, une session est ouverte immédiatement
+    if (data?.session) return { ok: true, message: "Compte créé.", data: { redirectTo: "/candidat" } };
     return { ok: true, message: "Compte créé. Un e-mail de confirmation vous a été envoyé : cliquez sur le lien pour activer votre compte." };
   });
 }

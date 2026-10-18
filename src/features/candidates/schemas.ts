@@ -25,7 +25,7 @@ export const profileSchema = z.object({
   education_level: optText(100),
   graduation_year: optYear,
   status: z.enum(["etudiant", "diplome", "stagiaire", "en_recherche"]),
-  primary_domain_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+  primary_domain_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   interest_area: optText(300),
   availability: z.enum(["immediate", "moins_1_mois", "un_a_trois_mois", "plus_tard", "indisponible"]),
   opportunity_types: z.array(z.enum(["stage", "emploi", "alternance", "mission"])).default([]),
@@ -59,7 +59,7 @@ export const experienceSchema = z
     is_current: z.boolean().default(false),
     description: optText(4000),
     achievements: optText(4000),
-    domain_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+    domain_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   })
   .refine((v) => !v.end_date || v.end_date >= v.start_date, { path: ["end_date"], message: "La date de fin précède la date de début." });
 
@@ -76,8 +76,8 @@ export const projectSchema = z.object({
   repository_url: optUrl,
   start_date: optDate,
   end_date: optDate,
-  domain_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
-  skill_ids: z.array(z.uuid()).max(20).default([]),
+  domain_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
+  skill_ids: z.array(z.guid()).max(20).default([]),
 });
 
 export const certificationSchema = z.object({
@@ -90,7 +90,7 @@ export const certificationSchema = z.object({
 });
 
 export const declaredSkillSchema = z.object({
-  skill_id: z.uuid({ error: "Choisissez une compétence." }),
+  skill_id: z.guid({ error: "Choisissez une compétence." }),
   self_level: z.enum(["debutant", "intermediaire", "avance", "expert"]),
   years_experience: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().min(0).max(60).nullable().optional()),
   evidence_note: optText(1000),
@@ -108,4 +108,4 @@ export const consentsSchema = z.object({
   notifications_externes: z.boolean(),
 });
 
-export const infoResponseSchema = z.object({ id: z.uuid(), response: reqText("Réponse", 5000) });
+export const infoResponseSchema = z.object({ id: z.guid(), response: reqText("Réponse", 5000) });

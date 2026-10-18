@@ -11,7 +11,7 @@ import { notifyCandidate } from "@/features/notifications/service";
 /* ----------------------------- Suivi des candidats ----------------------- */
 
 const noteSchema = z.object({
-  candidateId: z.uuid(),
+  candidateId: z.guid(),
   note_type: z.enum(["note", "decision", "entretien", "verification"]),
   body: z.string().trim().min(2, "Note vide.").max(5000),
 });
@@ -40,9 +40,9 @@ export async function deleteInternalNoteAction(noteId: string, candidateId: stri
 }
 
 const followSchema = z.object({
-  candidateId: z.uuid(),
+  candidateId: z.guid(),
   pipeline_status: z.enum(PIPELINE_STATUSES as [string, ...string[]]),
-  assigned_manager_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+  assigned_manager_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   review_flag: z.boolean().default(false),
   review_flag_reason: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(1000).nullable().optional()),
   reason: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(2000).nullable().optional()),
@@ -68,7 +68,7 @@ export async function updateCandidateFollowUpAction(values: Record<string, unkno
   });
 }
 
-const infoSchema = z.object({ candidateId: z.uuid(), message: z.string().trim().min(10, "Message trop court.").max(2000) });
+const infoSchema = z.object({ candidateId: z.guid(), message: z.string().trim().min(10, "Message trop court.").max(2000) });
 export async function requestInfoAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ permission: "candidates.manage" }, async (ctx) => {
     const v = parseInput(infoSchema, values);
@@ -85,9 +85,9 @@ export async function requestInfoAction(values: Record<string, unknown>): Promis
 
 const placementSchema = z
   .object({
-    candidate_id: z.uuid({ error: "Candidat requis." }),
-    application_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
-    organization_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+    candidate_id: z.guid({ error: "Candidat requis." }),
+    application_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
+    organization_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
     organization_name: z.string().trim().min(2, "Organisation requise.").max(200),
     position_title: z.string().trim().min(2, "Poste requis.").max(200),
     placement_type: z.enum(["stage", "emploi"]),
@@ -95,7 +95,7 @@ const placementSchema = z
     start_date: z.iso.date({ error: "Date de début requise." }),
     end_date: z.preprocess((v) => (v === "" ? null : v), z.iso.date().nullable().optional()),
     duration_months: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().int().min(0).max(600).nullable().optional()),
-    follow_up_manager_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+    follow_up_manager_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
     confirmation_status: z.enum(["declare", "confirme", "annule"]),
     candidate_feedback: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(3000).nullable().optional()),
     organization_feedback: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(3000).nullable().optional()),
@@ -124,7 +124,7 @@ export async function savePlacementAction(values: Record<string, unknown>): Prom
 
 /* ----------------------------- Utilisateurs et rôles --------------------- */
 
-const activeSchema = z.object({ userId: z.uuid(), active: z.boolean(), reason: z.string().trim().max(500).optional().nullable() });
+const activeSchema = z.object({ userId: z.guid(), active: z.boolean(), reason: z.string().trim().max(500).optional().nullable() });
 export async function setUserActiveAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ permission: "users.manage" }, async (ctx) => {
     const v = parseInput(activeSchema, values);
@@ -149,7 +149,7 @@ export async function setUserActiveAction(values: Record<string, unknown>): Prom
   });
 }
 
-const roleSchema = z.object({ userId: z.uuid(), role: z.enum(["super_admin", "insertion_manager", "evaluator", "partner_manager", "candidate", "partner"]) });
+const roleSchema = z.object({ userId: z.guid(), role: z.enum(["super_admin", "insertion_manager", "evaluator", "partner_manager", "candidate", "partner"]) });
 export async function grantRoleAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ permission: "roles.manage" }, async () => {
     const v = parseInput(roleSchema, values);
@@ -239,7 +239,7 @@ export async function saveDomainAction(values: Record<string, unknown>): Promise
 
 const skillSchema = z.object({
   slug, name: z.string().trim().min(2).max(200),
-  domain_id: z.preprocess((v) => (v === "" ? null : v), z.uuid().nullable().optional()),
+  domain_id: z.preprocess((v) => (v === "" ? null : v), z.guid().nullable().optional()),
   category: z.enum(["technique", "transversale", "outil"]), tier: z.enum(["fondamentale", "avancee"]),
   description: z.string().trim().max(2000).default(""),
   crit_debutant: z.string().trim().min(5, "Critère observable requis.").max(500),
@@ -263,9 +263,9 @@ export async function saveSkillAction(values: Record<string, unknown>): Promise<
 
 const weightField = z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().min(0).max(100).nullable().optional());
 const occupationSchema = z.object({
-  slug, title: z.string().trim().min(3).max(200), domain_id: z.uuid({ error: "Domaine requis." }),
+  slug, title: z.string().trim().min(3).max(200), domain_id: z.guid({ error: "Domaine requis." }),
   description: z.string().trim().max(3000).default(""), typical_education: z.string().trim().max(300).default(""), is_active: z.boolean().default(true),
-  skills: z.array(z.object({ skill_id: z.uuid(), required_level: z.enum(["debutant", "intermediaire", "avance", "expert"]), importance: z.enum(["obligatoire", "importante", "souhaitee"]) })).max(30).default([]),
+  skills: z.array(z.object({ skill_id: z.guid(), required_level: z.enum(["debutant", "intermediaire", "avance", "expert"]), importance: z.enum(["obligatoire", "importante", "souhaitee"]) })).max(30).default([]),
   w_demonstrated_skills: weightField, w_assessments: weightField, w_projects: weightField, w_education: weightField, w_experience: weightField,
 });
 export async function saveOccupationAction(values: Record<string, unknown>): Promise<ActionResult> {
@@ -305,7 +305,7 @@ const orgSchema = z.object({
   contact_email: z.preprocess((v) => (v === "" ? null : v), z.email().nullable().optional()),
   contact_phone: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(30).nullable().optional()),
   partnership_type: z.enum(["recrutement", "stage", "formation", "institutionnel", "autre"]),
-  domain_ids: z.array(z.uuid()).max(15).default([]),
+  domain_ids: z.array(z.guid()).max(15).default([]),
 });
 
 export async function saveOrganizationAction(values: Record<string, unknown>): Promise<ActionResult<{ id: string }>> {
@@ -340,7 +340,7 @@ export async function partnerUpdateOrganizationAction(values: Record<string, unk
 }
 
 const orgStatusSchema = z.object({
-  organizationId: z.uuid(),
+  organizationId: z.guid(),
   status: z.enum(["en_attente", "actif", "suspendu", "inactif"]),
   portal_enabled: z.boolean(),
   is_public: z.boolean(),
@@ -360,7 +360,7 @@ export async function setOrganizationStatusAction(values: Record<string, unknown
   });
 }
 
-const membershipSchema = z.object({ membershipId: z.uuid(), status: z.enum(["actif", "revoque"]) });
+const membershipSchema = z.object({ membershipId: z.guid(), status: z.enum(["actif", "revoque"]) });
 
 /**
  * Validation d'un recruteur. Le rôle « partner » (et uniquement celui-ci) est
@@ -391,7 +391,7 @@ export async function setMembershipStatusAction(values: Record<string, unknown>)
 }
 
 const orgEventSchema = z.object({
-  organizationId: z.uuid(),
+  organizationId: z.guid(),
   event_type: z.enum(["reunion", "convention", "recrutement", "retour", "autre"]),
   description: z.string().trim().min(3).max(3000),
   occurred_on: z.iso.date(),

@@ -8,6 +8,7 @@ import { applicationStatusLabel, levelLabel, opportunityLabel, type ApplicationS
 import { formatDate, isUuid } from "@/lib/utils";
 import { computeMatch } from "@/features/matching/engine";
 import { loadEvidence, loadOfferTarget } from "@/features/matching/loader";
+import { loadOfferOrganizations } from "@/features/offers/organizations";
 import { ApplyForm } from "./apply-form";
 
 export default async function OfferDetailPage(props: PageProps<"/candidat/offres/[id]">) {
@@ -17,7 +18,7 @@ export default async function OfferDetailPage(props: PageProps<"/candidat/offres
   const supabase = await createClient();
   const { data: o } = await supabase
     .from("job_offers")
-    .select("id, title, description, offer_type, location, remote_policy, deadline, positions, education_level, min_experience_months, special_conditions, is_demo, domain_id, organizations(name, sector, city, description), job_required_skills(required_level, is_mandatory, skills(name))")
+    .select("id, title, description, offer_type, location, remote_policy, deadline, positions, education_level, min_experience_months, special_conditions, is_demo, domain_id, organization_id, job_required_skills(required_level, is_mandatory, skills(name))")
     .eq("id", id)
     .eq("status", "publiee")
     .maybeSingle();
@@ -28,7 +29,7 @@ export default async function OfferDetailPage(props: PageProps<"/candidat/offres
   ]);
   const evidence = await loadEvidence(supabase, ctx.candidateId, o.domain_id);
   const match = target && evidence ? computeMatch(target, evidence) : null;
-  const org = o.organizations as unknown as { name: string; sector: string; city: string | null; description: string };
+  const org = (await loadOfferOrganizations(supabase, [o.organization_id])).get(o.organization_id) ?? { name: "Organisation", sector: "", city: null, description: "" };
   const expired = o.deadline != null && o.deadline < new Date().toISOString().slice(0, 10);
 
   return (
