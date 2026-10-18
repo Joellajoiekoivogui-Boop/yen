@@ -162,3 +162,7 @@ export const CONSENT_TYPES = Object.keys(consentLabel) as ConsentType[];
 export const placementContractLabel = {
   stage: "Stage", cdd: "CDD", cdi: "CDI", alternance: "Alternance", mission: "Mission", autre: "Autre",
 } as const;
+
+export const experienceTypeLabel = {
+  stage: "Stage", emploi: "Emploi", alternance: "Alternance", mission: "Mission", benevolat: "Bénévolat", projet_academique: "Projet académique",
+} as const;

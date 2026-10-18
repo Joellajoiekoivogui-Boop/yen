@@ -84,15 +84,23 @@ export async function loadOccupationTargets(supabase: SupabaseClient, opts: { do
   }));
 }
 
+const OFFER_SELECT =
+  "id, title, domain_id, education_level, min_experience_months, scoring_weights, occupations(scoring_weights), engineering_domains(certifications), job_required_skills(skill_id, required_level, is_mandatory, skills(name))";
+
 /** Cible « offre » : pondération offre > métier associé > plateforme. */
 export async function loadOfferTarget(supabase: SupabaseClient, offerId: string): Promise<MatchTarget | null> {
-  const { data: o } = await supabase
-    .from("job_offers")
-    .select("id, title, domain_id, education_level, min_experience_months, scoring_weights, occupations(scoring_weights), engineering_domains(certifications), job_required_skills(skill_id, required_level, is_mandatory, skills(name))")
-    .eq("id", offerId)
-    .maybeSingle();
-  if (!o) return null;
+  return (await loadOfferTargets(supabase, [offerId]))[0] ?? null;
+}
+
+export async function loadOfferTargets(supabase: SupabaseClient, offerIds: string[]): Promise<MatchTarget[]> {
+  if (!offerIds.length) return [];
+  const { data } = await supabase.from("job_offers").select(OFFER_SELECT).in("id", offerIds);
   const platform = await getDefaultWeights();
+  return (data ?? []).map((o) => offerToTarget(o, platform));
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function offerToTarget(o: any, platform: Weights): MatchTarget {
   return {
     kind: "offer",
     id: o.id,
