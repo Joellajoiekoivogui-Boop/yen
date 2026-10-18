@@ -112,7 +112,7 @@ export function AppShell({
   return (
     <div className="min-h-dvh lg:pl-64">
       {/* Barre latérale fixe (ordinateur) */}
-      <aside className={cn("fixed inset-y-0 left-0 z-30 hidden lg:flex", sidebarCls)}>
+      <aside className={cn(sidebarCls, "fixed inset-y-0 left-0 z-30 hidden lg:flex")}>
         <div className={cn("flex h-16 items-center px-4", dark ? "border-b border-white/10" : "border-b border-border")}>
           <Logo href={homeHref} inverted={dark} />
         </div>

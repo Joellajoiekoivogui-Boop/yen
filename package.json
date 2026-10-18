@@ -6,7 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run tests/unit",
+    "test:db": "vitest run tests/db",
+    "test:e2e": "playwright test --project=public --project=mobile",
+    "test:e2e:parcours": "E2E_STACK=1 playwright test --project=parcours",
+    "seed:build": "tsx scripts/build-seed.ts",
+    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts",
+    "seed:demo:reset": "tsx --env-file=.env.local scripts/seed-demo.ts --reset",
+    "admin:create": "tsx --env-file=.env.local scripts/create-admin.ts",
+    "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
@@ -41,5 +51,8 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   }
 }

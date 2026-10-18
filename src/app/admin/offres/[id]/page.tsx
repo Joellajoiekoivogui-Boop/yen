@@ -11,6 +11,7 @@ import { formatDate, isUuid, param } from "@/lib/utils";
 import { rankCandidatesFor } from "@/features/admin/talents";
 import { associateCandidateAction, updateApplicationStatusAction } from "@/features/applications/actions";
 import { loadOfferTarget } from "@/features/matching/loader";
+import { WEIGHT_LABELS } from "@/features/matching/engine";
 import { saveOfferAction, setOfferStatusAction } from "@/features/offers/actions";
 import { offerFormOptions } from "../options";
 
@@ -67,7 +68,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
       <div className="space-y-4">
         <Alert tone="info">
           Vivier : candidats ayant consenti à la visibilité dans le vivier YEN, et candidats ayant postulé. Le classement est explicable et révisable ; il ne constitue jamais une décision de recrutement.
-          Pondération appliquée : {Object.entries(target.weights).map(([k, v]) => `${k.replace("_", " ")} ${v}`).join(" · ")}.
+          Pondération appliquée : {Object.entries(target.weights).map(([k, v]) => `${WEIGHT_LABELS[k as keyof typeof WEIGHT_LABELS]} ${v}`).join(" · ")}.
         </Alert>
         <form className="flex flex-wrap gap-4 text-sm" method="get">
           <label className="flex items-center gap-1.5"><input type="checkbox" name="obligatoires" value="1" defaultChecked={onlyMandatory} className="accent-electric-600" /> Exigences obligatoires satisfaites</label>
