@@ -285,7 +285,10 @@ $$;
 -- -----------------------------------------------------------------------------
 -- Création automatique du profil à l'inscription.
 -- Les métadonnées fournies par l'utilisateur ne peuvent JAMAIS attribuer un rôle
--- privilégié : seul "candidate" est attribué automatiquement.
+-- privilégié : seul "candidate" est attribué automatiquement. Les valeurs
+-- énumérées sont validées ; une valeur inconnue est ignorée (valeur par défaut).
+-- La création de l'organisation d'un partenaire est enregistrée au statut
+-- « en_attente » : l'accès n'est ouvert qu'après validation par YEN.
 -- -----------------------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -293,6 +296,9 @@ declare
   meta jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
   v_type text := case when meta ->> 'account_type' = 'partner' then 'partner' else 'candidate' end;
   v_candidate_id uuid;
+  v_org_id uuid;
+  v_grad integer;
+  v_types public.opportunity_type[];
 begin
   insert into public.profiles (id, first_name, last_name, email, phone, city, country, account_type)
   values (
@@ -307,14 +313,48 @@ begin
   );
 
   if v_type = 'candidate' then
+    v_grad := case when (meta ->> 'graduation_year') ~ '^[0-9]{4}$' and (meta ->> 'graduation_year')::int between 1970 and 2100
+                   then (meta ->> 'graduation_year')::int end;
+    select coalesce(array_agg(t::public.opportunity_type), '{}') into v_types
+      from jsonb_array_elements_text(case when jsonb_typeof(meta -> 'opportunity_types') = 'array' then meta -> 'opportunity_types' else '[]'::jsonb end) t
+      where t in ('stage', 'emploi', 'alternance', 'mission');
+
     insert into public.user_roles (user_id, role) values (new.id, 'candidate');
-    insert into public.candidate_profiles (user_id) values (new.id) returning id into v_candidate_id;
+    insert into public.candidate_profiles (
+      user_id, institution, yen_program, education_level, graduation_year, status, interest_area, availability, opportunity_types, primary_domain_id
+    ) values (
+      new.id,
+      nullif(left(meta ->> 'institution', 200), ''),
+      nullif(left(meta ->> 'yen_program', 200), ''),
+      nullif(left(meta ->> 'education_level', 100), ''),
+      v_grad,
+      case when meta ->> 'status' in ('etudiant', 'diplome', 'stagiaire', 'en_recherche') then (meta ->> 'status')::public.candidate_status else 'etudiant' end,
+      nullif(left(meta ->> 'interest_area', 300), ''),
+      case when meta ->> 'availability' in ('immediate', 'moins_1_mois', 'un_a_trois_mois', 'plus_tard', 'indisponible')
+           then (meta ->> 'availability')::public.availability_status else 'immediate' end,
+      v_types,
+      (select id from public.engineering_domains where id::text = meta ->> 'primary_domain_id' and is_active)
+    ) returning id into v_candidate_id;
+
     if (meta ->> 'accepted_terms') = 'true' then
       insert into public.candidate_consents (candidate_id, consent_type, granted)
       values (v_candidate_id, 'conditions_utilisation', true);
     end if;
+  elsif nullif(trim(meta ->> 'organization_name'), '') is not null then
+    insert into public.organizations (name, sector, city, country, contact_name, contact_email, contact_phone, status, portal_enabled, created_by)
+    values (
+      left(trim(meta ->> 'organization_name'), 200),
+      left(coalesce(meta ->> 'organization_sector', ''), 200),
+      nullif(left(meta ->> 'city', 100), ''),
+      coalesce(nullif(left(meta ->> 'country', 100), ''), 'Guinée'),
+      left(trim(coalesce(meta ->> 'first_name', '') || ' ' || coalesce(meta ->> 'last_name', '')), 200),
+      new.email,
+      nullif(left(coalesce(meta ->> 'phone', ''), 30), ''),
+      'en_attente', false, new.id
+    ) returning id into v_org_id;
+    insert into public.partner_memberships (organization_id, user_id, role_in_org, status)
+    values (v_org_id, new.id, 'administrateur_org', 'en_attente');
   end if;
-  -- Les comptes partenaires n'ont aucun rôle tant que YEN n'a pas validé l'organisation.
   return new;
 end $$;
 

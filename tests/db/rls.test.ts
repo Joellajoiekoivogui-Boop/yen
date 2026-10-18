@@ -89,6 +89,25 @@ d("Sécurité base de données (RLS)", () => {
       expect(roles.rows[0].n).toBe(0);
     });
 
+    it("enregistre les informations d'inscription validées et ignore les valeurs invalides", async () => {
+      await createAuthUser(db, "00000000-0000-4000-8000-0000000000c1", "c1@example.test", {
+        institution: "UGANC", yen_program: "Développement web", graduation_year: "2025", status: "diplome",
+        availability: "pirate", opportunity_types: ["stage", "emploi", "invalide"],
+      });
+      const r = await db.query("select institution, graduation_year, status, availability, opportunity_types from public.candidate_profiles where user_id = '00000000-0000-4000-8000-0000000000c1'");
+      expect(r.rows[0]).toMatchObject({ institution: "UGANC", graduation_year: 2025, status: "diplome", availability: "immediate" });
+      expect(r.rows[0].opportunity_types).toEqual("{stage,emploi}");
+    });
+
+    it("une demande partenaire crée une organisation et une adhésion en attente, sans accès", async () => {
+      await createAuthUser(db, "00000000-0000-4000-8000-0000000000f8", "rh@nouvelle.test", { account_type: "partner", organization_name: "Nouvelle SARL", first_name: "Awa" });
+      const r = await db.query(`select o.status, o.portal_enabled, m.status as m_status from public.organizations o
+        join public.partner_memberships m on m.organization_id = o.id where m.user_id = '00000000-0000-4000-8000-0000000000f8'`);
+      expect(r.rows[0]).toEqual({ status: "en_attente", portal_enabled: false, m_status: "en_attente" });
+      const offers = await asUser(db, "00000000-0000-4000-8000-0000000000f8", () => db.query("select count(*)::int n from public.job_offers"));
+      expect(offers.rows[0].n).toBe(0);
+    });
+
     it("empêche un candidat de s'attribuer un rôle", async () => {
       await expect(asUser(db, U.alice, () => db.query("insert into public.user_roles (user_id, role) values ($1, 'super_admin')", [U.alice])))
         .rejects.toThrow();
