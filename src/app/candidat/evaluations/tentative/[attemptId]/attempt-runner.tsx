@@ -33,6 +33,8 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(storageKey);
+      // Restauration du brouillon depuis un stockage externe après le montage (évite un écart d'hydratation)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setAnswers(JSON.parse(raw));
     } catch { /* stockage indisponible */ }
   }, [storageKey]);

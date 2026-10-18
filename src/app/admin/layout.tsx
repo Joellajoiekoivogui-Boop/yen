@@ -1,0 +1,63 @@
+import { AppShell, type NavItem, type NavSection } from "@/components/layout/app-shell";
+import { requireStaff } from "@/lib/auth/session";
+import type { Permission } from "@/lib/auth/permissions";
+import { roleLabel } from "@/lib/labels";
+import { createClient } from "@/lib/supabase/server";
+import { fullName } from "@/lib/utils";
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const ctx = await requireStaff();
+  const supabase = await createClient();
+  const [{ count: unread }, { count: toReview }] = await Promise.all([
+    supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null),
+    ctx.permissions.has("assessments.review")
+      ? supabase.from("assessment_attempts").select("id", { count: "exact", head: true }).eq("status", "en_correction")
+      : Promise.resolve({ count: 0 }),
+  ]);
+  const can = (p: Permission) => ctx.permissions.has(p);
+  const items = (list: (NavItem & { perm?: Permission })[]) => list.filter((i) => !i.perm || can(i.perm));
+
+  const sections: NavSection[] = [
+    { items: [{ href: "/admin", label: "Vue générale", icon: "LayoutDashboard" as const, exact: true }] },
+    {
+      title: "Talents",
+      items: items([
+        { href: "/admin/talents", label: "Répertoire des talents", icon: "Users", perm: "candidates.read" },
+        { href: "/admin/corrections", label: "Corrections et validations", icon: "ClipboardCheck", perm: "assessments.review", badge: toReview ?? 0 },
+        { href: "/admin/evaluations", label: "Évaluations", icon: "ListChecks", perm: "assessments.manage" },
+        { href: "/admin/catalogue", label: "Catalogue des métiers", icon: "Layers", perm: "catalog.manage" },
+      ]),
+    },
+    {
+      title: "Opportunités",
+      items: items([
+        { href: "/admin/offres", label: "Offres", icon: "Briefcase", perm: "offers.manage" },
+        { href: "/admin/candidatures", label: "Candidatures", icon: "Send", perm: "applications.manage" },
+        { href: "/admin/partenaires", label: "Partenaires", icon: "Handshake", perm: "partners.manage" },
+        { href: "/admin/placements", label: "Placements", icon: "Trophy", perm: "placements.manage" },
+      ]),
+    },
+    {
+      title: "Pilotage",
+      items: items([
+        { href: "/admin/rapports", label: "Rapports d'insertion", icon: "LineChart", perm: "reports.view" },
+        { href: "/admin/utilisateurs", label: "Utilisateurs et rôles", icon: "ShieldCheck", perm: "users.manage" },
+        { href: "/admin/audit", label: "Journal d'audit", icon: "ScrollText", perm: "audit.read" },
+        { href: "/admin/parametres", label: "Paramètres", icon: "Settings", perm: "settings.manage" },
+        { href: "/admin/notifications", label: "Notifications", icon: "Bell", badge: unread ?? 0 },
+      ]),
+    },
+  ].filter((s) => s.items.length > 0);
+
+  return (
+    <AppShell
+      sections={sections}
+      homeHref="/admin"
+      spaceLabel="Administration YEN"
+      variant="dark"
+      user={{ name: fullName(ctx.profile), email: ctx.email, roleLabel: ctx.roles.filter((r) => r !== "candidate" && r !== "partner").map((r) => roleLabel[r]).join(", ") }}
+    >
+      {children}
+    </AppShell>
+  );
+}

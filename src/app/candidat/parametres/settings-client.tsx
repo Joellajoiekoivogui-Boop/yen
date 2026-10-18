@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { EntityForm } from "@/components/forms/entity-form";
 import { Alert, Button } from "@/components/ui";
 import { saveConsentsAction, requestAccountDeletionAction } from "@/features/candidates/actions";
@@ -38,13 +39,14 @@ export function PasswordForm() {
 }
 
 export function SecurityActions() {
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   return (
     <div className="space-y-4">
       {msg && <Alert tone="info">{msg}</Alert>}
-      <Button variant="outline" disabled={pending} onClick={() => start(async () => { const r = await signOutEverywhereAction(); setMsg(r.ok ? r.message ?? "" : r.error); if (r.ok) window.location.assign("/connexion"); })}>
+      <Button variant="outline" disabled={pending} onClick={() => start(async () => { const r = await signOutEverywhereAction(); setMsg(r.ok ? r.message ?? "" : r.error); if (r.ok) router.push("/connexion"); })}>
         Fermer toutes mes sessions
       </Button>
       <div className="rounded-lg border border-red-200 bg-red-50/40 p-4">

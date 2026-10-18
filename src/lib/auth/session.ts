@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { STAFF_ROLES, type AppRole } from "@/lib/labels";
@@ -33,6 +34,8 @@ export interface SessionContext {
 
 /** Contexte de session (mis en cache pour la durée de la requête). */
 export const getSession = cache(async (): Promise<SessionContext | null> => {
+  // Toute page dépendant de la session est rendue à la requête (jamais pré-rendue)
+  await connection();
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
