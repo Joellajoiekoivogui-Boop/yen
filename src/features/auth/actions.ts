@@ -4,6 +4,7 @@ import { clientIp, fail, logAudit, parseInput, rateLimit, runAction, type Action
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+import { signUpErrorMessage } from "./errors";
 import { candidateSignUpSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
@@ -53,10 +54,11 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
       },
     });
     if (error) {
-      if (error.code === "weak_password") return fail("Ce mot de passe est trop faible ou trop courant.");
-      if (error.code === "over_email_send_rate_limit") return fail("Trop de demandes. Réessayez dans quelques minutes.");
+      // Code seul dans les journaux (jamais l'adresse) pour diagnostiquer depuis Vercel
+      console.error("[inscription] refus Supabase Auth", error.code, error.status);
       // Réponse identique si le compte existe déjà (pas d'énumération des comptes)
-      if (error.code !== "user_already_exists") return fail("L'inscription n'a pas pu aboutir. Vérifiez vos informations et réessayez.");
+      const message = signUpErrorMessage(error.code);
+      if (message) return fail(message);
     }
     // Si la confirmation d'e-mail est désactivée côté Supabase, une session est ouverte immédiatement
     if (data?.session) return { ok: true, message: "Compte créé.", data: { redirectTo: "/candidat" } };
@@ -79,7 +81,11 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
         data: { ...meta, account_type: "partner", accepted_terms: "true" },
       },
     });
-    if (error && error.code !== "user_already_exists") return fail("La demande n'a pas pu être enregistrée. Réessayez.");
+    if (error) {
+      console.error("[inscription partenaire] refus Supabase Auth", error.code, error.status);
+      const message = signUpErrorMessage(error.code);
+      if (message) return fail(message);
+    }
     return {
       ok: true,
       message: "Demande enregistrée. Confirmez votre adresse e-mail ; l'équipe YEN validera ensuite votre organisation avant d'activer votre espace partenaire.",

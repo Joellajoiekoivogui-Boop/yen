@@ -23,3 +23,18 @@ describe("numéro de téléphone obligatoire", () => {
     expect(profile.error?.issues.find((i) => i.path[0] === "phone")?.message).toBe("Numéro de téléphone requis.");
   });
 });
+
+describe("messages d'erreur d'inscription", () => {
+  it("n'indique jamais qu'un compte existe déjà", async () => {
+    const { signUpErrorMessage } = await import("@/features/auth/errors");
+    expect(signUpErrorMessage("user_already_exists")).toBeNull();
+    expect(signUpErrorMessage("email_exists")).toBeNull();
+  });
+
+  it("explique les causes connues", async () => {
+    const { signUpErrorMessage } = await import("@/features/auth/errors");
+    expect(signUpErrorMessage("email_address_not_authorized")).toMatch(/service d'e-mail/);
+    expect(signUpErrorMessage("weak_password")).toMatch(/trop faible/);
+    expect(signUpErrorMessage("unexpected_failure")).toMatch(/n'a pas pu aboutir/);
+  });
+});
