@@ -21,7 +21,7 @@ Dans le tableau de bord Supabase → *Project Settings → API* :
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL du projet |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | clé publique (« publishable » ou « anon ») |
-| `SUPABASE_SECRET_KEY` | clé secrète (« secret » ou « service_role ») — **serveur uniquement** |
+| `SUPABASE_SECRET_KEY` | facultative : clé secrète (« secret » ou « service_role »), **serveur uniquement** ; utilisée seulement par l'IA et la déconnexion forcée |
 
 ### 2.2 Appliquer les migrations
 

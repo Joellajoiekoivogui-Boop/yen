@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge, Card, PageHeader, Pagination, ScorePill, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { fillMissingSnapshots } from "@/features/applications/snapshots";
 import { applicationStatusLabel, APPLICATION_STATUSES, type ApplicationStatus } from "@/lib/labels";
 import { clampInt, formatDateTime, isUuid, param } from "@/lib/utils";
 
@@ -17,12 +18,13 @@ export default async function AdminApplicationsPage(props: PageProps<"/admin/can
   const page = clampInt(param(sp.page), 1, 1, 1000);
   let q = supabase
     .from("applications")
-    .select("id, status, origin, updated_at, match_snapshot, visible_to_partner, job_offers(id, title, organizations(name)), candidate_profiles(id, public_code, profiles!candidate_profiles_user_id_fkey(first_name, last_name))", { count: "exact" })
+    .select("id, offer_id, candidate_id, status, origin, updated_at, match_snapshot, visible_to_partner, job_offers(id, title, organizations(name)), candidate_profiles(id, public_code, profiles!candidate_profiles_user_id_fkey(first_name, last_name))", { count: "exact" })
     .order("updated_at", { ascending: false })
     .range((page - 1) * 30, page * 30 - 1);
   if (status && APPLICATION_STATUSES.includes(status as ApplicationStatus)) q = q.eq("status", status);
   if (offer && isUuid(offer)) q = q.eq("offer_id", offer);
   const { data, count } = await q;
+  await fillMissingSnapshots(supabase, data ?? [], true);
   return (
     <div className="space-y-5">
       <PageHeader title="Candidatures" description="Toutes les candidatures et présélections, toutes offres confondues." />

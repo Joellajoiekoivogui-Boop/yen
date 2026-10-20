@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
 import type { SessionContext } from "@/lib/auth/session";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
-import { notifyCandidate, notifyOrganization, notifyStaffWithPermission } from "@/features/notifications/service";
+import { notifyDomainCandidates, notifyOrganization, notifyStaffWithPermission } from "@/features/notifications/service";
 import { offerSchema, weightsFromInput } from "./schemas";
 
 async function persistOffer(ctx: SessionContext, values: Record<string, unknown>, mode: "staff" | "partner"): Promise<ActionResult<{ id: string }>> {
@@ -73,9 +73,7 @@ export async function setOfferStatusAction(offerId: string, status: string): Pro
       await notifyOrganization(offer.organization_id, { category: "offre", title: "Votre offre est publiée", body: offer.title, link: `/partenaire/offres/${offer.id}` });
       if (offer.domain_id) {
         // Information des candidats du domaine qui recherchent ce type d'opportunité
-        const admin = createAdminClient();
-        const { data: cands } = await admin.from("candidate_profiles").select("id").eq("primary_domain_id", offer.domain_id).contains("opportunity_types", [offer.offer_type]).limit(500);
-        await Promise.all((cands ?? []).map((c) => notifyCandidate(c.id, { category: "offre", title: `Nouvelle offre : ${offer.title}`, link: `/candidat/offres/${offer.id}` })));
+        await notifyDomainCandidates(offer.domain_id, offer.offer_type, { category: "offre", title: `Nouvelle offre : ${offer.title}`, link: `/candidat/offres/${offer.id}` });
       }
     }
     await logAudit(ctx.userId, "offer_status_changed", "job_offers", offer.id, { status });

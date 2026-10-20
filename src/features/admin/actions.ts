@@ -113,7 +113,8 @@ export async function savePlacementAction(values: Record<string, unknown>): Prom
       : await supabase.from("placements").insert({ ...v, ...confirmFields, created_by: ctx.userId }).select("id").single();
     if (res.error) return fail(dbErrorMessage(res.error));
     if (v.confirmation_status === "confirme") {
-      await createAdminClient().from("candidate_profiles").update({ pipeline_status: v.placement_type === "stage" ? "stage_obtenu" : "emploi_obtenu" }).eq("id", v.candidate_id);
+      const pipe = await supabase.rpc("confirm_placement_pipeline", { p_candidate: v.candidate_id, p_placement_type: v.placement_type });
+      if (pipe.error) console.error("[placements] pipeline non mis à jour", pipe.error.message);
       if (v.application_id) await supabase.from("applications").update({ status: "acceptee", decision_reason: "Placement confirmé", decided_by: ctx.userId, decided_at: new Date().toISOString() }).eq("id", v.application_id).neq("status", "acceptee");
       await notifyCandidate(v.candidate_id, { category: "decision", title: `Félicitations : ${v.placement_type === "stage" ? "stage" : "emploi"} confirmé`, body: `${v.position_title} — ${v.organization_name}`, link: "/candidat/candidatures" });
     }
@@ -157,7 +158,7 @@ export async function grantRoleAction(values: Record<string, unknown>): Promise<
     const { error } = await supabase.from("user_roles").insert({ user_id: v.userId, role: v.role });
     if (error) return fail(dbErrorMessage(error));
     if (["super_admin", "insertion_manager", "evaluator", "partner_manager"].includes(v.role)) {
-      await createAdminClient().from("profiles").update({ account_type: "staff" }).eq("id", v.userId).neq("account_type", "candidate");
+      await supabase.from("profiles").update({ account_type: "staff" }).eq("id", v.userId).neq("account_type", "candidate");
     }
     revalidatePath("/admin/utilisateurs");
     return { ok: true, message: "Rôle attribué." };
@@ -375,13 +376,9 @@ export async function setMembershipStatusAction(values: Record<string, unknown>)
       .select("user_id, organization_id")
       .single();
     if (error || !m) return fail(dbErrorMessage(error));
-    const admin = createAdminClient();
-    if (v.status === "actif") {
-      await admin.from("user_roles").upsert({ user_id: m.user_id, role: "partner", granted_by: ctx.userId }, { onConflict: "user_id,role", ignoreDuplicates: true });
-    } else {
-      const { count } = await admin.from("partner_memberships").select("id", { count: "exact", head: true }).eq("user_id", m.user_id).eq("status", "actif");
-      if (!count) await admin.from("user_roles").delete().eq("user_id", m.user_id).eq("role", "partner");
-    }
+    // rôle « partner » aligné en base sur les adhésions actives
+    const role = await supabase.rpc("sync_partner_role", { p_user: m.user_id });
+    if (role.error) return fail(dbErrorMessage(role.error, "L'accès n'a pas pu être mis à jour."));
     await logAudit(ctx.userId, v.status === "actif" ? "partner_member_approved" : "partner_member_revoked", "partner_memberships", v.membershipId, { organization_id: m.organization_id });
     revalidatePath(`/admin/partenaires/${m.organization_id}`);
     return { ok: true, message: v.status === "actif" ? "Recruteur validé : son espace partenaire est ouvert (si le portail de l'organisation est activé)." : "Accès révoqué." };

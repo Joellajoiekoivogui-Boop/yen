@@ -6,6 +6,7 @@ import { MatchDetails } from "@/components/match-details";
 import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, ScorePill, TabLinks, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { fillMissingSnapshots } from "@/features/applications/snapshots";
 import { applicationStatusLabel, offerStatusLabel, type ApplicationStatus, type OfferStatus, type SkillLevel } from "@/lib/labels";
 import { formatDate, isUuid, param } from "@/lib/utils";
 import { rankCandidatesFor } from "@/features/admin/talents";
@@ -119,9 +120,10 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
   async function Applications() {
     const { data } = await supabase
       .from("applications")
-      .select("id, status, origin, submitted_at, visible_to_partner, partner_shortlisted, match_snapshot, candidate_profiles(id, public_code, is_demo, profiles!candidate_profiles_user_id_fkey(first_name, last_name))")
+      .select("id, offer_id, candidate_id, status, origin, submitted_at, visible_to_partner, partner_shortlisted, match_snapshot, candidate_profiles(id, public_code, is_demo, profiles!candidate_profiles_user_id_fkey(first_name, last_name))")
       .eq("offer_id", id)
       .order("submitted_at", { ascending: false });
+    await fillMissingSnapshots(supabase, data ?? [], ctx.permissions.has("applications.manage"));
     return (
       <Card>
         <CardHeader title="Candidatures et présélections" description="« Proposer au partenaire » rend le profil visible de l'organisation (consentement requis pour une présélection YEN)." />

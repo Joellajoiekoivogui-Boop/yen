@@ -181,7 +181,8 @@ test("le candidat consulte les métiers et postule à une offre", async ({ page 
   await page.getByRole("link", { name: /Stage développeur web \(démo\)/ }).click();
   await expect(page.getByText("Ma compatibilité avec cette offre")).toBeVisible();
   await page.getByRole("button", { name: "Postuler" }).click();
-  await expect(page.getByText(/Candidature envoyée/)).toBeVisible();
+  await expect(page.getByText(/Candidature envoyée\. Votre profil/)).toBeVisible();
+  await expect(page.getByText("Candidature envoyée — statut : Soumise.")).toBeVisible();
   await page.goto("/candidat/candidatures");
   await expect(page.getByText("Stage développeur web (démo)")).toBeVisible();
 });

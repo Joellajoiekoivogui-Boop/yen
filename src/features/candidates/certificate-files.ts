@@ -7,7 +7,7 @@ import { sanitizeFilename } from "@/features/cv/pdf-validation";
 import { scanFile } from "@/features/cv/scanner";
 import { checkCertificateFile, FILE_TYPES } from "@/features/documents/file-validation";
 import { dbErrorMessage, fail, logAudit, rateLimit, runAction, type ActionResult } from "@/lib/action";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 
 const BUCKET = "candidate-documents";
@@ -22,7 +22,7 @@ export async function uploadCertificateFileAction(formData: FormData): Promise<A
   return runAction({ requireCandidate: true }, async (ctx) => {
     const certificationId = String(formData.get("certificationId") ?? "");
     if (!isUuid(certificationId)) return fail("Certification introuvable.");
-    if (!(await rateLimit(`certificate-upload:${ctx.userId}`, 20, 3600))) return fail("Trop de téléversements récents. Réessayez dans une heure.");
+    if (!(await rateLimit(`certificate-upload:${ctx.userId}`))) return fail("Trop de téléversements récents. Réessayez dans une heure.");
     const file = formData.get("file");
     if (!(file instanceof File)) return fail("Aucun fichier reçu.");
     const maxBytes = await getMaxCvBytes();
@@ -112,18 +112,13 @@ export async function removeCertificateFileAction(certificationId: string): Prom
   });
 }
 
-/**
- * Efface le fichier d'un ancien justificatif et le marque supprimé (métadonnées
- * conservées pour l'historique). Nécessite la clé de service ; sans elle, l'ancien
- * fichier reste simplement stocké de façon privée.
- */
+/** Efface le fichier d'un ancien justificatif et le marque supprimé (métadonnées conservées pour l'historique). */
 async function retireDocument(documentId: string) {
   try {
-    const admin = createAdminClient();
-    const { data: doc } = await admin.from("candidate_documents").select("id, storage_path").eq("id", documentId).maybeSingle();
-    if (!doc) return;
-    await admin.storage.from(BUCKET).remove([doc.storage_path]);
-    await admin.from("candidate_documents").update({ deleted_at: new Date().toISOString(), is_current: false }).eq("id", doc.id);
+    const supabase = await createClient();
+    const { data: path, error } = await supabase.rpc("retire_candidate_document", { p_document: documentId });
+    if (error) throw error;
+    if (path) await supabase.storage.from(BUCKET).remove([path as string]);
   } catch (e) {
     console.error("[certificats] ancien justificatif conservé", e instanceof Error ? e.message : e);
   }

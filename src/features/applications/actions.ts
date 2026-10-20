@@ -3,39 +3,32 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
-import { applicationStatusLabel, type ApplicationStatus } from "@/lib/labels";
+import { applicationStatusLabel } from "@/lib/labels";
 import { computeMatch } from "@/features/matching/engine";
 import { loadEvidence, loadOfferTarget } from "@/features/matching/loader";
 import { notifyCandidate, notifyOrganization, notifyStaffWithPermission } from "@/features/notifications/service";
 
-const PLACED = new Set(["stage_obtenu", "emploi_obtenu", "suivi_post_placement"]);
-
-/** Reflète l'avancement d'une candidature dans le pipeline du candidat (sans rétrograder un candidat placé). */
-async function syncPipeline(candidateId: string, status: ApplicationStatus, offerType: string) {
-  const map: Partial<Record<ApplicationStatus, string>> = {
-    soumise: "candidature_transmise",
-    preselectionnee: "preselectionne",
-    proposee_partenaire: "proposition_envoyee",
-    entretien_programme: "entretien_programme",
-    attente_decision: "attente_decision",
-    acceptee: offerType === "stage" ? "stage_obtenu" : "emploi_obtenu",
-    refusee: "candidature_refusee",
-    retiree: "candidature_retiree",
-  };
-  const next = map[status];
-  if (!next) return;
-  const admin = createAdminClient();
-  const { data } = await admin.from("candidate_profiles").select("pipeline_status").eq("id", candidateId).single();
-  if (data && PLACED.has(data.pipeline_status) && !PLACED.has(next)) return;
-  await admin.from("candidate_profiles").update({ pipeline_status: next }).eq("id", candidateId);
+/**
+ * Reflète l'avancement d'une candidature dans le pipeline du candidat, sans
+ * rétrograder un candidat placé. Le statut est relu en base (sync_application_pipeline).
+ */
+async function syncPipeline(applicationId: string) {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("sync_application_pipeline", { p_application: applicationId });
+    if (error) throw error;
+  } catch (e) {
+    console.error("[pipeline] synchronisation impossible", e instanceof Error ? e.message : e);
+  }
 }
 
+/** Instantané de compatibilité calculé côté serveur avec les droits du personnel YEN (jamais fourni par le candidat). */
 async function snapshot(offerId: string, candidateId: string) {
-  const admin = createAdminClient();
-  const target = await loadOfferTarget(admin, offerId);
-  const evidence = target ? await loadEvidence(admin, candidateId, target.domainId) : null;
+  const supabase = await createClient();
+  const target = await loadOfferTarget(supabase, offerId);
+  const evidence = target ? await loadEvidence(supabase, candidateId, target.domainId) : null;
   return target && evidence ? { ...computeMatch(target, evidence), computed_at: new Date().toISOString() } : null;
 }
 
@@ -55,9 +48,8 @@ export async function applyToOfferAction(values: Record<string, unknown>): Promi
       .single();
     if (error || !data) return fail(error?.code === "23505" ? "Vous avez déjà postulé à cette offre." : dbErrorMessage(error, "La candidature n'a pas pu être envoyée."));
     const offer = data.job_offers as unknown as { title: string; organization_id: string; offer_type: string };
-    // L'instantané de compatibilité est calculé côté serveur (jamais fourni par le client)
-    await createAdminClient().from("applications").update({ match_snapshot: await snapshot(v.offerId, ctx.candidateId!) }).eq("id", data.id);
-    await syncPipeline(ctx.candidateId!, "soumise", offer.offer_type);
+    // L'instantané de compatibilité est calculé par l'équipe YEN à la première consultation (ensureMatchSnapshots)
+    await syncPipeline(data.id);
     await notifyOrganization(offer.organization_id, { category: "candidature", title: "Nouvelle candidature", body: offer.title, link: `/partenaire/candidatures/${data.id}` });
     await notifyStaffWithPermission("applications.manage", { category: "candidature", title: "Nouvelle candidature", body: offer.title, link: `/admin/candidatures?offre=${v.offerId}` });
     revalidatePath("/candidat", "layout");
@@ -78,7 +70,7 @@ export async function withdrawApplicationAction(applicationId: string): Promise<
       .single();
     if (error || !data) return fail(dbErrorMessage(error, "Retrait impossible."));
     const offer = data.job_offers as unknown as { title: string; organization_id: string; offer_type: string };
-    await syncPipeline(ctx.candidateId!, "retiree", offer.offer_type);
+    await syncPipeline(data.id);
     await notifyOrganization(offer.organization_id, { category: "candidature", title: "Candidature retirée", body: offer.title });
     revalidatePath("/candidat/candidatures");
     return { ok: true, message: "Candidature retirée." };
@@ -101,7 +93,7 @@ export async function associateCandidateAction(values: Record<string, unknown>):
       .single();
     if (error || !data) return fail(error?.code === "23505" ? "Ce candidat est déjà associé à cette offre." : dbErrorMessage(error));
     const offer = data.job_offers as unknown as { title: string; offer_type: string };
-    await syncPipeline(v.candidateId, "preselectionnee", offer.offer_type);
+    await syncPipeline(data.id);
     await notifyCandidate(v.candidateId, { category: "candidature", title: "Vous avez été présélectionné(e)", body: `L'équipe YEN vous a présélectionné(e) pour : ${offer.title}.`, link: "/candidat/candidatures" });
     await logAudit(ctx.userId, "candidate_shortlisted", "applications", data.id, { offer_id: v.offerId, candidate_id: v.candidateId });
     revalidatePath(`/admin/offres/${v.offerId}`);
@@ -135,11 +127,10 @@ export async function updateApplicationStatusAction(values: Record<string, unkno
     const offer = data.job_offers as unknown as { title: string; organization_id: string; offer_type: string };
     if (v.internal) {
       // Masque la dernière étape au candidat (ex. revue interne)
-      const admin = createAdminClient();
-      const { data: ev } = await admin.from("application_events").select("id").eq("application_id", data.id).eq("to_status", v.status).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (ev) await admin.from("application_events").update({ visible_to_candidate: false }).eq("id", ev.id);
+      const hide = await supabase.rpc("hide_application_event", { p_application: data.id, p_status: v.status });
+      if (hide.error) console.error("[candidatures] étape non masquée", hide.error.message);
     }
-    await syncPipeline(data.candidate_id, v.status, offer.offer_type);
+    await syncPipeline(data.id);
     if (!v.internal) {
       await notifyCandidate(data.candidate_id, {
         category: v.status === "acceptee" || v.status === "refusee" ? "decision" : "candidature",
@@ -176,7 +167,7 @@ export async function partnerUpdateApplicationAction(values: Record<string, unkn
     const { data, error } = await supabase.from("applications").update(patch).eq("id", v.applicationId).select("id, candidate_id, job_offers(title, offer_type)").single();
     if (error || !data) return fail(dbErrorMessage(error, "Mise à jour impossible."));
     const offer = data.job_offers as unknown as { title: string; offer_type: string };
-    await syncPipeline(data.candidate_id, v.status, offer.offer_type);
+    await syncPipeline(data.id);
     await notifyCandidate(data.candidate_id, { category: v.status === "acceptee" || v.status === "refusee" ? "decision" : "candidature", title: `Candidature « ${offer.title} » : ${applicationStatusLabel[v.status]}`, link: "/candidat/candidatures" });
     await notifyStaffWithPermission("applications.manage", { category: "candidature", title: `Mise à jour partenaire : ${applicationStatusLabel[v.status]}`, body: offer.title, link: `/admin/candidatures` });
     revalidatePath(`/partenaire/candidatures/${data.id}`);
@@ -222,7 +213,7 @@ export async function scheduleInterviewAction(values: Record<string, unknown>): 
     const { data: app } = await supabase.from("applications").update({ status: "entretien_programme" }).eq("id", v.applicationId).select("candidate_id, job_offers(title, offer_type)").single();
     if (app) {
       const offer = app.job_offers as unknown as { title: string; offer_type: string };
-      await syncPipeline(app.candidate_id, "entretien_programme", offer.offer_type);
+      await syncPipeline(v.applicationId);
       await notifyCandidate(app.candidate_id, {
         category: "entretien",
         title: `Entretien programmé : ${offer.title}`,
@@ -272,14 +263,9 @@ export async function partnerFeedbackAction(values: Record<string, unknown>): Pr
     });
     if (error) return fail(dbErrorMessage(error, "Retour non enregistré."));
     if (v.skill_ratings.length) {
-      const admin = createAdminClient();
-      const { data: app } = await admin.from("applications").select("candidate_id").eq("id", v.applicationId).single();
-      if (app) {
-        await admin.from("skill_assessments").insert(v.skill_ratings.map((r) => ({
-          candidate_id: app.candidate_id, skill_id: r.skill_id, level: r.level === "expert" ? "avance" : r.level, source: "retour_partenaire",
-          confidence: "moyenne", status: "en_attente", notes: `Retour partenaire (${v.context})${r.comment ? ` : ${r.comment}` : ""}`,
-        })));
-      }
+      // preuves « en attente » : validées ou écartées ensuite par un évaluateur YEN
+      const fb = await supabase.rpc("add_partner_skill_feedback", { p_application: v.applicationId, p_context: v.context, p_ratings: v.skill_ratings });
+      if (fb.error) return fail(dbErrorMessage(fb.error, "Retour enregistré, mais les évaluations de compétences n'ont pas pu être transmises."));
     }
     await notifyStaffWithPermission("assessments.review", { category: "candidature", title: "Retour partenaire à examiner", link: "/admin/corrections" });
     revalidatePath(`/partenaire/candidatures/${v.applicationId}`);

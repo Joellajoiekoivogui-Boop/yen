@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import type { z } from "zod";
 import { getSession, type SessionContext } from "@/lib/auth/session";
 import type { Permission } from "@/lib/auth/permissions";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 /** Résultat standard d'une action serveur, sérialisable vers le client. */
 export type ActionResult<T = undefined> =
@@ -82,13 +82,14 @@ export async function clientIp(): Promise<string> {
 }
 
 /**
- * Limitation de débit partagée (table rate_limits). En cas d'indisponibilité
- * de la clé de service, la limite n'est pas appliquée mais l'erreur est journalisée.
+ * Limitation de débit partagée (table rate_limits, fonction SQL rate_limit_hit).
+ * Le plafond et la fenêtre de chaque type de clé sont fixés en base. En cas
+ * d'indisponibilité, la limite n'est pas appliquée mais l'erreur est journalisée.
  */
-export async function rateLimit(key: string, max: number, windowSeconds: number): Promise<boolean> {
+export async function rateLimit(key: string): Promise<boolean> {
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin.rpc("check_rate_limit", { p_key: key, p_max: max, p_window_seconds: windowSeconds });
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("rate_limit_hit", { p_key: key });
     if (error) throw error;
     return data === true;
   } catch (e) {
@@ -97,11 +98,16 @@ export async function rateLimit(key: string, max: number, windowSeconds: number)
   }
 }
 
-/** Journal d'audit applicatif (exports, téléchargements, décisions). Jamais de secrets. */
+/**
+ * Journal d'audit applicatif (exports, téléchargements, décisions). Jamais de secrets.
+ * L'entrée est attribuée en base à l'utilisateur connecté (fonction log_audit).
+ */
 export async function logAudit(actorId: string | null, action: string, entityType: string, entityId: string | null, details: Record<string, unknown> = {}) {
+  if (!actorId) return;
   try {
-    const admin = createAdminClient();
-    await admin.from("audit_logs").insert({ actor_id: actorId, action, entity_type: entityType, entity_id: entityId, details });
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("log_audit", { p_action: action, p_entity_type: entityType, p_entity_id: entityId, p_details: details });
+    if (error) throw error;
   } catch (e) {
     console.error("[audit] écriture impossible", e instanceof Error ? e.message : e);
   }

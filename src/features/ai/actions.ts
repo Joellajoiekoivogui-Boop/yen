@@ -7,7 +7,7 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 import { notifyCandidate } from "@/features/notifications/service";
 import { refreshPipelineStatus } from "@/features/candidates/pipeline";
-import { AINotConfiguredError } from "./provider";
+import { AINotConfiguredError, isAIConfigured } from "./provider";
 import type { CvExtraction } from "./schemas";
 import {
   analyzeProfile, assistantReply, ConsentRequiredError, extractCv, improveCv, managerSummary, normalizeExtractedSkills, progressPlan, suggestAnswerGrade,
@@ -17,12 +17,16 @@ import {
 const NOT_CONFIGURED_MSG = "Le service d'IA n'est pas configuré sur cette plateforme. Les autres fonctionnalités restent disponibles ; contactez l'administrateur YEN.";
 
 async function guardAI<T>(fn: () => Promise<T>): Promise<{ ok: true; value: T } | { ok: false; error: string }> {
+  if (!isAIConfigured()) return { ok: false, error: NOT_CONFIGURED_MSG };
   try {
     return { ok: true, value: await fn() };
   } catch (e) {
     if (e instanceof AINotConfiguredError) return { ok: false, error: NOT_CONFIGURED_MSG };
     if (e instanceof ConsentRequiredError) return { ok: false, error: e.message };
     if (e instanceof Error && /introuvable/.test(e.message)) return { ok: false, error: e.message };
+    if (e instanceof Error && e.message.includes("SUPABASE_SECRET_KEY")) {
+      return { ok: false, error: "Les fonctions d'IA nécessitent aussi la clé SUPABASE_SECRET_KEY dans la configuration du serveur. Prévenez l'administrateur de la plateforme." };
+    }
     console.error("[ai] échec", e instanceof Error ? e.message : e);
     return { ok: false, error: "Le service d'IA a rencontré une erreur. Réessayez plus tard." };
   }
@@ -38,7 +42,7 @@ function resultFrom(rec: AnalysisRecord, okMsg: string): ActionResult<{ analysis
 export async function runCvExtractionAction(documentId: string): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
     if (!isUuid(documentId)) return fail("Document invalide.");
-    if (!(await rateLimit(`ai:cv:${ctx.userId}`, 5, 3600))) return fail("Limite d'extractions atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:cv:${ctx.userId}`))) return fail("Limite d'extractions atteinte pour l'heure en cours.");
     const r = await guardAI(() => extractCv(ctx.candidateId!, documentId, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat/cv");
@@ -132,7 +136,7 @@ export async function applyCvExtractionAction(values: Record<string, unknown>): 
 
 export async function analyzeMyProfileAction(): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`ai:profile:${ctx.userId}`, 5, 3600))) return fail("Limite d'analyses atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:profile:${ctx.userId}`))) return fail("Limite d'analyses atteinte pour l'heure en cours.");
     const r = await guardAI(() => analyzeProfile(ctx.candidateId!, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat", "layout");
@@ -142,7 +146,7 @@ export async function analyzeMyProfileAction(): Promise<ActionResult<{ analysisI
 
 export async function improveMyCvAction(): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`ai:cvimp:${ctx.userId}`, 5, 3600))) return fail("Limite atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:cvimp:${ctx.userId}`))) return fail("Limite atteinte pour l'heure en cours.");
     const r = await guardAI(() => improveCv(ctx.candidateId!, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat/cv");
@@ -180,7 +184,7 @@ export async function applyCvSuggestionAction(values: Record<string, unknown>): 
 
 export async function generateProgressPlanAction(): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`ai:plan:${ctx.userId}`, 5, 3600))) return fail("Limite atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:plan:${ctx.userId}`))) return fail("Limite atteinte pour l'heure en cours.");
     const r = await guardAI(() => progressPlan(ctx.candidateId!, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat/progression");
@@ -196,7 +200,7 @@ export async function assistantAction(values: Record<string, unknown>): Promise<
   return runAction<{ reply: string }>({ requireCandidate: true }, async (ctx) => {
     const v = parseInput(chatSchema, values);
     if (v.messages[v.messages.length - 1].role !== "user") return fail("Message invalide.");
-    if (!(await rateLimit(`ai:chat:${ctx.userId}`, 40, 3600))) return fail("Vous avez atteint la limite de messages pour l'heure en cours.");
+    if (!(await rateLimit(`ai:chat:${ctx.userId}`))) return fail("Vous avez atteint la limite de messages pour l'heure en cours.");
     const r = await guardAI(() => assistantReply(ctx.candidateId!, v.messages));
     if (!r.ok) return fail(r.error);
     return { ok: true, data: { reply: r.value } };
@@ -258,7 +262,7 @@ export async function reviewAnalysisAction(values: Record<string, unknown>): Pro
     if (error) return fail(dbErrorMessage(error));
     if (v.validation_status === "rejete" || v.validation_status === "conteste") {
       // Les recommandations issues d'une analyse rejetée ou contestée sont retirées de l'espace candidat
-      await createAdminClient().from("ai_recommendations").update({ status: "ignoree" }).eq("analysis_id", v.analysisId).eq("status", "active");
+      await supabase.from("ai_recommendations").update({ status: "ignoree" }).eq("analysis_id", v.analysisId).eq("status", "active");
     }
     revalidatePath(`/admin/talents/${data?.candidate_id}`);
     return { ok: true, message: "Revue enregistrée." };

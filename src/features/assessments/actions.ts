@@ -3,49 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
-import { notifyCandidate, notifyStaffWithPermission } from "@/features/notifications/service";
-import { gradeAttempt } from "./grading";
-import { finalizeAttempt, loadGradableQuestions } from "./service";
+import { notifyCandidate, notifyDomainCandidates } from "@/features/notifications/service";
 
-const GRACE_MS = 5 * 60 * 1000;
-
-/** Démarre (ou reprend) une tentative. Les tentatives sont créées côté serveur uniquement. */
+/**
+ * Démarre (ou reprend) une tentative. Disponibilité, nombre maximal de tentatives
+ * et délai entre deux tentatives sont vérifiés en base (start_assessment_attempt).
+ */
 export async function startAttemptAction(assessmentId: string): Promise<ActionResult<{ attemptId: string }>> {
-  return runAction<{ attemptId: string }>({ requireCandidate: true }, async (ctx) => {
+  return runAction<{ attemptId: string }>({ requireCandidate: true }, async () => {
     if (!isUuid(assessmentId)) return fail("Évaluation invalide.");
     const supabase = await createClient();
-    const { data: a } = await supabase.from("assessments").select("id, version, duration_minutes, max_attempts, cooldown_hours, status").eq("id", assessmentId).eq("status", "publie").maybeSingle();
-    if (!a) return fail("Cette évaluation n'est pas disponible.");
-    const { data: attempts } = await supabase
-      .from("assessment_attempts")
-      .select("id, status, deadline_at, submitted_at, started_at")
-      .eq("assessment_id", a.id)
-      .eq("candidate_id", ctx.candidateId!)
-      .order("started_at", { ascending: false });
-    const open = (attempts ?? []).find((t) => t.status === "en_cours" && new Date(t.deadline_at).getTime() + GRACE_MS > Date.now());
-    if (open) return { ok: true, data: { attemptId: open.id } };
-    const done = (attempts ?? []).filter((t) => t.status !== "annule");
-    if (a.max_attempts && done.length >= a.max_attempts) return fail(`Nombre maximal de tentatives atteint (${a.max_attempts}).`);
-    const last = done.find((t) => t.submitted_at);
-    if (last && a.cooldown_hours > 0) {
-      const next = new Date(last.submitted_at!).getTime() + a.cooldown_hours * 3600_000;
-      if (next > Date.now()) return fail(`Vous pourrez repasser cette évaluation à partir du ${new Date(next).toLocaleString("fr-FR", { timeZone: "Africa/Conakry" })}.`);
-    }
-    const admin = createAdminClient();
-    const { data: created, error } = await admin
-      .from("assessment_attempts")
-      .insert({
-        assessment_id: a.id,
-        assessment_version: a.version,
-        candidate_id: ctx.candidateId,
-        deadline_at: new Date(Date.now() + a.duration_minutes * 60_000).toISOString(),
-      })
-      .select("id")
-      .single();
-    if (error || !created) return fail("La tentative n'a pas pu démarrer.");
-    return { ok: true, data: { attemptId: created.id } };
+    const { data, error } = await supabase.rpc("start_assessment_attempt", { p_assessment: assessmentId });
+    if (error || !data) return fail(dbErrorMessage(error, "La tentative n'a pas pu démarrer."));
+    return { ok: true, data: { attemptId: data as string } };
   });
 }
 
@@ -58,57 +30,22 @@ const submitSchema = z.object({
   })).max(200),
 });
 
-/** Soumission : correction automatique côté serveur ; les réponses libres partent en correction humaine. */
+/**
+ * Soumission : la correction automatique est faite en base (submit_assessment_attempt),
+ * sans que les clés de correction ne quittent jamais la base ; les réponses libres
+ * partent en correction humaine.
+ */
 export async function submitAttemptAction(values: Record<string, unknown>): Promise<ActionResult<{ status: string }>> {
-  return runAction<{ status: string }>({ requireCandidate: true }, async (ctx) => {
+  return runAction<{ status: string }>({ requireCandidate: true }, async () => {
     const v = parseInput(submitSchema, values);
     const supabase = await createClient();
-    const { data: attempt } = await supabase
-      .from("assessment_attempts")
-      .select("id, assessment_id, status, deadline_at, candidate_id, assessments(title)")
-      .eq("id", v.attemptId)
-      .eq("candidate_id", ctx.candidateId!)
-      .maybeSingle();
-    if (!attempt) return fail("Tentative introuvable.");
-    if (attempt.status !== "en_cours") return fail("Cette tentative a déjà été soumise.");
-    const admin = createAdminClient();
-    if (new Date(attempt.deadline_at).getTime() + GRACE_MS < Date.now()) {
-      await admin.from("assessment_attempts").update({ status: "expire", submitted_at: new Date().toISOString() }).eq("id", attempt.id);
-      return fail("Le temps imparti est dépassé : la tentative a expiré.");
-    }
-
-    const questions = await loadGradableQuestions(admin, attempt.assessment_id);
-    const qIds = new Set(questions.map((q) => q.id));
-    const answers = v.answers.filter((a) => qIds.has(a.questionId)).map((a) => ({ questionId: a.questionId, selectedOptionIds: a.selectedOptionIds, textAnswer: a.textAnswer?.trim() || null }));
-    const grade = gradeAttempt(questions, answers);
-
-    const rows = questions.map((q) => {
-      const a = answers.find((x) => x.questionId === q.id);
-      const g = grade.grades.find((x) => x.questionId === q.id)!;
-      return { attempt_id: attempt.id, question_id: q.id, selected_option_ids: a?.selectedOptionIds ?? [], text_answer: a?.textAnswer ?? null, auto_points: g.points };
-    });
-    const ins = await admin.from("assessment_answers").upsert(rows, { onConflict: "attempt_id,question_id" });
-    if (ins.error) return fail("Vos réponses n'ont pas pu être enregistrées.");
-
-    await admin.from("assessment_attempts").update({
-      status: grade.needsReview ? "en_correction" : "en_cours",
-      submitted_at: new Date().toISOString(),
-      needs_human_review: grade.needsReview,
-      max_points: grade.maxPoints,
-    }).eq("id", attempt.id);
-
-    if (grade.needsReview) {
-      await notifyStaffWithPermission("assessments.review", {
-        category: "evaluation",
-        title: "Nouvelle correction à effectuer",
-        body: `Une tentative de « ${(attempt.assessments as unknown as { title: string }).title} » attend une correction humaine.`,
-        link: `/admin/corrections/${attempt.id}`,
-      });
-      revalidatePath("/candidat/evaluations");
+    const { data: status, error } = await supabase.rpc("submit_assessment_attempt", { p_attempt: v.attemptId, p_answers: v.answers });
+    if (error) return fail(dbErrorMessage(error, "Vos réponses n'ont pas pu être enregistrées."));
+    if (status === "expire") return fail("Le temps imparti est dépassé : la tentative a expiré.");
+    revalidatePath("/candidat", "layout");
+    if (status === "en_correction") {
       return { ok: true, message: "Réponses envoyées. Certaines questions seront corrigées par un évaluateur YEN : vous serez notifié du résultat.", data: { status: "en_correction" } };
     }
-    await finalizeAttempt(attempt.id, null);
-    revalidatePath("/candidat", "layout");
     return { ok: true, message: "Évaluation corrigée.", data: { status: "corrige" } };
   });
 }
@@ -137,10 +74,9 @@ export async function reviewAttemptAction(values: Record<string, unknown>): Prom
       const r = await supabase.from("assessment_answers").update({ manual_points: g.points, reviewer_comment: g.comment ?? null, graded_by: ctx.userId }).eq("id", g.answerId);
       if (r.error) return fail(dbErrorMessage(r.error));
     }
-    try {
-      await finalizeAttempt(attempt.id, ctx.userId, v.comment);
-    } catch (e) {
-      return fail(e instanceof Error && e.message === "Correction incomplète" ? "Toutes les questions à correction humaine doivent être notées." : "La correction n'a pas pu être finalisée.");
+    const fin = await supabase.rpc("finalize_assessment_review", { p_attempt: attempt.id, p_comment: v.comment ?? null });
+    if (fin.error) {
+      return fail(fin.error.message === "Correction incomplète" ? "Toutes les questions à correction humaine doivent être notées." : dbErrorMessage(fin.error, "La correction n'a pas pu être finalisée."));
     }
     await logAudit(ctx.userId, "attempt_reviewed", "assessment_attempts", attempt.id);
     revalidatePath("/admin/corrections");
@@ -357,10 +293,8 @@ export async function setAssessmentStatusAction(assessmentId: string, status: "b
     if (error) return fail(dbErrorMessage(error));
     if (status === "publie") {
       // Information des candidats du domaine (notification interne)
-      const admin = createAdminClient();
-      const { data: a } = await admin.from("assessments").select("title, domain_id").eq("id", assessmentId).single();
-      const { data: cands } = await admin.from("candidate_profiles").select("id").eq("primary_domain_id", a?.domain_id ?? "");
-      await Promise.all((cands ?? []).slice(0, 500).map((c) => notifyCandidate(c.id, { category: "evaluation", title: `Nouvelle évaluation : ${a?.title}`, link: `/candidat/evaluations/${assessmentId}` })));
+      const { data: a } = await supabase.from("assessments").select("title, domain_id").eq("id", assessmentId).single();
+      if (a?.domain_id) await notifyDomainCandidates(a.domain_id, null, { category: "evaluation", title: `Nouvelle évaluation : ${a.title}`, link: `/candidat/evaluations/${assessmentId}` });
     }
     revalidatePath("/admin/evaluations");
     return { ok: true, message: "Statut mis à jour." };

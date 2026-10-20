@@ -1,18 +1,17 @@
 import "server-only";
 import { DEFAULT_WEIGHTS, normalizeWeights, type Weights } from "@/features/matching/engine";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
- * Paramètres de la plateforme. Lecture via la clé de service car la table n'est
- * lisible que par le personnel ; seules des clés explicitement listées ici sont
- * exposées aux pages publiques.
+ * Paramètres de la plateforme (aucun secret). Lisibles par les comptes connectés
+ * (RLS) ; seules les clés listées ici sont lisibles sans connexion.
  */
 const PUBLIC_KEYS = new Set(["documents.max_cv_size_mb"]);
 
 async function readSetting(key: string): Promise<unknown> {
   try {
-    const admin = createAdminClient();
-    const { data } = await admin.from("platform_settings").select("value").eq("key", key).maybeSingle();
+    const supabase = await createClient();
+    const { data } = await supabase.from("platform_settings").select("value").eq("key", key).maybeSingle();
     return data?.value ?? null;
   } catch {
     return null;

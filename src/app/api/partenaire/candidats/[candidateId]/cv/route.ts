@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { logAudit } from "@/lib/action";
 import { getSession } from "@/lib/auth/session";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 
 /**
@@ -20,17 +20,11 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/partenaire/
   const { data: allowed } = await supabase.rpc("partner_can_view_cv", { p_candidate: candidateId });
   if (allowed !== true) return new NextResponse("Accès refusé", { status: 403 });
 
-  const admin = createAdminClient();
-  const { data: doc } = await admin
-    .from("candidate_documents")
-    .select("id, storage_path")
-    .eq("candidate_id", candidateId)
-    .eq("kind", "cv")
-    .eq("is_current", true)
-    .is("deleted_at", null)
-    .maybeSingle();
+  // partner_cv_document et la politique de stockage n'autorisent que le CV courant d'un candidat visible
+  const { data: rows } = await supabase.rpc("partner_cv_document", { p_candidate: candidateId });
+  const doc = ((rows ?? []) as { id: string; storage_path: string }[])[0];
   if (!doc) return new NextResponse("Aucun CV disponible", { status: 404 });
-  const { data } = await admin.storage.from("candidate-documents").createSignedUrl(doc.storage_path, 60, { download: "cv-candidat.pdf" });
+  const { data } = await supabase.storage.from("candidate-documents").createSignedUrl(doc.storage_path, 60, { download: "cv-candidat.pdf" });
   if (!data) return new NextResponse("Lien indisponible", { status: 500 });
   await logAudit(session.userId, "partner_cv_downloaded", "candidate_documents", doc.id, { candidate_id: candidateId, organization_id: session.partnerOrganizationIds[0] });
   return NextResponse.redirect(data.signedUrl, { headers: { "Cache-Control": "no-store" } });

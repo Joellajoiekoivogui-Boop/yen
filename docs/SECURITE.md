@@ -28,7 +28,27 @@ RLS est activée sur **toutes** les tables du schéma `public` (migration 6). Po
 - Notes internes : personnel avec `notes.manage` uniquement.
 - Journal d'audit : lecture `audit.read`, ajout seul (mise à jour et suppression interdites par trigger).
 
-Ces règles sont couvertes par 40 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`).
+## Fonctions SQL de confiance (sans clé de service)
+
+Les opérations qu'un utilisateur ne doit pas pouvoir faire directement passent par des fonctions SQL
+`SECURITY DEFINER` (migration 11) qui vérifient elles-mêmes l'appelant (`auth.uid()`, permissions) :
+- **Évaluations** : `start_assessment_attempt`, `get_attempt_questions` (jamais de bonne réponse ni d'explication),
+  `submit_assessment_attempt` (correction en base, mêmes règles que `grading.ts`), `finalize_assessment_review`
+  (évaluateur), `get_attempt_review`. Les clés de correction ne quittent jamais la base.
+- **Documents** : `register_cv_document` (dossier `<user_id>/` imposé), `retire_candidate_document`, `set_current_cv`.
+- **Notifications** : qui peut prévenir qui est contrôlé en base (personnel, candidat concerné, organisation qui suit
+  la candidature) ; liens internes uniquement.
+- **Pipeline** : seules les étapes automatiques sont réglables par le candidat ; le reste suit les candidatures.
+- **Partenaires** : `partner_candidate_data` ne renvoie que des champs professionnels, après `partner_can_view_candidate()`.
+- **Limitation de débit** : `rate_limit_hit`, plafonds fixés en base ; les clés liées à un utilisateur doivent être les siennes.
+- **Journal** : `log_audit` écrit au nom de l'utilisateur connecté ; les triggers d'audit conservent l'auteur réel
+  même dans les sections exécutées « comme le service » (`_as_service`, non appelable par les clients).
+
+La clé de service n'est donc plus nécessaire en production (elle reste utilisée par les fonctions d'IA et la
+déconnexion immédiate d'un compte désactivé).
+
+Ces règles sont couvertes par 64 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`,
+`tests/db/server-functions.test.ts`).
 
 ## Documents
 

@@ -8,6 +8,7 @@ import { MatchDetails } from "@/components/match-details";
 import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, DefinitionList, DemoBadge, EmptyState, PageHeader, ProgressBar, TabLinks, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { fillMissingSnapshots } from "@/features/applications/snapshots";
 import {
   applicationStatusLabel, attemptStatusLabel, availabilityLabel, candidateStatusLabel, confidenceLabel, consentLabel, experienceTypeLabel, levelLabel, opportunityLabel, pipelineLabel,
   skillSourceLabel, type ApplicationStatus, type Availability, type OpportunityType, type PipelineStatus,
@@ -604,11 +605,12 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
 
   async function ApplicationsTab() {
     const [apps, offers, orgs, shares] = await Promise.all([
-      supabase.from("applications").select("id, status, origin, submitted_at, visible_to_partner, decision_reason, match_snapshot, job_offers(id, title, organizations(name)), application_events(id, to_status, note, created_at, visible_to_candidate), interviews(id, scheduled_at, mode, status, outcome)").eq("candidate_id", id).order("updated_at", { ascending: false }),
+      supabase.from("applications").select("id, offer_id, candidate_id, status, origin, submitted_at, visible_to_partner, decision_reason, match_snapshot, job_offers(id, title, organizations(name)), application_events(id, to_status, note, created_at, visible_to_candidate), interviews(id, scheduled_at, mode, status, outcome)").eq("candidate_id", id).order("updated_at", { ascending: false }),
       supabase.from("job_offers").select("id, title, organizations(name)").eq("status", "publiee").order("published_at", { ascending: false }).limit(200),
       supabase.from("organizations").select("id, name").eq("status", "actif").order("name"),
       supabase.from("profile_shares").select("id, reason, created_at, expires_at, revoked_at, include_cv, organizations(name)").eq("candidate_id", id).order("created_at", { ascending: false }),
     ]);
+    await fillMissingSnapshots(supabase, apps.data ?? [], can("applications.manage"));
     const offerOpts = (offers.data ?? []).map((o) => ({ value: o.id, label: `${o.title} — ${(o.organizations as unknown as { name: string } | null)?.name ?? ""}` }));
     return (
       <div className="grid gap-6 lg:grid-cols-3">

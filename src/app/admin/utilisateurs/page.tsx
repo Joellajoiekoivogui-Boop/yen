@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Badge, Card, CardBody, CardHeader, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { roleLabel, type AppRole } from "@/lib/labels";
 import { clampInt, formatDate, formatDateTime, fullName, param } from "@/lib/utils";
 import { UserRow } from "./forms";
@@ -19,7 +19,7 @@ export default async function UsersPage(props: PageProps<"/admin/utilisateurs">)
   if (type && ["candidate", "partner", "staff"].includes(type)) q = q.eq("account_type", type);
   if (qText) q = q.or(`email.ilike.%${qText}%,last_name.ilike.%${qText}%,first_name.ilike.%${qText}%`);
   const { data, count } = await q;
-  const { data: deletions } = await createAdminClient().from("audit_logs").select("id, actor_id, entity_id, details, created_at").eq("action", "deletion_requested").order("created_at", { ascending: false }).limit(20);
+  const { data: deletions } = await supabase.from("audit_logs").select("id, actor_id, entity_id, details, created_at").eq("action", "deletion_requested").order("created_at", { ascending: false }).limit(20);
 
   return (
     <div className="space-y-6">

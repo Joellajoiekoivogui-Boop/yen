@@ -5,8 +5,11 @@
 1. Créer le projet Supabase de production, appliquer les migrations (`supabase db push`) et le catalogue (`supabase/seed.sql`).
 2. Configurer l'authentification (voir INSTALLATION §2.4) avec l'URL de production.
 3. Importer le dépôt dans Vercel (framework Next.js détecté). Variables d'environnement (Production) :
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`,
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`,
    et si besoin `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `AI_MODEL`, `CLAMAV_SCAN_URL`.
+   `SUPABASE_SECRET_KEY` est **facultative** : toutes les fonctions (évaluations, CV, notifications, vue
+   partenaire…) passent par des fonctions SQL sécurisées (migration 11). Elle ne sert qu'aux fonctions d'IA
+   et à la déconnexion immédiate d'un compte désactivé.
    Les variables `NEXT_PUBLIC_*` sont intégrées au build : redéployer après modification.
    Les valeurs publiques du déploiement actuel sont aussi versionnées dans `.env.production` (jamais de secret) ;
    une variable définie dans Vercel reste prioritaire. `SUPABASE_SECRET_KEY` se configure uniquement dans Vercel.

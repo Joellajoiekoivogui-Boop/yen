@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Hourglass, XCircle } from "lucide-react";
 import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, PageHeader, ProgressBar } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { formatDateTime, isUuid } from "@/lib/utils";
-import { deliverQuestions } from "@/features/assessments/service";
+import { deliverAttemptQuestions, loadAttemptReview, type AttemptReviewItem } from "@/features/assessments/service";
 import { AttemptRunner } from "./attempt-runner";
 
 export default async function AttemptPage(props: PageProps<"/candidat/evaluations/tentative/[attemptId]">) {
@@ -23,7 +23,7 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
   const a = t.assessments as unknown as { title: string; passing_score: number };
 
   if (t.status === "en_cours") {
-    const questions = await deliverQuestions(t.assessment_id);
+    const questions = await deliverAttemptQuestions(t.id);
     return (
       <div className="mx-auto max-w-3xl">
         <PageHeader title={a.title} description="Vos réponses sont corrigées côté serveur à la soumission." />
@@ -33,18 +33,7 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
   }
 
   // Résultat : réponses, points et explications (après correction uniquement)
-  let review: { prompt: string; points: number | null; max: number; explanation: string | null; comment: string | null; feedback: string | null; position: number }[] = [];
-  if (t.status === "corrige") {
-    const admin = createAdminClient();
-    const { data } = await admin
-      .from("assessment_answers")
-      .select("final_points, reviewer_comment, assessment_questions(prompt, points, explanation, position)")
-      .eq("attempt_id", t.id);
-    review = (data ?? []).map((r) => {
-      const q = r.assessment_questions as unknown as { prompt: string; points: number; explanation: string | null; position: number };
-      return { prompt: q.prompt, points: r.final_points != null ? Number(r.final_points) : null, max: Number(q.points), explanation: q.explanation, comment: r.reviewer_comment, feedback: null, position: q.position };
-    }).sort((x, y) => x.position - y.position);
-  }
+  const review: AttemptReviewItem[] = t.status === "corrige" ? await loadAttemptReview(t.id) : [];
   const bySkill = ((t.result_details as { bySkill?: { skillId: string; name: string | null; percent: number; earned: number; max: number }[] })?.bySkill) ?? [];
   const recs = (t.recommendations as { title: string; body: string }[]) ?? [];
 

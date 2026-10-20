@@ -17,7 +17,7 @@ export default async function SettingsPage() {
   const env = serverEnv();
   const integ = [
     { name: "Fournisseur d'IA", ok: isAIConfigured(), detail: isAIConfigured() ? `${env.aiProvider} · ${env.aiModel}` : "Non configuré (AI_PROVIDER, ANTHROPIC_API_KEY)" },
-    { name: "Clé de service Supabase (serveur)", ok: Boolean(env.supabaseServiceKey), detail: env.supabaseServiceKey ? "Configurée" : "Manquante (SUPABASE_SECRET_KEY)" },
+    { name: "Clé de service Supabase (facultative)", ok: Boolean(env.supabaseServiceKey), detail: env.supabaseServiceKey ? "Configurée" : "Non configurée : seules les fonctions d'IA et la déconnexion immédiate d'un compte désactivé en ont besoin" },
     { name: "Antivirus (ClamAV)", ok: Boolean(env.clamavScanUrl), detail: env.clamavScanUrl ? "Configuré" : "Non configuré : contrôle structurel des PDF uniquement" },
     { name: "Notifications e-mail", ok: env.emailProvider !== "none", detail: env.emailProvider === "none" ? "Non configuré (notifications internes uniquement)" : env.emailProvider },
     { name: "Notifications SMS", ok: env.smsProvider !== "none", detail: env.smsProvider === "none" ? "Non configuré" : env.smsProvider },

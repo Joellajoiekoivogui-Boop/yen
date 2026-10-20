@@ -1,5 +1,5 @@
 import "server-only";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { aggregateDemonstrated, type SkillAssessmentRow } from "@/features/candidates/skills";
 import type { SkillLevel } from "@/lib/labels";
 
@@ -35,67 +35,55 @@ export interface PartnerCandidateView {
  */
 export async function loadPartnerCandidateView(candidateId: string): Promise<PartnerCandidateView | null> {
   const supabase = await createClient();
-  const { data: allowed } = await supabase.rpc("partner_can_view_candidate", { p_candidate: candidateId });
-  if (allowed !== true) return null;
-  const { data: cvAllowed } = await supabase.rpc("partner_can_view_cv", { p_candidate: candidateId });
-
-  const admin = createAdminClient();
-  const { data: c } = await admin
-    .from("candidate_profiles")
-    .select("id, user_id, public_code, headline, summary, education_level, yen_program, availability, opportunity_types, engineering_domains(name)")
-    .eq("id", candidateId)
-    .single();
-  if (!c) return null;
-  const [person, sa, declared, projects, exps, edu, certs, langs, cv, attempts] = await Promise.all([
-    admin.from("profiles").select("first_name, last_name, city").eq("id", c.user_id).single(),
-    admin.from("skill_assessments").select("id, skill_id, level, score_percent, source, status, attempt_id, project_id, assessed_at").eq("candidate_id", candidateId),
-    admin.from("candidate_skills").select("skill_id, self_level, skills(name)").eq("candidate_id", candidateId),
-    admin.from("candidate_projects").select("title, description, technologies, verification_status, outcomes").eq("candidate_id", candidateId).neq("verification_status", "rejete"),
-    admin.from("candidate_experiences").select("title, organization, start_date, end_date, is_current, description").eq("candidate_id", candidateId).order("start_date", { ascending: false }),
-    admin.from("candidate_education").select("degree, institution, end_year").eq("candidate_id", candidateId),
-    admin.from("candidate_certifications").select("name, issuer, verification_status").eq("candidate_id", candidateId).neq("verification_status", "rejete"),
-    admin.from("candidate_languages").select("language, proficiency").eq("candidate_id", candidateId),
-    admin.from("candidate_documents").select("id").eq("candidate_id", candidateId).eq("kind", "cv").eq("is_current", true).is("deleted_at", null).maybeSingle(),
-    admin.from("assessment_attempts").select("score_percent, passed, graded_at, assessments(title)").eq("candidate_id", candidateId).eq("status", "corrige").order("graded_at", { ascending: false }),
-  ]);
-  const skillIds = [...new Set((sa.data ?? []).map((s) => s.skill_id))];
-  const { data: skillNames } = skillIds.length ? await admin.from("skills").select("id, name").in("id", skillIds) : { data: [] };
-  const name = Object.fromEntries((skillNames ?? []).map((s) => [s.id, s.name]));
-  const dem = aggregateDemonstrated((sa.data ?? []) as SkillAssessmentRow[]);
+  // partner_candidate_data vérifie l'accès (partner_can_view_candidate) puis ne renvoie que des champs professionnels
+  const { data, error } = await supabase.rpc("partner_candidate_data", { p_candidate: candidateId });
+  if (error || !data) return null;
+  const d = data as {
+    id: string; public_code: string; headline: string | null; summary: string | null; education_level: string | null; yen_program: string | null;
+    availability: string; opportunity_types: string[]; domain: string | null; first_name: string; last_name: string; city: string | null;
+    skill_assessments: (SkillAssessmentRow & { skill_name: string })[];
+    declared: { skill_id: string; self_level: SkillLevel; name: string }[];
+    projects: { title: string; description: string; technologies: string[]; verification_status: string; outcomes: string | null }[];
+    experiences: PartnerCandidateView["experiences"];
+    education: PartnerCandidateView["education"];
+    certifications: { name: string; issuer: string; verification_status: string }[];
+    languages: PartnerCandidateView["languages"];
+    has_cv: boolean; can_download_cv: boolean;
+    results: { title: string; score_percent: number | string | null; passed: boolean | null; graded_at: string | null }[];
+  };
+  const name = Object.fromEntries(d.skill_assessments.map((s) => [s.skill_id, s.skill_name]));
+  const dem = aggregateDemonstrated(d.skill_assessments.map((s) => ({ ...s, score_percent: s.score_percent != null ? Number(s.score_percent) : null })));
 
   return {
-    id: c.id,
-    public_code: c.public_code,
-    name: `${person.data?.first_name ?? ""} ${person.data?.last_name ?? ""}`.trim(),
-    city: person.data?.city ?? null,
-    headline: c.headline,
-    summary: c.summary,
-    domain: (c.engineering_domains as unknown as { name: string } | null)?.name ?? null,
-    education_level: c.education_level,
-    yen_program: c.yen_program,
-    availability: c.availability,
-    opportunity_types: c.opportunity_types,
-    hasCv: Boolean(cv.data),
-    canDownloadCv: cvAllowed === true && Boolean(cv.data),
-    demonstrated: Object.entries(dem).map(([id, d]) => ({ skill: name[id] ?? "—", level: d.level, sources: d.sources.map((s) => s.label) })),
-    declared: (declared.data ?? []).filter((d) => !dem[d.skill_id]).map((d) => ({ skill: (d.skills as unknown as { name: string } | null)?.name ?? "—", level: d.self_level as SkillLevel })),
-    projects: (projects.data ?? []).map((p) => ({ title: p.title, description: p.description, technologies: p.technologies, verified: p.verification_status === "verifie", outcomes: p.outcomes })),
-    experiences: exps.data ?? [],
-    education: edu.data ?? [],
-    certifications: (certs.data ?? []).map((x) => ({ name: x.name, issuer: x.issuer, verified: x.verification_status === "verifie" })),
-    languages: langs.data ?? [],
-    results: (attempts.data ?? []).map((a) => ({ title: (a.assessments as unknown as { title: string }).title, score: a.score_percent != null ? Number(a.score_percent) : null, passed: a.passed, date: a.graded_at })),
+    id: d.id,
+    public_code: d.public_code,
+    name: `${d.first_name ?? ""} ${d.last_name ?? ""}`.trim(),
+    city: d.city,
+    headline: d.headline,
+    summary: d.summary,
+    domain: d.domain,
+    education_level: d.education_level,
+    yen_program: d.yen_program,
+    availability: d.availability,
+    opportunity_types: d.opportunity_types ?? [],
+    hasCv: d.has_cv,
+    canDownloadCv: d.can_download_cv && d.has_cv,
+    demonstrated: Object.entries(dem).map(([id, x]) => ({ skill: name[id] ?? "—", level: x.level, sources: x.sources.map((s) => s.label) })),
+    declared: d.declared.filter((x) => !dem[x.skill_id]).map((x) => ({ skill: x.name ?? "—", level: x.self_level })),
+    projects: d.projects.map((p) => ({ title: p.title, description: p.description, technologies: p.technologies ?? [], verified: p.verification_status === "verifie", outcomes: p.outcomes })),
+    experiences: d.experiences,
+    education: d.education,
+    certifications: d.certifications.map((x) => ({ name: x.name, issuer: x.issuer, verified: x.verification_status === "verifie" })),
+    languages: d.languages,
+    results: d.results.map((r) => ({ title: r.title, score: r.score_percent != null ? Number(r.score_percent) : null, passed: r.passed, date: r.graded_at })),
   };
 }
 
-/**
- * Identifiants publics YEN des candidats des candidatures listées pour un
- * partenaire. À n'appeler QU'avec des identifiants issus de lignes déjà
- * filtrées par RLS (candidatures visibles par l'organisation).
- */
+/** Identifiants publics YEN des candidats que l'organisation du partenaire peut consulter. */
 export async function publicCodesForVisibleApplications(candidateIds: string[]): Promise<Map<string, string>> {
   const ids = [...new Set(candidateIds)];
   if (!ids.length) return new Map();
-  const { data } = await createAdminClient().from("candidate_profiles").select("id, public_code").in("id", ids);
-  return new Map((data ?? []).map((c) => [c.id, c.public_code]));
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("partner_candidate_codes", { p_ids: ids });
+  return new Map(((data ?? []) as { id: string; public_code: string }[]).map((c) => [c.id, c.public_code]));
 }

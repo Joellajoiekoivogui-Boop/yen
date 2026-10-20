@@ -19,7 +19,7 @@ export async function signInAction(values: Record<string, unknown>): Promise<Act
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(signInSchema, values);
     const ip = await clientIp();
-    if (!(await rateLimit(`login:ip:${ip}`, 30, 900)) || !(await rateLimit(`login:email:${input.email}`, 8, 900))) {
+    if (!(await rateLimit(`login:ip:${ip}`)) || !(await rateLimit(`login:email:${input.email}`))) {
       return fail("Trop de tentatives de connexion. Patientez 15 minutes avant de réessayer.");
     }
     const supabase = await createClient();
@@ -42,7 +42,7 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
   return runAction<{ redirectTo?: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(candidateSignUpSchema, values);
-    if (!(await rateLimit(`signup:ip:${await clientIp()}`, 10, 3600))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
+    if (!(await rateLimit(`signup:ip:${await clientIp()}`))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
     const supabase = await createClient();
     const { password, password_confirm: _c, email, ...meta } = input;
     const { data, error } = await supabase.auth.signUp({
@@ -70,7 +70,7 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(partnerSignUpSchema, values);
-    if (!(await rateLimit(`signup:ip:${await clientIp()}`, 10, 3600))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
+    if (!(await rateLimit(`signup:ip:${await clientIp()}`))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
     const supabase = await createClient();
     const { password, password_confirm: _c, email, ...meta } = input;
     const { error } = await supabase.auth.signUp({
@@ -97,7 +97,7 @@ export async function requestPasswordResetAction(values: Record<string, unknown>
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(resetRequestSchema, values);
-    if (!(await rateLimit(`reset:ip:${await clientIp()}`, 10, 3600)) || !(await rateLimit(`reset:email:${input.email}`, 3, 3600))) {
+    if (!(await rateLimit(`reset:ip:${await clientIp()}`)) || !(await rateLimit(`reset:email:${input.email}`))) {
       return fail("Trop de demandes. Réessayez plus tard.");
     }
     const supabase = await createClient();

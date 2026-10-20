@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { extractText, getDocumentProxy } from "unpdf";
 import { getMaxCvBytes } from "@/features/admin/settings";
 import { dbErrorMessage, fail, logAudit, rateLimit, runAction, type ActionResult } from "@/lib/action";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 import { refreshPipelineStatus } from "@/features/candidates/pipeline";
 import { checkPdf, sanitizeFilename } from "./pdf-validation";
@@ -23,7 +23,7 @@ const CV_BUCKET = "candidate-documents";
  */
 export async function uploadCvAction(formData: FormData): Promise<ActionResult> {
   return runAction({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`cv-upload:${ctx.userId}`, 10, 3600))) return fail("Trop de téléversements récents. Réessayez dans une heure.");
+    if (!(await rateLimit(`cv-upload:${ctx.userId}`))) return fail("Trop de téléversements récents. Réessayez dans une heure.");
     const file = formData.get("file");
     if (!(file instanceof File)) return fail("Aucun fichier reçu.");
     const maxBytes = await getMaxCvBytes();
@@ -48,21 +48,9 @@ export async function uploadCvAction(formData: FormData): Promise<ActionResult> 
     }
 
     const supabase = await createClient();
-    const admin = createAdminClient();
     const path = `${ctx.userId}/${randomUUID()}.pdf`;
     const up = await supabase.storage.from(CV_BUCKET).upload(path, bytes, { contentType: "application/pdf", upsert: false, cacheControl: "0" });
     if (up.error) return fail("Le fichier n'a pas pu être stocké. Réessayez.");
-
-    const { data: previous } = await admin
-      .from("candidate_documents")
-      .select("id, version")
-      .eq("candidate_id", ctx.candidateId!)
-      .eq("kind", "cv")
-      .order("version", { ascending: false })
-      .limit(1);
-    const prevCurrent = await admin.from("candidate_documents").select("id").eq("candidate_id", ctx.candidateId!).eq("kind", "cv").eq("is_current", true).is("deleted_at", null);
-    const prevIds = (prevCurrent.data ?? []).map((d) => d.id);
-    if (prevIds.length) await admin.from("candidate_documents").update({ is_current: false }).in("id", prevIds);
 
     // Lecture des pages et du texte
     let pageCount: number | null = null;
@@ -77,37 +65,23 @@ export async function uploadCvAction(formData: FormData): Promise<ActionResult> 
     }
     const extractionStatus = text.length >= 150 ? "extrait" : "ocr_requis";
 
-    const ins = await supabase
-      .from("candidate_documents")
-      .insert({
-        candidate_id: ctx.candidateId,
-        kind: "cv",
-        storage_path: path,
-        original_filename: sanitizeFilename(file.name),
-        mime_type: "application/pdf",
-        size_bytes: bytes.byteLength,
-        sha256: check.sha256,
-        version: (previous?.[0]?.version ?? 0) + 1,
-        is_current: true,
-        scan_status: scan.status,
-        scan_details: scan.details,
-        page_count: pageCount,
-        text_extraction_status: extractionStatus,
-        uploaded_by: ctx.userId,
-      })
-      .select("id")
-      .single();
-
-    if (ins.error || !ins.data) {
-      // Annulation : restaure la version précédente et supprime le fichier
-      if (prevIds.length) await admin.from("candidate_documents").update({ is_current: true }).in("id", prevIds);
+    // Nouvelle version courante (numéro et bascule calculés en base, en une transaction)
+    const reg = await supabase.rpc("register_cv_document", {
+      p_storage_path: path,
+      p_filename: sanitizeFilename(file.name),
+      p_size: bytes.byteLength,
+      p_sha256: check.sha256,
+      p_scan_status: scan.status,
+      p_scan_details: scan.details,
+      p_page_count: pageCount,
+      p_text_status: extractionStatus,
+      p_text: extractionStatus === "extrait" ? text.slice(0, 200_000) : null,
+    });
+    if (reg.error) {
       await supabase.storage.from(CV_BUCKET).remove([path]);
-      return fail(dbErrorMessage(ins.error, "Le document n'a pas pu être enregistré."));
+      return fail(dbErrorMessage(reg.error, "Le document n'a pas pu être enregistré."));
     }
 
-    if (extractionStatus === "extrait") {
-      await admin.from("candidate_document_texts").insert({ document_id: ins.data.id, candidate_id: ctx.candidateId, method: "pdf_text", content: text.slice(0, 200_000) });
-    }
     await refreshPipelineStatus(ctx.candidateId!);
     revalidatePath("/candidat", "layout");
     return {
@@ -124,20 +98,10 @@ export async function deleteCvVersionAction(documentId: string): Promise<ActionR
   return runAction({ requireCandidate: true }, async (ctx) => {
     if (!isUuid(documentId)) return fail("Identifiant invalide.");
     const supabase = await createClient();
-    const { data: doc } = await supabase
-      .from("candidate_documents")
-      .select("id, storage_path, is_current, candidate_id")
-      .eq("id", documentId)
-      .eq("candidate_id", ctx.candidateId!)
-      .is("deleted_at", null)
-      .maybeSingle();
-    if (!doc) return fail("Document introuvable.");
-    const rm = await supabase.storage.from(CV_BUCKET).remove([doc.storage_path]);
-    if (rm.error) return fail("Le fichier n'a pas pu être supprimé.");
-    const admin = createAdminClient();
-    const upd = await admin.from("candidate_documents").update({ deleted_at: new Date().toISOString(), is_current: false }).eq("id", doc.id);
-    if (upd.error) return fail(dbErrorMessage(upd.error));
-    await admin.from("candidate_document_texts").delete().eq("document_id", doc.id);
+    const { data: path, error } = await supabase.rpc("retire_candidate_document", { p_document: documentId });
+    if (error || !path) return fail(dbErrorMessage(error, "Document introuvable."));
+    const rm = await supabase.storage.from(CV_BUCKET).remove([path as string]);
+    if (rm.error) console.error("[cv] fichier non effacé du stockage", rm.error.message);
     await refreshPipelineStatus(ctx.candidateId!);
     revalidatePath("/candidat", "layout");
     return { ok: true, message: "Version supprimée." };
@@ -146,15 +110,11 @@ export async function deleteCvVersionAction(documentId: string): Promise<ActionR
 
 /** Rétablit une version précédente comme CV courant. */
 export async function restoreCvVersionAction(documentId: string): Promise<ActionResult> {
-  return runAction({ requireCandidate: true }, async (ctx) => {
+  return runAction({ requireCandidate: true }, async () => {
     if (!isUuid(documentId)) return fail("Identifiant invalide.");
     const supabase = await createClient();
-    const { data: doc } = await supabase.from("candidate_documents").select("id").eq("id", documentId).eq("candidate_id", ctx.candidateId!).eq("kind", "cv").is("deleted_at", null).maybeSingle();
-    if (!doc) return fail("Document introuvable.");
-    const admin = createAdminClient();
-    await admin.from("candidate_documents").update({ is_current: false }).eq("candidate_id", ctx.candidateId!).eq("kind", "cv").eq("is_current", true);
-    const { error } = await admin.from("candidate_documents").update({ is_current: true }).eq("id", doc.id);
-    if (error) return fail(dbErrorMessage(error));
+    const { error } = await supabase.rpc("set_current_cv", { p_document: documentId });
+    if (error) return fail(dbErrorMessage(error, "Document introuvable."));
     revalidatePath("/candidat/cv");
     return { ok: true, message: "Version rétablie comme CV actuel." };
   });
