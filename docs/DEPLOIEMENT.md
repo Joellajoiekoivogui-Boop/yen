@@ -8,6 +8,8 @@
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`,
    et si besoin `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `AI_MODEL`, `CLAMAV_SCAN_URL`.
    Les variables `NEXT_PUBLIC_*` sont intégrées au build : redéployer après modification.
+   Les valeurs publiques du déploiement actuel sont aussi versionnées dans `.env.production` (jamais de secret) ;
+   une variable définie dans Vercel reste prioritaire. `SUPABASE_SECRET_KEY` se configure uniquement dans Vercel.
 4. Déployer, puis créer le premier administrateur (`npm run admin:create` depuis un poste disposant de la clé secrète).
 5. Vérifier : inscription + e-mail de confirmation, téléversement d'un CV, page *Paramètres → intégrations*.
 
