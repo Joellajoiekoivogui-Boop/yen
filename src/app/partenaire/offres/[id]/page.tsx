@@ -42,7 +42,7 @@ export default async function PartnerOfferPage(props: PageProps<"/partenaire/off
             <tbody>
               {(apps ?? []).map((a) => (
                 <tr key={a.id}>
-                  <Td className="font-mono text-xs">{codes.get(a.candidate_id)} {a.partner_shortlisted && <Badge tone="teal">Présélectionné</Badge>}</Td>
+                  <Td className="font-mono text-xs">{codes.get(a.candidate_id)} {a.partner_shortlisted && <Badge tone="gold">Présélectionné</Badge>}</Td>
                   <Td>{formatDate(a.submitted_at)}</Td>
                   <Td><Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge></Td>
                   <Td className="text-right"><Link href={`/partenaire/candidatures/${a.id}`} className="text-sm text-electric-700 hover:underline">Ouvrir</Link></Td>

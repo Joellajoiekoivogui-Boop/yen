@@ -56,7 +56,7 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
       {t.status === "corrige" && (
         <Card className="p-6">
           <div className="flex items-center gap-4">
-            {t.passed ? <CheckCircle2 className="size-10 text-teal-500" aria-hidden /> : <XCircle className="size-10 text-amber-500" aria-hidden />}
+            {t.passed ? <CheckCircle2 className="size-10 text-emerald-600" aria-hidden /> : <XCircle className="size-10 text-amber-500" aria-hidden />}
             <div>
               <p className="text-3xl font-bold text-navy-900 tabular-nums">{Math.round(Number(t.score_percent))} %</p>
               <p className="text-sm text-muted">{Number(t.earned_points)} / {Number(t.max_points)} points · seuil {Number(a.passing_score)} % · {t.passed ? "réussie" : "non réussie"}</p>
@@ -72,7 +72,7 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
             {bySkill.map((s) => (
               <div key={s.skillId}>
                 <div className="flex justify-between text-sm"><span className="text-navy-900">{s.name}</span><span className="tabular-nums text-muted">{Math.round(s.percent)} %</span></div>
-                <ProgressBar value={s.percent} tone={s.percent >= Number(a.passing_score) ? "teal" : "amber"} label={s.name ?? ""} className="mt-1" />
+                <ProgressBar value={s.percent} tone={s.percent >= Number(a.passing_score) ? "gold" : "amber"} label={s.name ?? ""} className="mt-1" />
               </div>
             ))}
           </CardBody>

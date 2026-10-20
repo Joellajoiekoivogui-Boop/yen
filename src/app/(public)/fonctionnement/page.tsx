@@ -15,7 +15,7 @@ const STEPS = [
 export default function HowItWorksPage() {
   return (
     <div data-reveal-children className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
-      <p className="text-sm font-semibold text-teal-600">Fonctionnement</p>
+      <p className="text-sm font-semibold text-gold-600">Fonctionnement</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy-900">Du profil à l&apos;insertion professionnelle</h1>
       <ol data-reveal-children className="mt-10 space-y-6">
         {STEPS.map((s, i) => (

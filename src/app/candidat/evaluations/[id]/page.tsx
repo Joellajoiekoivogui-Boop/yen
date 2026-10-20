@@ -34,7 +34,7 @@ export default async function AssessmentDetailPage(props: PageProps<"/candidat/e
       <Card>
         <CardHeader icon={ListChecks} title="Compétences visées" />
         <CardBody className="flex flex-wrap gap-1.5">
-          {((a.assessment_skills ?? []) as unknown as { skills: { name: string } | null }[]).map((s, i) => <Badge key={i} tone="teal">{s.skills?.name}</Badge>)}
+          {((a.assessment_skills ?? []) as unknown as { skills: { name: string } | null }[]).map((s, i) => <Badge key={i} tone="gold">{s.skills?.name}</Badge>)}
         </CardBody>
       </Card>
       <Card>

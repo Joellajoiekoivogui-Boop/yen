@@ -55,8 +55,8 @@ export default async function AdminAssessmentPage(props: PageProps<"/admin/evalu
                 <ActionButton variant="ghost" confirm="Supprimer cette question ?" action={deleteQuestionAction.bind(null, q.id, id)}>Supprimer</ActionButton>
               </div>
               <p className="text-xs text-muted">{questionTypeLabel[q.question_type as QuestionType]} · {Number(q.points)} pt · {(q.skills as unknown as { name: string } | null)?.name ?? "sans compétence"}</p>
-              {(q.assessment_options as { id: string; label: string; is_correct: boolean; position: number }[]).sort((x, y) => x.position - y.position).map((o) => <p key={o.id} className={`text-xs ${o.is_correct ? "font-semibold text-teal-700" : "text-slate-600"}`}>{o.is_correct ? "✓" : "○"} {o.label}</p>)}
-              {q.accepted_answers.length > 0 && <p className="text-xs text-teal-700">Acceptées : {q.accepted_answers.join(" | ")}</p>}
+              {(q.assessment_options as { id: string; label: string; is_correct: boolean; position: number }[]).sort((x, y) => x.position - y.position).map((o) => <p key={o.id} className={`text-xs ${o.is_correct ? "font-semibold text-gold-700" : "text-slate-600"}`}>{o.is_correct ? "✓" : "○"} {o.label}</p>)}
+              {q.accepted_answers.length > 0 && <p className="text-xs text-gold-700">Acceptées : {q.accepted_answers.join(" | ")}</p>}
               {(q.rubric as { criterion: string; points: number }[]).length > 0 && <p className="text-xs text-slate-600">Grille : {(q.rubric as { criterion: string; points: number }[]).map((r) => `${r.criterion} (${r.points})`).join(" · ")}</p>}
             </div>
           ))}

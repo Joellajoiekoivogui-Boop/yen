@@ -10,7 +10,7 @@ export default async function DomainsPage() {
   const domains = await listDomains();
   return (
     <div data-reveal-children className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-      <p className="text-sm font-semibold text-teal-600">Catalogue</p>
+      <p className="text-sm font-semibold text-gold-600">Catalogue</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy-900">Domaines d&apos;ingénierie</h1>
       <p className="mt-2 max-w-2xl text-muted">Métiers associés, compétences fondamentales et avancées, outils, certifications et projets permettant de démontrer ses compétences.</p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

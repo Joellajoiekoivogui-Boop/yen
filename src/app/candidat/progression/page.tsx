@@ -57,7 +57,7 @@ export default async function ProgressPage() {
               <ol className="space-y-3">
                 {p.steps.map((s, i) => (
                   <li key={i} className="rounded-lg border border-border p-4">
-                    <p className="text-xs font-semibold text-teal-600">{s.period}</p>
+                    <p className="text-xs font-semibold text-gold-600">{s.period}</p>
                     <p className="font-medium text-navy-900">{s.objective}</p>
                     <ul className="mt-2 list-disc pl-5 text-sm text-slate-700">{s.actions.map((a, j) => <li key={j}>{a}</li>)}</ul>
                     {s.project_idea && <p className="mt-2 text-sm text-electric-800">Idée de projet : {s.project_idea}</p>}

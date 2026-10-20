@@ -34,7 +34,7 @@ PostgREST locale) et par un balayage de toutes les pages des trois espaces sans 
 2. `ANTHROPIC_API_KEY` + `AI_PROVIDER=anthropic` — pour toutes les fonctions IA.
 3. `CLAMAV_SCAN_URL` — antivirus des CV (recommandé).
 4. Fournisseurs e-mail / SMS / WhatsApp — architecture prête (`ExternalChannel`), aucun fournisseur branché.
-5. Logo officiel de YEN — la marque affichée est un placeholder textuel (`src/components/layout/logo.tsx`).
+5. Logo officiel de YEN intégré (`src/assets/brand`, versions couleur et blanche, favicon) — fourni par YEN.
 6. Validation juridique de la politique de confidentialité et des CGU (modèles fournis), durées de conservation.
 
 ## Limites connues

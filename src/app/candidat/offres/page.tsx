@@ -84,7 +84,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-wrap gap-1.5">
                       <Badge tone="blue">{opportunityLabel[o.offer_type as OpportunityType]}</Badge>
-                      {applied.has(o.id) && <Badge tone="teal">Candidature envoyée</Badge>}
+                      {applied.has(o.id) && <Badge tone="gold">Candidature envoyée</Badge>}
                       {o.is_demo && <Badge tone="purple">Démo · fictif</Badge>}
                     </div>
                     {m && <ScorePill score={m.score} />}

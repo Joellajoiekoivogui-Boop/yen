@@ -4,7 +4,7 @@ import { importanceLabel, levelLabel } from "@/lib/labels";
 import { Badge, ProgressBar, ScorePill } from "@/components/ui";
 
 const reqIcon = {
-  satisfaite: <CheckCircle2 className="size-4 text-teal-500" aria-label="Satisfaite" />,
+  satisfaite: <CheckCircle2 className="size-4 text-emerald-600" aria-label="Satisfaite" />,
   partielle: <CircleDashed className="size-4 text-amber-500" aria-label="Partielle" />,
   declaree_a_confirmer: <HelpCircle className="size-4 text-electric-500" aria-label="Déclarée, à confirmer" />,
   non_demontree: <AlertTriangle className="size-4 text-slate-400" aria-label="Non démontrée" />,

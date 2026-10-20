@@ -16,7 +16,7 @@ export default async function PublicLayout({ children }: { children: React.React
     <div className="flex min-h-dvh flex-col bg-white">
       <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Logo />
+          <Logo compact />
           <nav className="hidden items-center gap-6 md:flex" aria-label="Navigation publique">
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} className="nav-link text-sm font-medium text-slate-600 transition-colors hover:text-navy-900">
@@ -42,7 +42,7 @@ export default async function PublicLayout({ children }: { children: React.React
             </Link>
           ))}
         </nav>
-        <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-electric-500 via-teal-400 to-electric-500" />
+        <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-navy-700 via-gold-400 to-navy-700" />
       </header>
       <main id="contenu" className="flex-1">{children}</main>
       <footer className="bg-navy-950 text-navy-100">

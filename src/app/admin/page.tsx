@@ -50,10 +50,10 @@ export default async function AdminHome(props: PageProps<"/admin">) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Candidats inscrits" value={Number(s.candidates_total)} icon={Users} />
-        <StatCard label="Profils complétés" value={Number(s.profiles_completed)} hint="Titre, résumé, domaine, compétences et formation renseignés" icon={UserCheck} tone="teal" />
+        <StatCard label="Profils complétés" value={Number(s.profiles_completed)} hint="Titre, résumé, domaine, compétences et formation renseignés" icon={UserCheck} tone="gold" />
         <StatCard label="CV disponibles" value={Number(s.cv_available)} icon={FileText} tone="navy" />
         <StatCard label="Évaluations terminées" value={Number(s.assessments_completed)} hint={`${Number(s.pending_reviews)} en attente de correction`} icon={ClipboardCheck} tone="amber" />
-        <StatCard label="Prêts pour la présélection" value={Number(s.ready_for_shortlist)} icon={GraduationCap} tone="teal" />
+        <StatCard label="Prêts pour la présélection" value={Number(s.ready_for_shortlist)} icon={GraduationCap} tone="gold" />
         <StatCard label="Offres actives" value={Number(s.offers_active)} icon={Briefcase} />
         <StatCard label="Candidatures en cours" value={Number(s.applications_in_progress)} icon={Send} tone="navy" />
         <StatCard label="Stages / emplois confirmés" value={`${Number(s.internships_confirmed)} / ${Number(s.jobs_confirmed)}`} hint={`${Number(s.placements_declared_unconfirmed)} placement(s) déclaré(s) non confirmé(s)`} icon={Trophy} tone="amber" />

@@ -80,19 +80,19 @@ export function AppShell({
                       "group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all duration-300",
                       "before:absolute before:top-1/2 before:left-0 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:transition-transform before:duration-300",
                       active ? "before:scale-y-100" : "before:scale-y-0",
-                      dark ? "before:bg-teal-300" : "before:bg-electric-600",
+                      dark ? "before:bg-gold-300" : "before:bg-gold-400",
                       dark
                         ? active ? "bg-white/10 text-white" : "text-navy-100 hover:bg-white/5 hover:text-white"
-                        : active ? "bg-electric-50 text-electric-700" : "text-slate-600 hover:bg-slate-100 hover:text-navy-900",
+                        : active ? "bg-navy-50 text-navy-800" : "text-slate-600 hover:bg-slate-100 hover:text-navy-900",
                     )}
                   >
                     <Icon
                       name={item.icon}
-                      className={cn("size-4 shrink-0 transition-transform duration-300 ease-spring group-hover:translate-x-0.5 group-hover:scale-110", active && !dark && "text-electric-600", active && dark && "text-teal-300")}
+                      className={cn("size-4 shrink-0 transition-transform duration-300 ease-spring group-hover:translate-x-0.5 group-hover:scale-110", active && !dark && "text-navy-700", active && dark && "text-gold-300")}
                     />
                     <span className="truncate">{item.label}</span>
                     {item.badge ? (
-                      <span className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-teal-400 text-navy-950" : "bg-electric-600 text-white")}>{item.badge}</span>
+                      <span className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")}>{item.badge}</span>
                     ) : null}
                   </Link>
                 </li>
@@ -109,7 +109,7 @@ export function AppShell({
       <p className={cn("truncate text-sm font-semibold", dark ? "text-white" : "text-navy-900")}>{user.name}</p>
       <p className={cn("truncate text-xs", dark ? "text-navy-200" : "text-muted")}>{user.roleLabel}</p>
       <form action="/auth/deconnexion" method="post" className="mt-2">
-        <button type="submit" className={cn("inline-flex items-center gap-1.5 text-xs font-medium", dark ? "text-teal-300 hover:text-teal-200" : "text-electric-700 hover:text-electric-800")}>
+        <button type="submit" className={cn("inline-flex items-center gap-1.5 text-xs font-medium", dark ? "text-gold-300 hover:text-gold-200" : "text-electric-700 hover:text-electric-800")}>
           <LogOut className="size-3.5" aria-hidden /> Se déconnecter
         </button>
       </form>
@@ -125,7 +125,7 @@ export function AppShell({
         <div className={cn("flex h-16 items-center px-4", dark ? "border-b border-white/10" : "border-b border-border")}>
           <Logo href={homeHref} inverted={dark} />
         </div>
-        <p className={cn("px-5 pt-3 text-xs font-medium", dark ? "text-teal-300" : "text-teal-600")}>{spaceLabel}</p>
+        <p className={cn("px-5 pt-3 text-xs font-medium", dark ? "text-gold-300" : "text-gold-600")}>{spaceLabel}</p>
         {nav}
         {userBox}
       </aside>

@@ -27,7 +27,7 @@ export default async function PartnersAdminPage() {
           <tbody>
             {(orgs.data ?? []).map((o) => (
               <tr key={o.id}>
-                <Td><Link href={`/admin/partenaires/${o.id}`} className="font-medium text-navy-900 hover:underline">{o.name}</Link> {o.is_demo && <Badge tone="purple">Démo</Badge>} {o.is_public && <Badge tone="teal">Public</Badge>}</Td>
+                <Td><Link href={`/admin/partenaires/${o.id}`} className="font-medium text-navy-900 hover:underline">{o.name}</Link> {o.is_demo && <Badge tone="purple">Démo</Badge>} {o.is_public && <Badge tone="gold">Public</Badge>}</Td>
                 <Td>{o.sector}</Td><Td>{o.city}</Td>
                 <Td className="tabular-nums">{(o.job_offers as unknown as { count: number }[])[0]?.count ?? 0}</Td>
                 <Td className="tabular-nums">{(o.partner_memberships as unknown as { count: number }[])[0]?.count ?? 0}</Td>

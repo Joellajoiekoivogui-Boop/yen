@@ -16,7 +16,7 @@ export default async function PartnersPage() {
   }
   return (
     <div data-reveal-children className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-      <p className="text-sm font-semibold text-teal-600">Partenaires</p>
+      <p className="text-sm font-semibold text-gold-600">Partenaires</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy-900">Organisations partenaires</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Entreprises, ONG, bureaux d&apos;études et institutions qui collaborent avec YEN. Seules les organisations ayant autorisé leur publication sont affichées.

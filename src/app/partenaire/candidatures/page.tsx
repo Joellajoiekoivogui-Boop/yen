@@ -24,7 +24,7 @@ export default async function PartnerApplicationsPage() {
           <tbody>
             {(data ?? []).map((a) => (
               <tr key={a.id}>
-                <Td><Link className="font-mono text-xs text-electric-700 hover:underline" href={`/partenaire/candidatures/${a.id}`}>{codes.get(a.candidate_id) ?? "Voir"}</Link> {a.partner_shortlisted && <Badge tone="teal">Présélectionné</Badge>}</Td>
+                <Td><Link className="font-mono text-xs text-electric-700 hover:underline" href={`/partenaire/candidatures/${a.id}`}>{codes.get(a.candidate_id) ?? "Voir"}</Link> {a.partner_shortlisted && <Badge tone="gold">Présélectionné</Badge>}</Td>
                 <Td>{(a.job_offers as unknown as { title: string }).title}</Td>
                 <Td>{a.origin === "yen" ? "Proposé par YEN" : "Candidature"}</Td>
                 <Td>{formatDate(a.submitted_at)}</Td>

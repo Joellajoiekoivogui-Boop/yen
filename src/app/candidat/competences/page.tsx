@@ -47,7 +47,7 @@ export default async function SkillsPage() {
                 {Object.entries(demonstrated).map(([skillId, d]) => (
                   <tr key={skillId}>
                     <Td className="font-medium text-navy-900">{skillName[skillId] ?? "—"}</Td>
-                    <Td><Badge tone="teal">{levelLabel[d.level]}</Badge></Td>
+                    <Td><Badge tone="gold">{levelLabel[d.level]}</Badge></Td>
                     <Td className="tabular-nums">{d.bestScorePercent != null ? `${Math.round(d.bestScorePercent)} %` : "—"}</Td>
                     <Td className="text-xs">{d.sources.map((s) => s.label).join(" · ")}</Td>
                   </tr>
@@ -70,7 +70,7 @@ export default async function SkillsPage() {
                 subtitle: `Auto-évaluation : ${levelLabel[d.self_level]}${d.years_experience ? ` · ${d.years_experience} an(s)` : ""}`,
                 description: d.evidence_note ?? undefined,
                 badges: [
-                  demonstrated[d.skill_id] ? { label: `Démontrée (${levelLabel[demonstrated[d.skill_id].level]})`, tone: "teal" as const } : { label: "À démontrer", tone: "amber" as const },
+                  demonstrated[d.skill_id] ? { label: `Démontrée (${levelLabel[demonstrated[d.skill_id].level]})`, tone: "gold" as const } : { label: "À démontrer", tone: "amber" as const },
                   ...(d.source === "extraction_cv_validee" ? [{ label: "Issue du CV", tone: "purple" as const }] : []),
                 ],
                 values: { skill_id: d.skill_id, self_level: d.self_level, years_experience: d.years_experience, evidence_note: d.evidence_note ?? "" },

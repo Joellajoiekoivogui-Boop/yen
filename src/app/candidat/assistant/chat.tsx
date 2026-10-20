@@ -48,7 +48,7 @@ export function AssistantChat() {
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
-            {m.role === "assistant" && <span className="grid size-8 shrink-0 place-items-center rounded-full bg-teal-50 text-teal-600"><Bot className="size-4" aria-hidden /></span>}
+            {m.role === "assistant" && <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gold-50 text-gold-600"><Bot className="size-4" aria-hidden /></span>}
             <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-navy-800 text-white" : "bg-slate-100 text-slate-800"}`}>{m.content}</div>
             {m.role === "user" && <span className="grid size-8 shrink-0 place-items-center rounded-full bg-navy-50 text-navy-700"><User className="size-4" aria-hidden /></span>}
           </div>

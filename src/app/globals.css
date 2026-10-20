@@ -1,45 +1,53 @@
 @import "tailwindcss";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
 
 /* --------------------------------------------------------------------------
-   Design system YEN Career Bridge
-   Bleu nuit (principal) · bleu électrique (secondaire) · turquoise (accent)
+   Design system YEN Career Bridge — charte graphique du Youth Engineers Network
+   Bleu marine YEN #0a2a6c (navy-700, principal) · jaune YEN #edb413 (gold-400, accent)
+   · bleu vif dérivé du marine (electric, liens et actions)
+   Lisibilité : texte jaune uniquement sur fond sombre ; sur fond clair, gold-600 minimum
+   (5:1) ; sur un fond jaune, texte bleu marine (jamais blanc).
    -------------------------------------------------------------------------- */
 @theme {
+  --font-heading: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  --color-navy-50: #eef3fb;
-  --color-navy-100: #d6e1f2;
-  --color-navy-200: #aec2e3;
-  --color-navy-300: #7b9acd;
-  --color-navy-400: #4a70b0;
-  --color-navy-500: #2c4f8f;
-  --color-navy-600: #1d3a70;
-  --color-navy-700: #152c57;
-  --color-navy-800: #0f2142;
-  --color-navy-900: #0a1730;
-  --color-navy-950: #060e1f;
+  --color-navy-50: #eef2fa;
+  --color-navy-100: #d6dff2;
+  --color-navy-200: #adbfe4;
+  --color-navy-300: #7d97cf;
+  --color-navy-400: #4d6eb6;
+  --color-navy-500: #2c519b;
+  --color-navy-600: #173c85;
+  --color-navy-700: #0a2a6c;
+  --color-navy-800: #08225a;
+  --color-navy-900: #061a47;
+  --color-navy-950: #040f2d;
 
-  --color-electric-50: #eef5ff;
-  --color-electric-100: #d9e8ff;
-  --color-electric-200: #bcd6ff;
-  --color-electric-300: #8ebcff;
-  --color-electric-400: #5a97ff;
-  --color-electric-500: #2f6fff;
-  --color-electric-600: #1a53f0;
-  --color-electric-700: #1541c4;
-  --color-electric-800: #17389b;
-  --color-electric-900: #19347a;
+  --color-electric-50: #eef3ff;
+  --color-electric-100: #dce6fe;
+  --color-electric-200: #bccefc;
+  --color-electric-300: #8faef7;
+  --color-electric-400: #5d88ee;
+  --color-electric-500: #3565dd;
+  --color-electric-600: #214bc0;
+  --color-electric-700: #1b3d9c;
+  --color-electric-800: #19347e;
+  --color-electric-900: #182d64;
 
-  --color-teal-50: #effcfa;
-  --color-teal-100: #c8f5ee;
-  --color-teal-200: #93eadf;
-  --color-teal-300: #56d8ca;
-  --color-teal-400: #26bfb1;
-  --color-teal-500: #0fa396;
-  --color-teal-600: #0a837a;
-  --color-teal-700: #0d6862;
-  --color-teal-800: #10534f;
-  --color-teal-900: #124543;
+  --color-gold-50: #fff9e8;
+  --color-gold-100: #fef0c3;
+  --color-gold-200: #fde08a;
+  --color-gold-300: #f7cb45;
+  --color-gold-400: #edb413;
+  --color-gold-500: #c99608;
+  --color-gold-600: #8d6a06;
+  --color-gold-700: #7a5908;
+  --color-gold-800: #62470c;
+  --color-gold-900: #523b0f;
 
   --color-surface: #ffffff;
   --color-canvas: #f4f7fb;
@@ -157,8 +165,8 @@
   from { width: 0; }
 }
 @keyframes glow-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.55); }
-  70%, 100% { box-shadow: 0 0 0 16px rgb(255 255 255 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(237 180 19 / 0.6); }
+  70%, 100% { box-shadow: 0 0 0 16px rgb(237 180 19 / 0); }
 }
 @keyframes underline-draw {
   from { transform: scaleX(0); }
@@ -209,7 +217,11 @@
     outline-offset: 2px;
   }
   ::selection {
-    background: var(--color-teal-200);
+    background: var(--color-gold-200);
+  }
+  /* Titres en Poppins, la typographie géométrique du logo YEN */
+  h1, h2, h3 {
+    font-family: var(--font-heading);
   }
 }
 
@@ -313,7 +325,7 @@
 
 /* Texte en dégradé animé */
 .text-shine {
-  background: linear-gradient(90deg, var(--color-teal-300), var(--color-electric-300), var(--color-teal-200), var(--color-teal-300));
+  background: linear-gradient(90deg, var(--color-gold-300), var(--color-gold-100), var(--color-gold-400), var(--color-gold-300));
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -324,7 +336,7 @@
 /* Mots qui défilent dans le titre de l'accueil */
 .word-rotator {
   display: inline-flex;
-  height: 1.15em;
+  height: 1.3em;
   overflow: hidden;
   vertical-align: top;
 }
@@ -334,8 +346,8 @@
   animation: rotate-words 11s var(--ease-out-expo) infinite;
 }
 .word-rotator-track > span {
-  height: 1.15em;
-  line-height: 1.15em;
+  height: 1.3em;
+  line-height: 1.3em;
   white-space: nowrap;
 }
 
@@ -351,8 +363,8 @@
 .hero-particle {
   position: absolute;
   border-radius: 9999px;
-  background: var(--color-teal-300);
-  box-shadow: 0 0 12px 2px rgb(86 216 202 / 0.6);
+  background: var(--color-gold-300);
+  box-shadow: 0 0 12px 2px rgb(237 180 19 / 0.6);
   animation: particle var(--particle-duration, 7s) ease-in infinite;
   animation-delay: var(--particle-delay, 0s);
 }
@@ -393,7 +405,7 @@ html[data-scrolled] .site-header {
   bottom: -6px;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--color-electric-500), var(--color-teal-400));
+  background: linear-gradient(90deg, var(--color-navy-700), var(--color-gold-400));
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.4s var(--ease-out-expo);

@@ -45,7 +45,7 @@ export default async function ProfilePage() {
             items={b.education.map((e) => ({
               id: e.id, title: e.degree, subtitle: [e.institution, e.field_of_study, [e.start_year, e.end_year].filter(Boolean).join(" – ")].filter(Boolean).join(" · "),
               description: e.description ?? undefined,
-              badges: [...(e.is_yen_program ? [{ label: "Formation YEN", tone: "teal" as const }] : []), ...sourceBadge(e.source)],
+              badges: [...(e.is_yen_program ? [{ label: "Formation YEN", tone: "gold" as const }] : []), ...sourceBadge(e.source)],
               values: { ...e, field_of_study: e.field_of_study ?? "", description: e.description ?? "" },
             }))}
           />

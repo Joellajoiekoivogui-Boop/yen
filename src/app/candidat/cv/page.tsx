@@ -61,7 +61,7 @@ export default async function CvPage() {
                   <p className="text-xs text-muted">Version {current.version} · {Math.round(current.size_bytes / 1024)} Ko · {current.page_count ?? "?"} page(s) · {formatDateTime(current.created_at)}</p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     <Badge tone={scanBadge[current.scan_status]?.tone}>{scanBadge[current.scan_status]?.label}</Badge>
-                    <Badge tone={current.text_extraction_status === "extrait" ? "teal" : "amber"}>{current.text_extraction_status === "extrait" ? "Texte lisible" : "PDF scanné : OCR nécessaire"}</Badge>
+                    <Badge tone={current.text_extraction_status === "extrait" ? "gold" : "amber"}>{current.text_extraction_status === "extrait" ? "Texte lisible" : "PDF scanné : OCR nécessaire"}</Badge>
                   </div>
                 </div>
                 <ButtonLink href={`/api/documents/${current.id}`} variant="outline" size="sm" prefetch={false}><Download className="size-4" aria-hidden /> Télécharger</ButtonLink>
@@ -150,7 +150,7 @@ export default async function CvPage() {
                   <Td>v{d.version}</Td>
                   <Td className="max-w-[240px] truncate">{d.original_filename}</Td>
                   <Td>{formatDateTime(d.created_at)}</Td>
-                  <Td>{d.deleted_at ? <Badge tone="red">Supprimée</Badge> : d.is_current ? <Badge tone="teal">Actuelle</Badge> : <Badge>Archivée</Badge>}</Td>
+                  <Td>{d.deleted_at ? <Badge tone="red">Supprimée</Badge> : d.is_current ? <Badge tone="gold">Actuelle</Badge> : <Badge>Archivée</Badge>}</Td>
                   <Td className="text-right">
                     {!d.deleted_at && (
                       <div className="flex justify-end gap-2">

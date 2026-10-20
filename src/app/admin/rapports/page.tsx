@@ -69,8 +69,8 @@ export default async function ReportsPage(props: PageProps<"/admin/rapports">) {
           {r.demo_data_included && <Alert tone="warning">Ce rapport inclut des données de démonstration fictives.</Alert>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard label="Taux d'insertion" value={r.insertion_rate == null ? "—" : formatPercent(r.insertion_rate, 1)} hint={`${r.placed_confirmed} / ${r.denominator} candidats`} />
-            <StatCard label="Stages confirmés" value={r.internships_confirmed} tone="teal" />
-            <StatCard label="Emplois confirmés" value={r.jobs_confirmed} tone="teal" />
+            <StatCard label="Stages confirmés" value={r.internships_confirmed} tone="gold" />
+            <StatCard label="Emplois confirmés" value={r.jobs_confirmed} tone="gold" />
             <StatCard label="Déclarés non confirmés" value={r.placements_declared_unconfirmed} hint="Exclus du taux" tone="amber" />
           </div>
           <Alert tone="info" title="Méthode de calcul">

@@ -12,7 +12,7 @@ export interface CrudItem {
   title: string;
   subtitle?: string;
   description?: string;
-  badges?: { label: string; tone?: "neutral" | "blue" | "teal" | "green" | "amber" | "red" | "purple" }[];
+  badges?: { label: string; tone?: "neutral" | "blue" | "gold" | "green" | "amber" | "red" | "purple" }[];
   values: Record<string, unknown>;
 }
 

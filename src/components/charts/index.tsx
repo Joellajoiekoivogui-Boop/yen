@@ -3,7 +3,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 /** Palette catégorielle validée (validate_palette.js : contraste, daltonisme) — ordre fixe. */
-export const SERIES = ["#2f6fff", "#0fa396"] as const;
+export const SERIES = ["#3565dd", "#b08209"] as const;
 const AXIS = { stroke: "#94a3b8", fontSize: 12, tickLine: false, axisLine: false } as const;
 const GRID = <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />;
 const TOOLTIP_STYLE = { borderRadius: 8, border: "1px solid #dfe6f0", fontSize: 12, boxShadow: "0 4px 12px rgb(10 23 48 / 0.08)" };

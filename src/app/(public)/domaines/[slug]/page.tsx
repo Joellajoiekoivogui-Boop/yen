@@ -22,7 +22,7 @@ export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
   return (
     <div data-reveal-children className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex items-start gap-4">
-        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-navy-800 text-teal-300"><DomainIcon name={d.icon} className="size-7" /></span>
+        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-navy-800 text-gold-300"><DomainIcon name={d.icon} className="size-7" /></span>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-navy-900">{d.name}</h1>
           <p className="mt-2 max-w-3xl text-slate-600">{d.description}</p>
@@ -78,7 +78,7 @@ export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
         <div className="space-y-6">
           <Card>
             <CardHeader icon={Wrench} title="Outils et technologies" />
-            <CardBody className="flex flex-wrap gap-1.5">{d.tools.map((t) => <Badge key={t} tone="teal">{t}</Badge>)}</CardBody>
+            <CardBody className="flex flex-wrap gap-1.5">{d.tools.map((t) => <Badge key={t} tone="gold">{t}</Badge>)}</CardBody>
           </Card>
           <Card>
             <CardHeader icon={Award} title="Certifications pertinentes" />

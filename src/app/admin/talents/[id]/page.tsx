@@ -147,7 +147,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                   <div key={r.id} className="rounded-md border border-border p-2 text-xs">
                     <p className="text-muted">{formatDate(r.created_at)} · {r.status}</p>
                     <p className="text-slate-700">{r.message}</p>
-                    {r.response && <p className="mt-1 text-teal-800">Réponse : {r.response}</p>}
+                    {r.response && <p className="mt-1 text-gold-800">Réponse : {r.response}</p>}
                   </div>
                 ))}
               </CardBody>
@@ -170,7 +170,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
               <tbody>
                 {(docs ?? []).map((d) => (
                   <tr key={d.id}>
-                    <Td>v{d.version} {d.is_current && <Badge tone="teal">Actuel</Badge>}</Td>
+                    <Td>v{d.version} {d.is_current && <Badge tone="gold">Actuel</Badge>}</Td>
                     <Td>{d.original_filename}</Td>
                     <Td>{formatDateTime(d.created_at)}</Td>
                     <Td className="text-xs">{d.scan_status} · {d.text_extraction_status}</Td>
@@ -195,7 +195,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
             {b!.education.length === 0 && <EmptyState title="Aucune formation" />}
             {b!.education.map((e) => (
               <div key={e.id} className="rounded-lg border border-border p-3 text-sm">
-                <p className="font-medium text-navy-900">{e.degree} {e.is_yen_program && <Badge tone="teal">YEN</Badge>} {e.source === "extraction_cv_validee" && <Badge tone="purple">Issu du CV</Badge>}</p>
+                <p className="font-medium text-navy-900">{e.degree} {e.is_yen_program && <Badge tone="gold">YEN</Badge>} {e.source === "extraction_cv_validee" && <Badge tone="purple">Issu du CV</Badge>}</p>
                 <p className="text-muted">{[e.institution, e.field_of_study, [e.start_year, e.end_year].filter(Boolean).join("–")].filter(Boolean).join(" · ")}</p>
               </div>
             ))}
@@ -251,7 +251,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                   <Td>{levelLabel[d.self_level]}</Td>
                   <Td>{d.years_experience ?? "—"}</Td>
                   <Td>{d.source === "extraction_cv_validee" ? "CV (validé par le candidat)" : "Saisie"}</Td>
-                  <Td>{demonstrated[d.skill_id] ? <Badge tone="teal">{levelLabel[demonstrated[d.skill_id].level]}</Badge> : <Badge tone="amber">À confirmer</Badge>}</Td>
+                  <Td>{demonstrated[d.skill_id] ? <Badge tone="gold">{levelLabel[demonstrated[d.skill_id].level]}</Badge> : <Badge tone="amber">À confirmer</Badge>}</Td>
                 </tr>
               ))}
               {b!.declaredSkills.length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Aucune compétence déclarée.</Td></tr>}
@@ -447,7 +447,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                       ))}
                     </ol>
                     {((a.interviews ?? []) as { id: string; scheduled_at: string; mode: string; status: string; outcome: string | null }[]).map((i) => (
-                      <p key={i.id} className="text-xs text-teal-800">Entretien {formatDateTime(i.scheduled_at)} ({i.mode}) — {i.status}{i.outcome ? ` : ${i.outcome}` : ""}</p>
+                      <p key={i.id} className="text-xs text-gold-800">Entretien {formatDateTime(i.scheduled_at)} ({i.mode}) — {i.status}{i.outcome ? ` : ${i.outcome}` : ""}</p>
                     ))}
                   </div>
                   {can("applications.manage") && (

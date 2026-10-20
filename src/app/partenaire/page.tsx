@@ -20,7 +20,7 @@ export default async function PartnerDashboard() {
       <PageHeader title={org.data?.name ?? "Espace partenaire"} description="Vous voyez uniquement les candidatures reçues sur vos offres et les profils que YEN vous a partagés avec le consentement des candidats." />
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Offres publiées" value={(offers.data ?? []).filter((o) => o.status === "publiee").length} hint={`${(offers.data ?? []).filter((o) => o.status === "en_validation").length} en validation`} icon={Briefcase} />
-        <StatCard label="Candidatures visibles" value={(apps.data ?? []).length} icon={Send} tone="teal" />
+        <StatCard label="Candidatures visibles" value={(apps.data ?? []).length} icon={Send} tone="gold" />
         <StatCard label="Profils partagés actifs" value={shares.count ?? 0} icon={Users} tone="navy" />
       </div>
       <Card>

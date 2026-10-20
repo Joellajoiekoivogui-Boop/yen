@@ -69,7 +69,7 @@ export default async function CandidateDashboard() {
           <ProgressBar value={completion.percent} className="mt-2" label="Complétion du profil" />
           <p className="mt-2 text-[11px] text-muted">Mesure le renseignement du profil, pas vos compétences.</p>
         </Card>
-        <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par une évaluation, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="teal" />
+        <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par une évaluation, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="gold" />
         <StatCard label="Compétences à évaluer" value={toEvaluate.length} hint="Déclarées mais pas encore démontrées" icon={Target} tone="amber" />
         <StatCard label="Dernière analyse" value={lastAnalysis.data ? formatDate(lastAnalysis.data.created_at) : "—"} hint={lastAnalysis.data ? "Analyse IA du profil" : "Aucune analyse réalisée"} icon={CalendarClock} tone="navy" />
       </div>
@@ -100,7 +100,7 @@ export default async function CandidateDashboard() {
             <ul className="space-y-2 text-sm">
               {completion.items.map((i) => (
                 <li key={i.key} className="flex items-start gap-2">
-                  {i.done ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-teal-500" aria-label="Fait" /> : <Circle className="mt-0.5 size-4 shrink-0 text-slate-300" aria-label="À faire" />}
+                  {i.done ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-label="Fait" /> : <Circle className="mt-0.5 size-4 shrink-0 text-slate-300" aria-label="À faire" />}
                   {i.done ? <span className="text-slate-500">{i.label}</span> : <Link href={i.href} className="text-navy-800 hover:text-electric-700 hover:underline">{i.label}</Link>}
                 </li>
               ))}

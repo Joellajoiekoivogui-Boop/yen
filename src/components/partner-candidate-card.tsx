@@ -25,7 +25,7 @@ export function PartnerCandidateCard({ v }: { v: PartnerCandidateView }) {
           <CardHeader title="Compétences démontrées" description="Validées par YEN (évaluations, projets vérifiés, évaluateurs)" />
           <CardBody className="space-y-1.5">
             {v.demonstrated.length === 0 && <p className="text-sm text-muted">Aucune compétence démontrée à ce jour.</p>}
-            {v.demonstrated.map((d) => <p key={d.skill} className="text-sm"><Badge tone="teal">{levelLabel[d.level]}</Badge> {d.skill} <span className="text-xs text-muted">— {d.sources.join(" · ")}</span></p>)}
+            {v.demonstrated.map((d) => <p key={d.skill} className="text-sm"><Badge tone="gold">{levelLabel[d.level]}</Badge> {d.skill} <span className="text-xs text-muted">— {d.sources.join(" · ")}</span></p>)}
             {v.declared.length > 0 && <p className="pt-2 text-xs text-muted">Déclarées, non encore démontrées : {v.declared.map((d) => d.skill).join(", ")}</p>}
           </CardBody>
         </Card>

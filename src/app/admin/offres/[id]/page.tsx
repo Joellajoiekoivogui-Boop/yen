@@ -93,7 +93,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
                   </span>
                   <span className="flex flex-wrap items-center gap-1.5">
                     {!r.match.meetsMandatory && <Badge tone="amber">Obligatoire manquant</Badge>}
-                    {r.applied && <Badge tone="teal">A postulé</Badge>}
+                    {r.applied && <Badge tone="gold">A postulé</Badge>}
                     {r.applicationStatus && <Badge tone="blue">{applicationStatusLabel[r.applicationStatus as ApplicationStatus]}</Badge>}
                     {!r.consentShare && <Badge>Partage non consenti</Badge>}
                   </span>
@@ -139,7 +139,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
                     <Td>{a.origin === "yen" ? "YEN" : `Candidature ${formatDate(a.submitted_at)}`}</Td>
                     <Td>{snap?.score != null ? <ScorePill score={snap.score} /> : "—"}</Td>
                     <Td><Badge tone="blue">{applicationStatusLabel[st]}</Badge></Td>
-                    <Td className="text-xs">{a.visible_to_partner ? "Visible" : "Non transmis"}{a.partner_shortlisted && <Badge tone="teal" className="ml-1">Retenu</Badge>}</Td>
+                    <Td className="text-xs">{a.visible_to_partner ? "Visible" : "Non transmis"}{a.partner_shortlisted && <Badge tone="gold" className="ml-1">Retenu</Badge>}</Td>
                     <Td>
                       <div className="flex flex-wrap gap-1">
                         {["soumise", "en_revue", "preselectionnee"].includes(st) && <ActionButton action={updateApplicationStatusAction.bind(null, { applicationId: a.id, status: "proposee_partenaire" })}>Proposer au partenaire</ActionButton>}

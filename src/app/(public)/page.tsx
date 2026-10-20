@@ -47,9 +47,9 @@ const PARTICLES = [
 function SectionTitle({ eyebrow, title, description, inverted = false }: { eyebrow: string; title: string; description?: string; inverted?: boolean }) {
   return (
     <div data-reveal-children>
-      <p className={inverted ? "text-sm font-semibold tracking-wide text-teal-300 uppercase" : "text-sm font-semibold tracking-wide text-teal-600 uppercase"}>{eyebrow}</p>
+      <p className={inverted ? "text-sm font-semibold tracking-wide text-gold-300 uppercase" : "text-sm font-semibold tracking-wide text-gold-600 uppercase"}>{eyebrow}</p>
       <h2 className={inverted ? "mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl" : "mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl"}>{title}</h2>
-      <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-electric-500 to-teal-400" />
+      <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
       {description && <p className={inverted ? "mt-4 max-w-2xl text-navy-200" : "mt-4 max-w-2xl text-muted"}>{description}</p>}
     </div>
   );
@@ -67,7 +67,7 @@ export default async function HomePage() {
         data-reveal="none"
         data-spotlight
         className="relative overflow-hidden bg-navy-950 text-white"
-        style={{ "--spot-color": "rgb(86 216 202 / 0.14)" } as CSSProperties}
+        style={{ "--spot-color": "rgb(237 180 19 / 0.12)" } as CSSProperties}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="hero-grid absolute inset-0" />
@@ -75,10 +75,10 @@ export default async function HomePage() {
             <div className="size-full animate-blob rounded-full bg-electric-500/30 blur-3xl" />
           </div>
           <div data-parallax="0.28" className="absolute bottom-[-14rem] left-[-10rem] size-[32rem]">
-            <div className="size-full animate-blob rounded-full bg-teal-500/25 blur-3xl [animation-delay:-6s]" />
+            <div className="size-full animate-blob rounded-full bg-gold-400/20 blur-3xl [animation-delay:-6s]" />
           </div>
           <div data-parallax="0.2" className="absolute top-1/4 left-1/3 size-[24rem]">
-            <div className="size-full animate-blob rounded-full bg-electric-300/15 blur-3xl [animation-delay:-12s]" />
+            <div className="size-full animate-blob rounded-full bg-navy-400/25 blur-3xl [animation-delay:-12s]" />
           </div>
           {PARTICLES.map((p, i) => (
             <span
@@ -91,17 +91,17 @@ export default async function HomePage() {
 
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pt-20 pb-28 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8 lg:pt-28 lg:pb-36">
           <div data-reveal-children>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-teal-200 ring-1 ring-white/15 backdrop-blur">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gold-200 ring-1 ring-white/15 backdrop-blur">
               <span className="relative flex size-2" aria-hidden>
-                <span className="absolute inline-flex size-full animate-ping-slow rounded-full bg-teal-300" />
-                <span className="relative inline-flex size-2 rounded-full bg-teal-300" />
+                <span className="absolute inline-flex size-full animate-ping-slow rounded-full bg-gold-300" />
+                <span className="relative inline-flex size-2 rounded-full bg-gold-300" />
               </span>
               Youth Engineers Network · Guinée
             </p>
-            <h1 className="mt-5 text-4xl leading-[1.15] font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="mt-5 text-[2.1rem] leading-[1.15] font-bold tracking-tight sm:text-5xl lg:text-[3.4rem]">
               Identifier les talents, renforcer les compétences,{" "}
               <span className="sr-only">ouvrir l&apos;accès au stage et à l&apos;emploi.</span>
-              <span aria-hidden className="text-teal-300">
+              <span aria-hidden className="text-gold-300">
                 ouvrir l&apos;accès{" "}
                 <span className="word-rotator">
                   <span className="word-rotator-track">
@@ -117,7 +117,7 @@ export default async function HomePage() {
               pour des mises en relation fondées sur ce que chacun sait réellement faire.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group shadow-lg shadow-teal-500/30">
+              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group shadow-lg shadow-gold-500/30">
                 Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
               </ButtonLink>
               <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="bg-white/10 text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/20">
@@ -134,7 +134,7 @@ export default async function HomePage() {
                   <div key={s.label}>
                     <dt className="sr-only">{s.label}</dt>
                     <dd>
-                      <CountUp value={s.value} className="block text-3xl font-bold text-white tabular-nums sm:text-4xl" />
+                      <CountUp value={s.value} className="block font-heading text-3xl font-bold text-gold-300 tabular-nums sm:text-4xl" />
                       <span className="mt-1 block text-xs text-navy-200 sm:text-sm">{s.label}</span>
                     </dd>
                   </div>
@@ -146,18 +146,18 @@ export default async function HomePage() {
           <div className="relative grid content-center gap-4">
             <div aria-hidden className="pointer-events-none absolute top-1/2 left-1/2 hidden size-[34rem] -translate-x-1/2 -translate-y-1/2 lg:block">
               <div className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-white/10">
-                <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-teal-300 shadow-[0_0_18px_4px_rgb(86_216_202/0.6)]" />
+                <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-gold-300 shadow-[0_0_18px_4px_rgb(237_180_19/0.6)]" />
               </div>
               <div className="absolute inset-16 animate-spin-reverse rounded-full border border-white/10">
-                <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-electric-300 shadow-[0_0_14px_3px_rgb(142_188_255/0.6)]" />
+                <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-electric-300 shadow-[0_0_14px_3px_rgb(143_174_247/0.6)]" />
               </div>
             </div>
             {HERO_CARDS.map(({ icon: Icon, t, d }, i) => (
               <div key={t} className="relative animate-hero-card" style={animationDelay(450 + i * 160)}>
                 <div className="animate-float" style={animationDelay(-i * 1900)}>
-                  <div data-tilt className="group flex gap-4 rounded-2xl bg-white/[0.06] p-5 ring-1 ring-white/15 backdrop-blur-md transition-colors duration-300 hover:bg-white/[0.1] hover:ring-teal-300/40">
-                    <span className="relative grid size-11 shrink-0 place-items-center rounded-xl bg-teal-400/15 text-teal-300">
-                      <span className="absolute inset-0 animate-ping-slow rounded-xl ring-1 ring-teal-300/50" style={animationDelay(i * 800)} aria-hidden />
+                  <div data-tilt className="group flex gap-4 rounded-2xl bg-white/[0.06] p-5 ring-1 ring-white/15 backdrop-blur-md transition-colors duration-300 hover:bg-white/[0.1] hover:ring-gold-300/40">
+                    <span className="relative grid size-11 shrink-0 place-items-center rounded-xl bg-gold-400/15 text-gold-300">
+                      <span className="absolute inset-0 animate-ping-slow rounded-xl ring-1 ring-gold-300/50" style={animationDelay(i * 800)} aria-hidden />
                       <Icon className="size-5 transition-transform duration-500 ease-spring group-hover:scale-125 group-hover:rotate-6" aria-hidden />
                     </span>
                     <div>
@@ -189,7 +189,7 @@ export default async function HomePage() {
                   aria-hidden={i >= domains.length || undefined}
                   className="mr-3 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm whitespace-nowrap text-navy-100 ring-1 ring-white/10"
                 >
-                  <DomainIcon name={d.icon} className="size-4 text-teal-300" />
+                  <DomainIcon name={d.icon} className="size-4 text-gold-300" />
                   {d.name}
                 </span>
               ))}
@@ -208,14 +208,14 @@ export default async function HomePage() {
               data-spotlight
               className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
-              <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-electric-50 to-teal-50 text-electric-600 ring-1 ring-electric-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
+              <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 ring-1 ring-navy-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
                 <Icon className="size-5" aria-hidden />
               </span>
               <h3 className="mt-4 text-lg font-semibold text-navy-900">{t}</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 {items.map((item, j) => (
                   <li key={item} className="flex animate-nav-item gap-2" style={animationDelay(350 + j * 90)}>
-                    <BadgeCheck className="mt-0.5 size-4 shrink-0 text-teal-500" aria-hidden />
+                    <BadgeCheck className="mt-0.5 size-4 shrink-0 text-gold-600" aria-hidden />
                     {item}
                   </li>
                 ))}
@@ -227,7 +227,7 @@ export default async function HomePage() {
 
       {/* Engagements */}
       <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
-        <div aria-hidden className="pointer-events-none absolute inset-0 animate-gradient-pan bg-[linear-gradient(120deg,rgb(47_111_255/0.18),transparent_40%,rgb(15_163_150/0.18))] bg-[length:200%_200%]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 animate-gradient-pan bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))] bg-[length:200%_200%]" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos engagements" title="Une plateforme digne de confiance" inverted />
           <div data-reveal-children className="mt-10 grid gap-6 md:grid-cols-3">
@@ -236,11 +236,11 @@ export default async function HomePage() {
                 key={t}
                 data-spotlight
                 className="group rounded-2xl bg-white/[0.05] p-6 ring-1 ring-white/10 transition duration-500 ease-out-expo hover:-translate-y-1 hover:bg-white/[0.08]"
-                style={{ "--spot-color": "rgb(86 216 202 / 0.12)" } as CSSProperties}
+                style={{ "--spot-color": "rgb(237 180 19 / 0.1)" } as CSSProperties}
               >
                 <span className="relative grid size-12 place-items-center">
-                  <span className="absolute inset-0 animate-ping-slow rounded-full bg-teal-400/25" style={animationDelay(i * 600)} aria-hidden />
-                  <span className="relative grid size-12 place-items-center rounded-full bg-teal-400/15 text-teal-300 transition-transform duration-500 ease-spring group-hover:scale-110">
+                  <span className="absolute inset-0 animate-ping-slow rounded-full bg-gold-400/25" style={animationDelay(i * 600)} aria-hidden />
+                  <span className="relative grid size-12 place-items-center rounded-full bg-gold-400/15 text-gold-300 transition-transform duration-500 ease-spring group-hover:scale-110">
                     <Icon className="size-6" aria-hidden />
                   </span>
                 </span>
@@ -294,16 +294,16 @@ export default async function HomePage() {
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
         <div data-reveal="zoom">
-          <div className="relative animate-gradient-pan overflow-hidden rounded-3xl bg-[linear-gradient(115deg,var(--color-electric-700),var(--color-electric-500),var(--color-teal-500),var(--color-electric-600))] bg-[length:300%_300%] p-8 text-white sm:p-12">
-            <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-white/10" />
+          <div className="relative animate-gradient-pan overflow-hidden rounded-3xl bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] bg-[length:300%_300%] p-8 text-white sm:p-12">
+            <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
             <span aria-hidden className="absolute -bottom-20 left-1/3 size-44 animate-float rounded-full bg-white/10 [animation-delay:-3s]" />
-            <span aria-hidden className="absolute top-8 left-8 size-3 animate-ping-slow rounded-full bg-white/60" />
+            <span aria-hidden className="absolute top-8 left-8 size-3 animate-ping-slow rounded-full bg-gold-300" />
             <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
               <div>
                 <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN ?</h2>
                 <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
               </div>
-              <ButtonLink href="/inscription" size="lg" data-magnetic className="group animate-glow-pulse bg-white text-navy-900 hover:bg-navy-50">
+              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group animate-glow-pulse">
                 Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
               </ButtonLink>
             </div>

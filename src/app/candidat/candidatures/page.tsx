@@ -11,7 +11,7 @@ import { loadOfferOrganizations } from "@/features/offers/organizations";
 
 export const metadata: Metadata = { title: "Mes candidatures" };
 
-const tone = (s: ApplicationStatus) => (s === "acceptee" ? "green" : s === "refusee" || s === "retiree" ? "neutral" : s === "entretien_programme" ? "teal" : "blue");
+const tone = (s: ApplicationStatus) => (s === "acceptee" ? "green" : s === "refusee" || s === "retiree" ? "neutral" : s === "entretien_programme" ? "gold" : "blue");
 
 export default async function ApplicationsPage() {
   const ctx = await requireCandidate();
@@ -49,7 +49,7 @@ export default async function ApplicationsPage() {
               </div>
               {a.decision_reason && ["acceptee", "refusee"].includes(status) && <p className="rounded-md bg-slate-50 p-2 text-sm text-slate-700">Motif communiqué : {a.decision_reason}</p>}
               {interviews.filter((i) => i.status === "programme").map((i) => (
-                <p key={i.id} className="flex items-center gap-2 text-sm text-teal-800"><CalendarClock className="size-4" aria-hidden /> Entretien le {formatDateTime(i.scheduled_at)} ({i.mode}{i.location ? ` — ${i.location}` : ""})</p>
+                <p key={i.id} className="flex items-center gap-2 text-sm text-gold-800"><CalendarClock className="size-4" aria-hidden /> Entretien le {formatDateTime(i.scheduled_at)} ({i.mode}{i.location ? ` — ${i.location}` : ""})</p>
               ))}
               <ol className="relative ml-2 space-y-2 border-l border-border pl-4">
                 {events.map((e) => (
