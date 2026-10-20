@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { z } from "zod";
 import { EntityForm } from "@/components/forms/entity-form";
 import { Alert } from "@/components/ui";
 import { signUpCandidateAction, signUpPartnerAction } from "@/features/auth/actions";
@@ -19,7 +18,7 @@ const terms = (
   </>
 );
 
-export function SignUpForms({ domains, initialType, phoneRequired }: { domains: { id: string; name: string }[]; initialType: "candidat" | "partenaire"; phoneRequired: boolean }) {
+export function SignUpForms({ domains, initialType }: { domains: { id: string; name: string }[]; initialType: "candidat" | "partenaire" }) {
   const [type, setType] = useState(initialType);
   const [done, setDone] = useState<string | null>(null);
 
@@ -52,7 +51,7 @@ export function SignUpForms({ domains, initialType, phoneRequired }: { domains: 
       {type === "candidat" ? (
         <EntityForm
           key="candidat"
-          schema={phoneRequired ? candidateSignUpSchema.and(phoneRequiredSchema) : candidateSignUpSchema}
+          schema={candidateSignUpSchema}
           submitLabel="Créer mon compte"
           defaultValues={{ country: "Guinée", opportunity_types: [], status: "etudiant", availability: "immediate" }}
           action={signUpCandidateAction}
@@ -65,7 +64,7 @@ export function SignUpForms({ domains, initialType, phoneRequired }: { domains: 
             { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name" },
             { name: "last_name", label: "Nom", required: true, autoComplete: "family-name" },
             { name: "email", label: "Adresse e-mail", type: "email", required: true, autoComplete: "email" },
-            { name: "phone", label: `Téléphone${phoneRequired ? "" : " (facultatif)"}`, type: "tel", required: phoneRequired, autoComplete: "tel", placeholder: "+224 …" },
+            { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "Obligatoire : l'équipe YEN vous appelle pour les opportunités." },
             { name: "city", label: "Ville", required: true },
             { name: "country", label: "Pays", required: true },
             { name: "institution", label: "Établissement de formation", required: true },
@@ -109,4 +108,3 @@ export function SignUpForms({ domains, initialType, phoneRequired }: { domains: 
   );
 }
 
-const phoneRequiredSchema = z.object({ phone: z.string().trim().min(6, "Numéro de téléphone requis.") });

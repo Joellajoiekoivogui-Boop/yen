@@ -228,6 +228,34 @@ export async function verifyProjectAction(values: Record<string, unknown>): Prom
   });
 }
 
+const certificationStatusSchema = z.object({ id: z.guid(), status: z.enum(["non_verifie", "verifie", "rejete"]) });
+
+/** Vérification d'une certification par YEN (justificatif consulté, lien de vérification contrôlé…). */
+export async function setCertificationStatusAction(input: { id: string; status: "non_verifie" | "verifie" | "rejete" }): Promise<ActionResult> {
+  return runAction({ permission: "assessments.review" }, async (ctx) => {
+    const v = parseInput(certificationStatusSchema, input);
+    const supabase = await createClient();
+    const { data: c, error } = await supabase
+      .from("candidate_certifications")
+      .update({ verification_status: v.status })
+      .eq("id", v.id)
+      .select("id, candidate_id, name")
+      .maybeSingle();
+    if (error) return fail(dbErrorMessage(error));
+    if (!c) return fail("Certification introuvable.");
+    await logAudit(ctx.userId, "certification_verification", "candidate_certifications", c.id, { status: v.status });
+    if (v.status !== "non_verifie") {
+      await notifyCandidate(c.candidate_id, {
+        category: "profil",
+        title: v.status === "verifie" ? `Certification vérifiée : ${c.name}` : `Certification non validée : ${c.name}`,
+        link: "/candidat/certifications",
+      });
+    }
+    revalidatePath(`/admin/talents/${c.candidate_id}`);
+    return { ok: true, message: v.status === "verifie" ? "Certification vérifiée." : v.status === "rejete" ? "Certification rejetée." : "Vérification annulée." };
+  });
+}
+
 /* ----------------------------- Banque de questions ----------------------- */
 
 const assessmentSchema = z.object({

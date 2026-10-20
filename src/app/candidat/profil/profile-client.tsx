@@ -20,7 +20,7 @@ export function ProfileForm({ defaults, domains }: { defaults: Record<string, un
       fields={[
         { name: "first_name", label: "Prénom", required: true },
         { name: "last_name", label: "Nom", required: true },
-        { name: "phone", label: "Téléphone", type: "tel" },
+        { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "Obligatoire : l'équipe YEN vous appelle pour les opportunités. Il n'est jamais transmis aux partenaires." },
         { name: "city", label: "Ville", required: true },
         { name: "country", label: "Pays", required: true },
         { name: "status", label: "Statut", type: "select", required: true, options: opts(candidateStatusLabel) },

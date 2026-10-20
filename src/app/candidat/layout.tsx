@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppShell, type NavSection } from "@/components/layout/app-shell";
 import { Alert } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
@@ -49,9 +50,14 @@ export default async function CandidateLayout({ children }: { children: React.Re
       mobileNav={["/candidat", "/candidat/offres", "/candidat/evaluations", "/candidat/candidatures"]}
       user={{ name: fullName(ctx.profile), email: ctx.email, roleLabel: "Candidat" }}
       topBanner={
-        ctx.profile.is_demo ? (
-          <Alert tone="warning" className="mb-4" title="Compte de démonstration">Ce compte et ses données sont fictifs.</Alert>
-        ) : null
+        <>
+          {ctx.profile.is_demo && <Alert tone="warning" className="mb-4" title="Compte de démonstration">Ce compte et ses données sont fictifs.</Alert>}
+          {!ctx.profile.phone?.trim() && (
+            <Alert tone="error" className="mb-4" title="Numéro de téléphone obligatoire">
+              Ajoutez votre numéro dans <Link href="/candidat/profil" className="font-semibold underline">Mon profil</Link> : sans lui, l&apos;équipe YEN ne peut pas vous contacter et vous ne pouvez pas postuler aux offres.
+            </Alert>
+          )}
+        </>
       }
     >
       {children}

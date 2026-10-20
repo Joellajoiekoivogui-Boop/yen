@@ -185,7 +185,6 @@ const settingsSchema = z.object({
   w_education: z.number().min(0).max(100),
   w_experience: z.number().min(0).max(100),
   max_cv_size_mb: z.number().min(1).max(10),
-  phone_required: z.boolean(),
   partner_requires_validation: z.boolean(),
   auto_max_level: z.enum(["debutant", "intermediaire", "avance"]),
   insertion_window_months: z.number().int().min(1).max(36),
@@ -200,7 +199,6 @@ export async function saveSettingsAction(values: Record<string, unknown>): Promi
     const rows: [string, unknown][] = [
       ["matching.default_weights", { demonstrated_skills: v.w_demonstrated_skills, assessments: v.w_assessments, projects: v.w_projects, education: v.w_education, experience: v.w_experience }],
       ["documents.max_cv_size_mb", v.max_cv_size_mb],
-      ["registration.phone_required", v.phone_required],
       ["offers.partner_requires_validation", v.partner_requires_validation],
       ["assessments.auto_max_level", v.auto_max_level],
       ["reports.insertion_window_months", v.insertion_window_months],

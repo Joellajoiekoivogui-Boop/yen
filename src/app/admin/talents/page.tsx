@@ -61,8 +61,8 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
       <Card className="p-4">
         <form method="get" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           <div className="sm:col-span-2">
-            <label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Nom ou identifiant YEN</label>
-            <input id="q" name="q" defaultValue={filters.q} className="field-input" placeholder="Ex. YEN-CB-000012" />
+            <label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Nom, téléphone ou identifiant YEN</label>
+            <input id="q" name="q" defaultValue={filters.q} className="field-input" placeholder="Nom, téléphone ou YEN-CB-000012" />
           </div>
           {sel("domaine", "Domaine", (domains.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.domain)}
           {sel("competence", "Compétence démontrée", (skills.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.skill)}
@@ -89,7 +89,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
       <Card>
         <Table className="min-w-[1100px]">
           <thead>
-            <tr><Th>Identifiant</Th><Th>Candidat</Th><Th>Formation</Th><Th>Domaine</Th><Th>Compétences évaluées</Th><Th>Projets</Th><Th>Complétion</Th><Th>Dernière activité</Th><Th>Disponibilité</Th><Th>Métier recommandé</Th><Th>Statut</Th></tr>
+            <tr><Th>Identifiant</Th><Th>Candidat</Th><Th>Téléphone</Th><Th>Formation</Th><Th>Domaine</Th><Th>Compétences évaluées</Th><Th>Projets</Th><Th>Complétion</Th><Th>Dernière activité</Th><Th>Disponibilité</Th><Th>Métier recommandé</Th><Th>Statut</Th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
@@ -100,6 +100,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
                   <div className="flex gap-1">{r.is_demo && <Badge tone="purple">Démo</Badge>}{r.review_flag && <Badge tone="amber"><Flag className="size-3" aria-hidden /> À vérifier</Badge>}</div>
                   <span className="text-xs text-muted">{r.city}</span>
                 </Td>
+                <Td className="whitespace-nowrap">{r.phone ? <a href={`tel:${r.phone.replace(/[^+\d]/g, "")}`} className="font-medium text-navy-800 tabular-nums hover:underline">{r.phone}</a> : <Badge tone="red">Manquant</Badge>}</Td>
                 <Td className="max-w-[160px] truncate">{r.yen_program ?? "—"}<div className="text-xs text-muted">{r.graduation_year ?? ""}</div></Td>
                 <Td className="max-w-[160px] truncate">{r.domain ?? "—"}</Td>
                 <Td className="text-center tabular-nums">{r.evaluatedSkills}</Td>
@@ -111,7 +112,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
                 <Td><Badge tone="blue">{pipelineLabel[r.pipeline_status as PipelineStatus]}</Badge></Td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><Td colSpan={11} className="py-8 text-center text-muted">Aucun candidat ne correspond à ces critères.</Td></tr>}
+            {rows.length === 0 && <tr><Td colSpan={12} className="py-8 text-center text-muted">Aucun candidat ne correspond à ces critères.</Td></tr>}
           </tbody>
         </Table>
       </Card>

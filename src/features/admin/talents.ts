@@ -28,6 +28,7 @@ export interface TalentRow {
   id: string;
   public_code: string;
   name: string;
+  phone: string | null;
   city: string | null;
   yen_program: string | null;
   domain: string | null;
@@ -72,7 +73,7 @@ export async function searchTalents(supabase: SupabaseClient, f: TalentFilters):
 
   let q = supabase
     .from("candidate_profiles")
-    .select("id, public_code, yen_program, graduation_year, availability, pipeline_status, review_flag, is_demo, last_activity_at, primary_domain_id, education_level, institution, opportunity_types, headline, summary, engineering_domains(name), profiles!candidate_profiles_user_id_fkey!inner(first_name, last_name, city, is_active)", { count: "exact" });
+    .select("id, public_code, yen_program, graduation_year, availability, pipeline_status, review_flag, is_demo, last_activity_at, primary_domain_id, education_level, institution, opportunity_types, headline, summary, engineering_domains(name), profiles!candidate_profiles_user_id_fkey!inner(first_name, last_name, city, phone, is_active)", { count: "exact" });
   if (!f.includeDemo) q = q.eq("is_demo", false);
   if (f.domain) q = q.eq("primary_domain_id", f.domain);
   if (f.program) q = q.ilike("yen_program", `%${f.program}%`);
@@ -85,6 +86,7 @@ export async function searchTalents(supabase: SupabaseClient, f: TalentFilters):
   if (f.q) {
     const term = f.q.replace(/[%_,()*]/g, "").trim();
     if (/^yen-cb/i.test(term)) q = q.ilike("public_code", `%${term}%`);
+    else if (/^\+?[\d .-]{6,}$/.test(term)) q = q.ilike("profiles.phone", `%${term}%`);
     else if (term) q = q.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%`, { referencedTable: "profiles" });
   }
   if (restrict) q = q.in("id", [...(restrict as Set<string>)].slice(0, 1000));
@@ -111,7 +113,7 @@ export async function searchTalents(supabase: SupabaseClient, f: TalentFilters):
   const countBy = (rows: { candidate_id: string }[] | null, id: string) => (rows ?? []).filter((r) => r.candidate_id === id).length;
 
   const rows: TalentRow[] = list.map((c) => {
-    const p = c.profiles as unknown as { first_name: string; last_name: string; city: string | null };
+    const p = c.profiles as unknown as { first_name: string; last_name: string; city: string | null; phone: string | null };
     const nProjects = countBy(projects.data, c.id);
     const completion = computeCompletion({
       firstName: p.first_name, lastName: p.last_name, city: p.city, institution: c.institution, yenProgram: c.yen_program, educationLevel: c.education_level,
@@ -123,7 +125,7 @@ export async function searchTalents(supabase: SupabaseClient, f: TalentFilters):
     const domainTargets = targets.filter((t) => t.domainId === c.primary_domain_id);
     const best = ev && domainTargets.length ? rankMatches(domainTargets.map((t) => ({ target: t, match: computeMatch(t, ev) })))[0] : null;
     return {
-      id: c.id, public_code: c.public_code, name: `${p.first_name} ${p.last_name}`.trim() || "—", city: p.city, yen_program: c.yen_program,
+      id: c.id, public_code: c.public_code, name: `${p.first_name} ${p.last_name}`.trim() || "—", phone: p.phone, city: p.city, yen_program: c.yen_program,
       domain: (c.engineering_domains as unknown as { name: string } | null)?.name ?? null, graduation_year: c.graduation_year, availability: c.availability,
       pipeline_status: c.pipeline_status, review_flag: c.review_flag, is_demo: c.is_demo, last_activity_at: c.last_activity_at,
       evaluatedSkills: new Set((sa.data ?? []).filter((r) => r.candidate_id === c.id).map((r) => r.skill_id)).size,

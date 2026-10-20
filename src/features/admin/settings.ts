@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/server";
  * lisible que par le personnel ; seules des clés explicitement listées ici sont
  * exposées aux pages publiques.
  */
-const PUBLIC_KEYS = new Set(["registration.phone_required", "documents.max_cv_size_mb"]);
+const PUBLIC_KEYS = new Set(["documents.max_cv_size_mb"]);
 
 async function readSetting(key: string): Promise<unknown> {
   try {

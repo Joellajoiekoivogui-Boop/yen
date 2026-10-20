@@ -26,7 +26,7 @@ export async function updateProfileAction(values: Record<string, unknown>): Prom
     const v = parseInput(profileSchema, values);
     const supabase = await createClient();
     const { first_name, last_name, phone, city, country, ...cand } = v;
-    const p1 = await supabase.from("profiles").update({ first_name, last_name, phone: phone ?? null, city, country }).eq("id", ctx.userId);
+    const p1 = await supabase.from("profiles").update({ first_name, last_name, phone, city, country }).eq("id", ctx.userId);
     if (p1.error) return fail(dbErrorMessage(p1.error));
     const p2 = await supabase.from("candidate_profiles").update({ ...cand, last_activity_at: new Date().toISOString() }).eq("id", ctx.candidateId!);
     if (p2.error) return fail(dbErrorMessage(p2.error));

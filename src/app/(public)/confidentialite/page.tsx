@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         <p>Youth Engineers Network (YEN). Les coordonnées du délégué ou du référent chargé de la protection des données doivent être précisées ici par YEN.</p>
         <h2>Données collectées</h2>
         <ul>
-          <li>Identité et coordonnées : nom, prénom, adresse e-mail, téléphone (facultatif selon configuration), ville, pays.</li>
+          <li>Identité et coordonnées : nom, prénom, adresse e-mail, téléphone (obligatoire pour les candidats, afin que YEN puisse vous contacter), ville, pays.</li>
           <li>Parcours : établissement, formation suivie chez YEN, niveau d&apos;études, formations, expériences, projets, certifications, langues.</li>
           <li>Documents : CV et justificatifs au format PDF, stockés de manière privée.</li>
           <li>Évaluations : réponses, résultats, compétences démontrées et analyses associées.</li>

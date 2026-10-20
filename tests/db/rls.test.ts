@@ -217,6 +217,40 @@ d("Sécurité base de données (RLS)", () => {
       await expect(asUser(db, U.alice, () =>
         db.query("insert into storage.objects (bucket_id, name) values ('candidate-documents', $1)", [`${U.alice}/page.html`]))).rejects.toThrow();
     });
+
+    it("un évaluateur YEN peut vérifier une certification, pas le candidat", async () => {
+      const cert = await db.query("insert into public.candidate_certifications (candidate_id, name, issuer) values ($1, 'AWS CCP', 'Amazon') returning id", [alice]);
+      const r = await asUser(db, U.evaluator, async () => {
+        await db.query("update public.candidate_certifications set verification_status = 'verifie' where id = $1", [cert.rows[0].id]);
+        return db.query("select verification_status from public.candidate_certifications where id = $1", [cert.rows[0].id]);
+      });
+      expect(r.rows[0].verification_status).toBe("verifie");
+      await expect(asUser(db, U.alice, () =>
+        db.query("update public.candidate_certifications set verification_status = 'verifie' where id = $1", [cert.rows[0].id])))
+        .rejects.toThrow(/réservée à YEN/);
+    });
+  });
+
+  describe("Téléphone obligatoire", () => {
+    it("un candidat peut changer son numéro mais pas l'effacer", async () => {
+      await db.query("update public.profiles set phone = '+224 620 00 00 01' where id = $1", [U.alice]);
+      const r = await asUser(db, U.alice, async () => {
+        await db.query("update public.profiles set phone = '+224 620 00 00 02' where id = $1", [U.alice]);
+        return db.query("select phone from public.profiles where id = $1", [U.alice]);
+      });
+      expect(r.rows[0].phone).toBe("+224 620 00 00 02");
+      for (const empty of [null, "", "   "]) {
+        await expect(asUser(db, U.alice, () => db.query("update public.profiles set phone = $1 where id = $2", [empty, U.alice]))).rejects.toThrow(/téléphone est obligatoire/);
+      }
+    });
+
+    it("le personnel YEN voit le numéro du candidat, pas un partenaire", async () => {
+      await db.query("update public.profiles set phone = '+224 620 00 00 03' where id = $1", [U.bob]);
+      const staff = await asUser(db, U.manager, () => db.query("select phone from public.profiles where id = $1", [U.bob]));
+      expect(staff.rows[0]?.phone).toBe("+224 620 00 00 03");
+      const partner = await asUser(db, U.recruiter, () => db.query("select phone from public.profiles where id = $1", [U.bob]));
+      expect(partner.rows).toHaveLength(0);
+    });
   });
 
   describe("Évaluations", () => {

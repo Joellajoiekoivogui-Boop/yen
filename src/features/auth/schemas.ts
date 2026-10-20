@@ -8,6 +8,15 @@ export const passwordSchema = z
   .regex(/[A-Z]/, "Au moins une lettre majuscule.")
   .regex(/[0-9]/, "Au moins un chiffre.");
 
+/** Numéro de téléphone obligatoire (candidats) : 8 à 15 chiffres, indicatif compris. */
+export const phoneSchema = z
+  .string({ error: "Numéro de téléphone requis." })
+  .trim()
+  .min(1, "Numéro de téléphone requis.")
+  .max(30, "30 caractères maximum.")
+  .regex(/^[+0-9 ().-]+$/, "Numéro invalide : chiffres, espaces et « + » uniquement.")
+  .refine((v) => /^\d{8,15}$/.test(v.replace(/\D/g, "")), "Numéro invalide : 8 à 15 chiffres, indicatif compris (ex. +224 620 00 00 00).");
+
 const name = (label: string) => z.string().trim().min(1, `${label} requis.`).max(100, "100 caractères maximum.");
 const optional = (max: number) => z.string().trim().max(max, `${max} caractères maximum.`).optional().nullable();
 
@@ -21,7 +30,7 @@ export const candidateSignUpSchema = z
     first_name: name("Prénom"),
     last_name: name("Nom"),
     email: z.email("Adresse e-mail invalide.").trim().toLowerCase(),
-    phone: z.string().trim().max(30).regex(/^[+0-9 ()-]*$/, "Numéro invalide.").optional().nullable(),
+    phone: phoneSchema,
     city: name("Ville"),
     country: name("Pays"),
     institution: z.string().trim().min(1, "Établissement requis.").max(200),

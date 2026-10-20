@@ -46,6 +46,7 @@ const applySchema = z.object({ offerId: z.guid(), motivation: z.preprocess((v) =
 export async function applyToOfferAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ requireCandidate: true }, async (ctx) => {
     const v = parseInput(applySchema, values);
+    if (!ctx.profile.phone?.trim()) return fail("Ajoutez votre numéro de téléphone dans « Mon profil » avant de postuler : il est obligatoire pour que YEN puisse vous contacter.");
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("applications")

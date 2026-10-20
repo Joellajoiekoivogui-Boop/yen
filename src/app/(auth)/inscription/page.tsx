@@ -5,7 +5,6 @@ import { Alert, Card } from "@/components/ui";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/env";
 import { listDomains } from "@/features/catalog/queries";
-import { getPublicSetting } from "@/features/admin/settings";
 import { param } from "@/lib/utils";
 import { SignUpForms } from "./sign-up-forms";
 
@@ -17,7 +16,6 @@ export default async function SignUpPage(props: PageProps<"/inscription">) {
   if (session) redirect(homePathFor(session));
   const configured = isSupabaseConfigured();
   const domains = configured ? await listDomains() : [];
-  const phoneRequired = configured ? (await getPublicSetting("registration.phone_required")) === true : false;
   return (
     <Card className="w-full max-w-3xl p-6 sm:p-8">
       <h1 className="text-2xl font-bold text-navy-900">Créer un compte</h1>
@@ -26,7 +24,7 @@ export default async function SignUpPage(props: PageProps<"/inscription">) {
         {!configured ? (
           <Alert tone="warning" title="Configuration requise">Supabase n&apos;est pas configuré : l&apos;inscription est indisponible.</Alert>
         ) : (
-          <SignUpForms domains={domains.map((d) => ({ id: d.id, name: d.name }))} initialType={param(sp.type) === "partenaire" ? "partenaire" : "candidat"} phoneRequired={phoneRequired} />
+          <SignUpForms domains={domains.map((d) => ({ id: d.id, name: d.name }))} initialType={param(sp.type) === "partenaire" ? "partenaire" : "candidat"} />
         )}
       </div>
       <p className="mt-6 text-center text-sm text-slate-600">

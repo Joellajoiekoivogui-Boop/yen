@@ -46,6 +46,9 @@ test("un candidat crée son compte et se connecte", async ({ page }) => {
   await f("Prénom", "Test");
   await f("Nom", candidate.lastName);
   await f("Adresse e-mail", candidate.email);
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await expect(page.getByText("Numéro de téléphone requis.")).toBeVisible();
+  await f("Téléphone", "+224 620 11 22 33");
   await f("Ville", "Conakry");
   await f("Établissement de formation", "Université fictive");
   await f("Formation suivie chez YEN", "Développement web full-stack");
@@ -200,9 +203,21 @@ test("le responsable YEN consulte le candidat, le classement et transmet au part
   await expect(page.getByText("Candidats inscrits")).toBeVisible();
 
   await page.goto(`/admin/talents?q=${candidate.lastName}`);
+  await expect(page.getByRole("link", { name: "+224 620 11 22 33" })).toBeVisible();
   await page.getByRole("link", { name: `Test ${candidate.lastName}` }).click();
   await page.waitForURL(/\/admin\/talents\/[0-9a-f-]{36}/);
   candidateUrl = page.url().split("?")[0];
+  // Dossier complet : coordonnées, CV, formations, certificats et compétences sur une seule page
+  await expect(page.getByRole("link", { name: "Appeler" })).toHaveAttribute("href", "tel:+224620112233");
+  await expect(page.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", "https://wa.me/224620112233");
+  await expect(page.getByText("mon-cv.pdf")).toBeVisible();
+  await expect(page.getByText("Formations suivies")).toBeVisible();
+  const thumb = page.getByRole("img", { name: "Justificatif : certificat.png" });
+  await expect(thumb).toBeVisible();
+  await expect.poll(() => thumb.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+  await page.getByRole("button", { name: "Vérifier", exact: true }).click();
+  await expect(page.getByText("Certification vérifiée.")).toBeVisible();
+  await expect(page.getByText("Vérifiée", { exact: true })).toBeVisible();
   await expect(page.getByText("Notes internes")).toBeVisible();
   await page.getByRole("textbox", { name: /Note interne/ }).fill("Profil solide sur le front-end, à confirmer en entretien.");
   await page.getByRole("button", { name: "Ajouter la note" }).click();

@@ -31,7 +31,7 @@ export default async function SettingsPage() {
         <CardBody>
           <SettingsForm defaults={{
             w_demonstrated_skills: w.demonstrated_skills ?? 40, w_assessments: w.assessments ?? 25, w_projects: w.projects ?? 15, w_education: w.education ?? 10, w_experience: w.experience ?? 10,
-            max_cv_size_mb: Number(s["documents.max_cv_size_mb"] ?? 5), phone_required: s["registration.phone_required"] === true, partner_requires_validation: s["offers.partner_requires_validation"] !== false,
+            max_cv_size_mb: Number(s["documents.max_cv_size_mb"] ?? 5), partner_requires_validation: s["offers.partner_requires_validation"] !== false,
             auto_max_level: s["assessments.auto_max_level"] ?? "avance", insertion_window_months: Number(s["reports.insertion_window_months"] ?? 6),
           }} />
         </CardBody>

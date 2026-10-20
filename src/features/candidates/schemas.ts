@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { phoneSchema } from "@/features/auth/schemas";
 
 /** Chaîne optionnelle : "" devient null. */
 export const optText = (max: number) =>
@@ -17,7 +18,7 @@ const optDate = z.preprocess((v) => (v === "" || v == null ? null : v), z.iso.da
 export const profileSchema = z.object({
   first_name: reqText("Prénom", 100),
   last_name: reqText("Nom", 100),
-  phone: z.preprocess((v) => (v === "" ? null : v), z.string().trim().max(30).regex(/^[+0-9 ()-]*$/, "Numéro invalide.").nullable().optional()),
+  phone: phoneSchema,
   city: reqText("Ville", 100),
   country: reqText("Pays", 100),
   institution: optText(200),
