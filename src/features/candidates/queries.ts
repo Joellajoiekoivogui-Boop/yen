@@ -27,15 +27,13 @@ export interface CandidateBundle {
 
 /** Charge l'ensemble du dossier d'un candidat avec le client fourni (RLS appliqué si client utilisateur). */
 export async function loadCandidateBundle(supabase: SupabaseClient, candidateId: string): Promise<CandidateBundle | null> {
-  const { data: candidate } = await supabase
-    .from("candidate_profiles")
-    .select("*, engineering_domains(name, slug)")
-    .eq("id", candidateId)
-    .maybeSingle();
-  if (!candidate) return null;
-
-  const [person, education, experiences, projects, certifications, declaredSkills, languages, consents, cv, sa] = await Promise.all([
-    supabase.from("profiles").select("first_name, last_name, email, phone, city, country").eq("id", candidate.user_id).maybeSingle(),
+  // Toutes les requêtes partent en parallèle (un seul aller-retour) ; l'identité est jointe au profil candidat.
+  const [cand, education, experiences, projects, certifications, declaredSkills, languages, consents, cv, sa] = await Promise.all([
+    supabase
+      .from("candidate_profiles")
+      .select("*, engineering_domains(name, slug), person:profiles!candidate_profiles_user_id_fkey(first_name, last_name, email, phone, city, country)")
+      .eq("id", candidateId)
+      .maybeSingle(),
     supabase.from("candidate_education").select("*").eq("candidate_id", candidateId).order("end_year", { ascending: false, nullsFirst: true }),
     supabase.from("candidate_experiences").select("*").eq("candidate_id", candidateId).order("start_date", { ascending: false }),
     supabase.from("candidate_projects").select("*, project_skills(skill_id, skills(name))").eq("candidate_id", candidateId).order("created_at", { ascending: false }),
@@ -48,9 +46,12 @@ export async function loadCandidateBundle(supabase: SupabaseClient, candidateId:
     supabase.from("skill_assessments").select("*, skills(name, domain_id)").eq("candidate_id", candidateId).order("assessed_at", { ascending: false }),
   ]);
 
+  if (!cand.data) return null;
+  const { person, ...candidate } = cand.data as CandidateBundle["candidate"] & { person: CandidateBundle["person"] };
+
   return {
-    candidate: candidate as CandidateBundle["candidate"],
-    person: person.data ?? null,
+    candidate,
+    person: person ?? null,
     education: (education.data ?? []) as CandidateBundle["education"],
     experiences: (experiences.data ?? []) as CandidateBundle["experiences"],
     projects: (projects.data ?? []) as CandidateBundle["projects"],

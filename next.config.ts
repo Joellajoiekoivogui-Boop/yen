@@ -40,6 +40,9 @@ const nextConfig: NextConfig = {
     // Téléversement de CV (limite applicative configurable, plafond technique 12 Mo)
     serverActions: { bodySizeLimit: "12mb" },
     proxyClientMaxBodySize: "12mb",
+    // Cache de navigation côté navigateur : revenir sur une page visitée il y a moins de
+    // 30 s est instantané (vidé à chaque action qui modifie des données).
+    staleTimes: { dynamic: 30, static: 180 },
   },
   async headers() {
     return [

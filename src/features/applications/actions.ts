@@ -282,6 +282,7 @@ export async function partnerFeedbackAction(values: Record<string, unknown>): Pr
       }
     }
     await notifyStaffWithPermission("assessments.review", { category: "candidature", title: "Retour partenaire à examiner", link: "/admin/corrections" });
+    revalidatePath(`/partenaire/candidatures/${v.applicationId}`);
     return { ok: true, message: "Merci : votre retour a été transmis à l'équipe YEN." };
   });
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IntentLink } from "@/components/layout/intent-link";
 import { Download, Flag } from "lucide-react";
 import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
@@ -96,7 +97,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
               <tr key={r.id} className="hover:bg-slate-50">
                 <Td className="font-mono text-xs"><Link href={`/admin/talents/${r.id}`} className="text-electric-700 hover:underline">{r.public_code}</Link></Td>
                 <Td>
-                  <Link href={`/admin/talents/${r.id}`} className="font-medium text-navy-900 hover:underline">{r.name}</Link>
+                  <IntentLink href={`/admin/talents/${r.id}`} className="font-medium text-navy-900 hover:underline">{r.name}</IntentLink>
                   <div className="flex gap-1">{r.is_demo && <Badge tone="purple">Démo</Badge>}{r.review_flag && <Badge tone="amber"><Flag className="size-3" aria-hidden /> À vérifier</Badge>}</div>
                   <span className="text-xs text-muted">{r.city}</span>
                 </Td>

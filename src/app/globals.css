@@ -77,12 +77,12 @@
   --animate-wiggle: wiggle 0.6s ease-in-out;
   --animate-pop-in: pop-in 0.6s var(--ease-spring) backwards;
   --animate-fade-in: fade-in 0.4s ease-out backwards;
-  --animate-slide-down: slide-down 0.5s var(--ease-out-expo) backwards;
-  --animate-header-in: header-in 0.8s var(--ease-out-expo) backwards;
-  --animate-sidebar-in: sidebar-in 0.8s var(--ease-out-expo) backwards;
+  --animate-slide-down: slide-down 0.3s var(--ease-out-expo) backwards;
+  --animate-header-in: header-in 0.5s var(--ease-out-expo) backwards;
+  --animate-sidebar-in: sidebar-in 0.45s var(--ease-out-expo) backwards;
   --animate-drawer-in: drawer-in 0.45s var(--ease-out-expo) backwards;
-  --animate-nav-item: nav-item 0.6s var(--ease-out-expo) backwards;
-  --animate-progress-grow: progress-grow 1.4s var(--ease-out-expo) backwards;
+  --animate-nav-item: nav-item 0.35s var(--ease-out-expo) backwards;
+  --animate-progress-grow: progress-grow 0.8s var(--ease-out-expo) backwards;
   --animate-glow-pulse: glow-pulse 2.4s ease-out infinite;
   --animate-hero-card: reveal-right 1s var(--ease-out-expo) backwards;
   --animate-underline: underline-draw 1s var(--ease-out-expo) 0.35s backwards;
@@ -91,6 +91,9 @@
 /* Images clés du motion design (toujours émises, utilisées par les utilitaires et les classes ci-dessous) */
 @keyframes reveal-up {
   from { opacity: 0; transform: translate3d(0, 28px, 0); }
+}
+@keyframes reveal-up-short {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
 }
 @keyframes reveal-zoom {
   from { opacity: 0; transform: scale(0.92); }
@@ -279,18 +282,24 @@
      hors de l'écran ; ils sont masqués puis rejouent leur animation en arrivant à l'écran. */
 @media (prefers-reduced-motion: no-preference) {
   :where([data-reveal]:not([data-reveal="none"]), [data-reveal-children] > :not([data-reveal])) {
-    animation: var(--reveal-animation, reveal-up) 0.9s var(--ease-out-expo) var(--reveal-delay, 0ms) backwards;
+    animation: var(--reveal-animation, reveal-up) 0.6s var(--ease-out-expo) var(--reveal-delay, 0ms) backwards;
   }
   [data-reveal="zoom"] { --reveal-animation: reveal-zoom; }
   [data-reveal="left"] { --reveal-animation: reveal-left; }
   [data-reveal="right"] { --reveal-animation: reveal-right; }
   [data-reveal="blur"] { --reveal-animation: reveal-blur; }
-  [data-reveal-children] > :nth-child(2) { --reveal-delay: 70ms; }
-  [data-reveal-children] > :nth-child(3) { --reveal-delay: 140ms; }
-  [data-reveal-children] > :nth-child(4) { --reveal-delay: 210ms; }
-  [data-reveal-children] > :nth-child(5) { --reveal-delay: 280ms; }
-  [data-reveal-children] > :nth-child(6) { --reveal-delay: 350ms; }
-  [data-reveal-children] > :nth-child(n + 7) { --reveal-delay: 400ms; }
+  [data-reveal-children] > :nth-child(2) { --reveal-delay: 50ms; }
+  [data-reveal-children] > :nth-child(3) { --reveal-delay: 100ms; }
+  [data-reveal-children] > :nth-child(4) { --reveal-delay: 150ms; }
+  [data-reveal-children] > :nth-child(5) { --reveal-delay: 200ms; }
+  [data-reveal-children] > :nth-child(n + 6) { --reveal-delay: 240ms; }
+
+  /* Espaces connectés : apparitions très brèves et sans attente, chaque clic paraît instantané */
+  [data-app] { --reveal-animation: reveal-up-short; }
+  [data-app] :where([data-reveal]:not([data-reveal="none"]), [data-reveal-children] > :not([data-reveal])) {
+    animation-duration: 0.28s;
+  }
+  [data-app] [data-reveal-children] > :nth-child(n) { --reveal-delay: 0ms; }
 
   [data-reveal-pending] { opacity: 0; }
   /* les animations des descendants repartent de zéro avec leur parent */
@@ -495,7 +504,7 @@ html[data-scrolled-far] .back-to-top {
 
 /* Anneau de progression */
 .ring-draw {
-  animation: ring-draw 1.6s var(--ease-out-expo) 0.2s backwards;
+  animation: ring-draw 0.8s var(--ease-out-expo) backwards;
 }
 
 /* Squelettes de chargement */

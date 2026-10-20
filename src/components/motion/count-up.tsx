@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
  * Nombre qui défile de 0 à sa valeur lorsqu'il arrive à l'écran.
  * Le rendu serveur affiche directement la valeur finale (lisible sans JavaScript).
  */
-export function CountUp({ value, duration = 1600, className }: { value: number; duration?: number; className?: string }) {
+export function CountUp({ value, duration = 700, className }: { value: number; duration?: number; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [display, setDisplay] = useState(value);
 

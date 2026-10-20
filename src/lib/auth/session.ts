@@ -23,7 +23,6 @@ export interface SessionProfile {
 export interface SessionContext {
   userId: string;
   email: string;
-  emailConfirmed: boolean;
   profile: SessionProfile;
   roles: AppRole[];
   permissions: Set<Permission>;
@@ -38,9 +37,13 @@ export const getSession = cache(async (): Promise<SessionContext | null> => {
   await connection();
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth.user;
-  if (!user) return null;
+  // getClaims() vérifie la signature du jeton localement (clés publiques mises en cache) :
+  // pas d'aller-retour vers Supabase Auth à chaque page. Avec une ancienne clé symétrique,
+  // la bibliothèque revient automatiquement à une vérification par le serveur (getUser).
+  const { data: auth } = await supabase.auth.getClaims();
+  const claims = auth?.claims;
+  if (!claims?.sub) return null;
+  const user = { id: claims.sub, email: typeof claims.email === "string" ? claims.email : undefined };
 
   const [profileRes, rolesRes, permsRes, candRes, membershipRes] = await Promise.all([
     supabase.from("profiles").select("id, first_name, last_name, email, phone, city, country, account_type, is_active, is_demo").eq("id", user.id).maybeSingle(),
@@ -58,8 +61,7 @@ export const getSession = cache(async (): Promise<SessionContext | null> => {
 
   return {
     userId: user.id,
-    email: user.email ?? profileRes.data.email,
-    emailConfirmed: Boolean(user.email_confirmed_at),
+    email: user.email || profileRes.data.email,
     profile: profileRes.data as SessionProfile,
     roles,
     permissions,

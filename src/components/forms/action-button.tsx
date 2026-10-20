@@ -47,10 +47,8 @@ export function ActionButton({
             if (r.ok) toast.success(r.message ?? "Effectué.");
             else setMsg({ ok: false, text: r.error });
             onDone?.(r);
-            if (r.ok) {
-              if (redirectTo) router.push(redirectTo);
-              else router.refresh();
-            }
+            // pas de router.refresh() : l'action appelle revalidatePath et sa réponse contient déjà la page à jour
+            if (r.ok && redirectTo) router.push(redirectTo);
           });
         }}
       >

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
@@ -9,6 +8,7 @@ import {
   Search, Target, Trophy, User, Users, X, type LucideIcon,
 } from "lucide-react";
 import { CommandPalette, openCommandPalette } from "./command-palette";
+import { IntentLink } from "./intent-link";
 import { Logo } from "./logo";
 import { cn } from "@/lib/utils";
 
@@ -80,8 +80,8 @@ export function AppShell({
             {s.items.map((item, j) => {
               const active = isActive(item);
               return (
-                <li key={item.href} className="animate-nav-item" style={{ animationDelay: `${120 + (sectionOffsets[i] + j) * 35}ms` }}>
-                  <Link
+                <li key={item.href} className="animate-nav-item" style={{ animationDelay: `${40 + (sectionOffsets[i] + j) * 15}ms` }}>
+                  <IntentLink
                     href={item.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? "page" : undefined}
@@ -103,7 +103,7 @@ export function AppShell({
                     {item.badge ? (
                       <span className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")}>{item.badge}</span>
                     ) : null}
-                  </Link>
+                  </IntentLink>
                 </li>
               );
             })}
@@ -193,7 +193,7 @@ export function AppShell({
         </div>
       )}
 
-      <main id="contenu" className={cn("mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8", bottomItems.length > 0 && "pb-28 lg:pb-8")}>
+      <main id="contenu" data-app className={cn("mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8", bottomItems.length > 0 && "pb-28 lg:pb-8")}>
         {topBanner}
         {children}
       </main>
@@ -212,7 +212,7 @@ export function AppShell({
               const active = isActive(item);
               return (
                 <li key={item.href}>
-                  <Link
+                  <IntentLink
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn("group flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors", dark ? (active ? "text-white" : "text-navy-200") : active ? "text-navy-900" : "text-slate-500")}
@@ -227,7 +227,7 @@ export function AppShell({
                       {item.badge ? <span className="absolute -top-1 right-1.5 grid min-w-4 animate-pop-in place-items-center rounded-full bg-red-500 px-1 text-[10px] leading-4 font-bold text-white">{item.badge}</span> : null}
                     </span>
                     <span className="max-w-[4.75rem] truncate">{item.short ?? item.label}</span>
-                  </Link>
+                  </IntentLink>
                 </li>
               );
             })}

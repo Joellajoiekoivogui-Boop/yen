@@ -16,24 +16,25 @@ import { InfoRequestForm } from "./info-request-form";
 export default async function CandidateDashboard() {
   const ctx = await requireCandidate();
   const supabase = await createClient();
-  const bundle = await loadCandidateBundle(supabase, ctx.candidateId);
-  if (!bundle) return <Alert tone="error">Profil introuvable.</Alert>;
-
-  const [lastAnalysis, recs, apps, offers, infoReqs] = await Promise.all([
+  // Requêtes indépendantes lancées en parallèle : moins d'allers-retours, page plus rapide
+  const [bundle, [lastAnalysis, recs, apps, offers, infoReqs]] = await Promise.all([loadCandidateBundle(supabase, ctx.candidateId), Promise.all([
     supabase.from("ai_analyses").select("created_at, status").eq("candidate_id", ctx.candidateId).in("kind", ["analyse_profil"]).neq("status", "echoue").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("ai_recommendations").select("id, rec_type, title, body, origin").eq("candidate_id", ctx.candidateId).eq("status", "active").order("priority").order("created_at", { ascending: false }).limit(4),
     supabase.from("applications").select("id, status, submitted_at, job_offers(title, organization_id)").eq("candidate_id", ctx.candidateId).in("status", ACTIVE_APPLICATION_STATUSES).order("updated_at", { ascending: false }).limit(5),
     supabase.from("job_offers").select("id").eq("status", "publiee").or(`deadline.is.null,deadline.gte.${new Date().toISOString().slice(0, 10)}`).order("published_at", { ascending: false }).limit(40),
     supabase.from("info_requests").select("id, message, created_at").eq("candidate_id", ctx.candidateId).eq("status", "ouverte"),
-  ]);
+  ])]);
+  if (!bundle) return <Alert tone="error">Profil introuvable.</Alert>;
 
-  const orgs = await loadOfferOrganizations(supabase, (apps.data ?? []).map((a) => (a.job_offers as unknown as { organization_id: string }).organization_id));
+  const [orgs, evidence, targets] = await Promise.all([
+    loadOfferOrganizations(supabase, (apps.data ?? []).map((a) => (a.job_offers as unknown as { organization_id: string }).organization_id)),
+    loadEvidence(supabase, ctx.candidateId, bundle.candidate.primary_domain_id),
+    loadOfferTargets(supabase, (offers.data ?? []).map((o) => o.id)),
+  ]);
   const completion = completionOf(bundle);
   const demonstrated = aggregateDemonstrated(bundle.skillAssessments);
   const toEvaluate = bundle.declaredSkills.filter((d) => !demonstrated[d.skill_id]);
 
-  const evidence = await loadEvidence(supabase, ctx.candidateId, bundle.candidate.primary_domain_id);
-  const targets = await loadOfferTargets(supabase, (offers.data ?? []).map((o) => o.id));
   const topOffers = evidence ? rankMatches(targets.map((t) => ({ target: t, match: computeMatch(t, evidence) }))).slice(0, 3) : [];
 
   // Évolution : nombre cumulé de compétences démontrées par mois

@@ -32,11 +32,23 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Important : getUser() revalide le jeton auprès de Supabase Auth.
+  // Visiteur sans cookie de session : rien à rafraîchir ni à vérifier
+  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+  if (!hasSession) {
+    if (!isProtected) return response;
+    const url = request.nextUrl.clone();
+    url.pathname = "/connexion";
+    url.search = "";
+    url.searchParams.set("suivant", request.nextUrl.pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // getClaims() rafraîchit la session si besoin puis vérifie le jeton localement
+  // (clés publiques en cache) : pas d'appel réseau à Supabase Auth à chaque clic.
   let userId: string | null = null;
   try {
-    const { data } = await supabase.auth.getUser();
-    userId = data.user?.id ?? null;
+    const { data } = await supabase.auth.getClaims();
+    userId = data?.claims?.sub ?? null;
   } catch {
     userId = null;
   }

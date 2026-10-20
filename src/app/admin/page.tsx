@@ -23,13 +23,15 @@ export default async function AdminHome(props: PageProps<"/admin">) {
     );
   }
   const supabase = await createClient();
+  // .then() lance la requête tout de suite, en parallèle de la lecture du paramètre
+  const statsReq = supabase.rpc("admin_overview_stats", { p_include_demo: includeDemo }).then((r) => r);
   const months = await getInsertionWindowMonths();
   const end = new Date();
   const start = new Date(end);
   start.setMonth(start.getMonth() - months);
   const iso = (d: Date) => d.toISOString().slice(0, 10);
   const [{ data: stats, error }, report] = await Promise.all([
-    supabase.rpc("admin_overview_stats", { p_include_demo: includeDemo }),
+    statsReq,
     ctx.permissions.has("reports.view") ? supabase.rpc("insertion_report", { p_start: iso(start), p_end: iso(end), p_include_demo: includeDemo }) : Promise.resolve({ data: null }),
   ]);
   if (error || !stats) return <Alert tone="error">Les statistiques n&apos;ont pas pu être chargées.</Alert>;

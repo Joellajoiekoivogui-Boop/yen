@@ -71,8 +71,8 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
         if (text) toast.success(text);
         if (resetOnSuccess) reset(defaultValues ?? {});
         onSuccess?.(res);
+        // pas de router.refresh() : l'action appelle revalidatePath et sa réponse contient déjà la page à jour
         if (redirectTo) router.push(redirectTo);
-        else router.refresh();
       } else {
         setErrorMessage(res.error);
         for (const [name, msgs] of Object.entries(res.fieldErrors ?? {})) {

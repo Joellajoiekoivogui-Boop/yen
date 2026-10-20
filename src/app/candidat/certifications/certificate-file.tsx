@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Eye, FileText, ImageUp, Loader2, RefreshCw, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "@/components/feedback/toast";
@@ -20,7 +19,6 @@ export interface CertificateDoc {
 
 /** Justificatif d'une certification : dépôt par glisser-déposer ou sélection, aperçu, remplacement. */
 export function CertificateFile({ certificationId, doc, maxBytes }: { certificationId: string; doc?: CertificateDoc; maxBytes: number }) {
-  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [dragging, setDragging] = useState(false);
@@ -40,7 +38,6 @@ export function CertificateFile({ certificationId, doc, maxBytes }: { certificat
       const res = await uploadCertificateFileAction(fd);
       if (res.ok) {
         toast.success(res.message ?? "Justificatif ajouté.");
-        router.refresh();
       } else {
         setError(res.error);
       }
@@ -55,7 +52,6 @@ export function CertificateFile({ certificationId, doc, maxBytes }: { certificat
       const res = await removeCertificateFileAction(certificationId);
       if (res.ok) {
         toast.success(res.message ?? "Justificatif retiré.");
-        router.refresh();
       } else setError(res.error);
     });
   };
