@@ -26,7 +26,7 @@ const sizeClass: Record<Size, string> = {
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", className?: string) {
   return cn(
-    "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap",
+    "inline-flex items-center justify-center rounded-xl font-medium transition-all duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap",
     variantClass[variant],
     sizeClass[size],
     className,
@@ -45,7 +45,7 @@ export function ButtonLink({ variant, size, className, ...props }: ComponentProp
  * Surfaces
  * ------------------------------------------------------------------------- */
 export function Card({ className, ...props }: ComponentProps<"div">) {
-  return <div data-reveal="up" className={cn("rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--shadow-card)]", className)} {...props} />;
+  return <div data-reveal="up" className={cn("min-w-0 rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--shadow-card)]", className)} {...props} />;
 }
 
 export function CardHeader({ title, description, action, icon: Icon }: { title: ReactNode; description?: ReactNode; action?: ReactNode; icon?: LucideIcon }) {
@@ -172,6 +172,34 @@ export function ProgressBar({ value, label, tone = "gold", className }: { value:
       <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
         <div className={cn("h-full animate-progress-grow rounded-full transition-[width] duration-500", bar)} style={{ width: `${v}%` }} />
       </div>
+    </div>
+  );
+}
+
+/** Anneau de progression animé (0 à 100), valeur au centre. */
+export function ProgressRing({ value, label, size = 76, stroke = 8 }: { value: number; label: string; size?: number; stroke?: number }) {
+  const v = Math.max(0, Math.min(100, value));
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }} role="img" aria-label={`${label} : ${Math.round(v)} %`}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={stroke} className="stroke-navy-50" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          className="ring-draw stroke-gold-400"
+          style={{ strokeDasharray: circumference, strokeDashoffset: circumference * (1 - v / 100), "--ring-circumference": `${circumference}` } as React.CSSProperties}
+        />
+      </svg>
+      <span className="absolute font-heading text-lg font-bold text-navy-900 tabular-nums" aria-hidden>
+        <CountUp value={Math.round(v)} />
+        <span className="text-xs">%</span>
+      </span>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
+import { BackToTop } from "@/components/feedback/back-to-top";
 import { ButtonLink } from "@/components/ui";
 import { getSession, homePathFor } from "@/lib/auth/session";
 
@@ -45,6 +46,7 @@ export default async function PublicLayout({ children }: { children: React.React
         <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-navy-700 via-gold-400 to-navy-700" />
       </header>
       <main id="contenu" className="flex-1">{children}</main>
+      <BackToTop />
       <footer className="bg-navy-950 text-navy-100">
         <div data-reveal-children className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Briefcase, CalendarClock, CheckCircle2, ClipboardCheck, Circle, MessageSquareWarning, Sparkles, Target } from "lucide-react";
 import { SingleLineChart } from "@/components/charts";
-import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, EmptyState, ProgressBar, ScorePill, StatCard } from "@/components/ui";
+import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, EmptyState, ProgressRing, ScorePill, StatCard } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { applicationStatusLabel, ACTIVE_APPLICATION_STATUSES, type ApplicationStatus } from "@/lib/labels";
@@ -63,11 +63,13 @@ export default async function CandidateDashboard() {
       ))}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="p-4">
-          <p className="text-xs font-medium text-muted">Complétion du profil</p>
-          <p className="mt-1 text-2xl font-bold text-navy-900 tabular-nums">{completion.percent} %</p>
-          <ProgressBar value={completion.percent} className="mt-2" label="Complétion du profil" />
-          <p className="mt-2 text-[11px] text-muted">Mesure le renseignement du profil, pas vos compétences.</p>
+        <Card data-spotlight className="group flex items-center gap-4 p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg hover:shadow-navy-900/10">
+          <ProgressRing value={completion.percent} label="Complétion du profil" />
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-muted">Complétion du profil</p>
+            <p className="mt-0.5 text-sm font-semibold text-navy-900">{completion.percent >= 100 ? "Profil complet" : completion.percent >= 70 ? "Presque terminé" : "À compléter"}</p>
+            <p className="mt-1 text-[11px] text-muted">Mesure le renseignement du profil, pas vos compétences.</p>
+          </div>
         </Card>
         <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par une évaluation, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="gold" />
         <StatCard label="Compétences à évaluer" value={toEvaluate.length} hint="Déclarées mais pas encore démontrées" icon={Target} tone="amber" />

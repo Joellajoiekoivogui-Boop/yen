@@ -28,6 +28,7 @@ export function MotionEngine() {
       scrollFrame = 0;
       const y = window.scrollY;
       root.toggleAttribute("data-scrolled", y > 8);
+      root.toggleAttribute("data-scrolled-far", y > 700);
       const max = root.scrollHeight - window.innerHeight;
       root.style.setProperty("--scroll-progress", max > 0 ? (y / max).toFixed(4) : "0");
       if (!reduceMotion) {

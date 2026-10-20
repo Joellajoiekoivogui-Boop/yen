@@ -18,11 +18,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const items = (list: (NavItem & { perm?: Permission })[]) => list.filter((i) => !i.perm || can(i.perm));
 
   const sections: NavSection[] = [
-    { items: [{ href: "/admin", label: "Vue générale", icon: "LayoutDashboard" as const, exact: true }] },
+    { items: [{ href: "/admin", label: "Vue générale", short: "Accueil", icon: "LayoutDashboard" as const, exact: true }] },
     {
       title: "Talents",
       items: items([
-        { href: "/admin/talents", label: "Répertoire des talents", icon: "Users", perm: "candidates.read" },
+        { href: "/admin/talents", label: "Répertoire des talents", short: "Talents", icon: "Users", perm: "candidates.read" },
         { href: "/admin/corrections", label: "Corrections et validations", icon: "ClipboardCheck", perm: "assessments.review", badge: toReview ?? 0 },
         { href: "/admin/evaluations", label: "Évaluations", icon: "ListChecks", perm: "assessments.manage" },
         { href: "/admin/catalogue", label: "Catalogue des métiers", icon: "Layers", perm: "catalog.manage" },
@@ -55,6 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       homeHref="/admin"
       spaceLabel="Administration YEN"
       variant="dark"
+      mobileNav={["/admin", "/admin/talents", "/admin/candidatures", "/admin/offres"]}
       user={{ name: fullName(ctx.profile), email: ctx.email, roleLabel: ctx.roles.filter((r) => r !== "candidate" && r !== "partner").map((r) => roleLabel[r]).join(", ") }}
     >
       {children}

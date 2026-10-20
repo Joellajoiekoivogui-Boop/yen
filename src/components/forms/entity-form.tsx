@@ -1,13 +1,15 @@
 "use client";
 
-import { useId, useState, useTransition, type ReactNode } from "react";
+import { useId, useState, useTransition, type ComponentProps, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, type FieldValues, type Resolver } from "react-hook-form";
+import { useForm, useWatch, type Control, type FieldValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { Alert, Button } from "@/components/ui";
+import { toast } from "@/components/feedback/toast";
 import { cn } from "@/lib/utils";
+import { PasswordInput } from "./password-input";
 
 export type FieldType = "text" | "email" | "tel" | "url" | "number" | "date" | "month" | "datetime-local" | "textarea" | "select" | "checkbox" | "checkboxes" | "password";
 
@@ -50,34 +52,36 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
   const router = useRouter();
   const formId = useId();
   const [pending, startTransition] = useTransition();
-  const [status, setStatus] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [error, setErrorMessage] = useState<string | null>(null);
   const form = useForm<FieldValues>({
     resolver: zodResolver(schema as never) as unknown as Resolver<FieldValues>,
     defaultValues: defaultValues ?? {},
     mode: "onBlur",
   });
-  const { register, handleSubmit, formState, setError, reset } = form;
+  const { register, handleSubmit, formState, setError, reset, control } = form;
 
   const onSubmit = handleSubmit(
     (values) => {
-    setStatus(null);
+    setErrorMessage(null);
     startTransition(async () => {
       const res = await action(values);
       if (res.ok) {
-        setStatus({ tone: "success", text: res.message ?? "Enregistré." });
+        // succès annoncé par une notification éphémère (sauf redirection immédiate sans message)
+        const text = res.message ?? (onSuccess || redirectTo ? null : "Enregistré.");
+        if (text) toast.success(text);
         if (resetOnSuccess) reset(defaultValues ?? {});
         onSuccess?.(res);
         if (redirectTo) router.push(redirectTo);
         else router.refresh();
       } else {
-        setStatus({ tone: "error", text: res.error });
+        setErrorMessage(res.error);
         for (const [name, msgs] of Object.entries(res.fieldErrors ?? {})) {
           setError(name, { type: "server", message: msgs[0] });
         }
       }
     });
     },
-    () => setStatus({ tone: "error", text: "Certains champs sont invalides : vérifiez les messages sous les champs concernés." }),
+    () => setErrorMessage("Certains champs sont invalides : vérifiez les messages sous les champs concernés."),
   );
 
   return (
@@ -93,7 +97,7 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
             <div key={f.name} className={cn(f.colSpan === 2 || type === "textarea" || type === "checkboxes" ? "sm:col-span-2" : "")}>
               {type === "checkbox" ? (
                 <label htmlFor={id} className="flex items-start gap-2 text-sm text-navy-900">
-                  <input type="checkbox" className="mt-0.5 size-4 rounded border-border accent-electric-600" {...common} {...register(f.name)} />
+                  <input type="checkbox" className="mt-0.5 size-4 rounded border-border accent-navy-700" {...common} {...register(f.name)} />
                   <span>
                     {f.label}
                     {f.required && <span className="text-red-600"> *</span>}
@@ -116,12 +120,24 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
                         </option>
                       ))}
                     </select>
+                  ) : type === "password" ? (
+                    <WatchedPasswordInput
+                      control={control}
+                      placeholder={f.placeholder}
+                      autoComplete={f.autoComplete}
+                      showStrength={f.name === "password" && f.autoComplete === "new-password"}
+                      {...common}
+                      {...register(f.name)}
+                    />
                   ) : type === "checkboxes" ? (
                     <fieldset className="flex flex-wrap gap-x-4 gap-y-2" {...common}>
                       <legend className="sr-only">{f.label}</legend>
                       {f.options?.map((o) => (
-                        <label key={o.value} className="flex items-center gap-2 text-sm text-slate-700">
-                          <input type="checkbox" value={o.value} className="size-4 rounded border-border accent-electric-600" {...register(f.name)} />
+                        <label
+                          key={o.value}
+                          className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-slate-700 transition duration-200 hover:border-navy-200 has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50 has-[:checked]:text-navy-900"
+                        >
+                          <input type="checkbox" value={o.value} className="size-4 rounded border-border accent-navy-700" {...register(f.name)} />
                           {o.label}
                         </label>
                       ))}
@@ -147,7 +163,7 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
                 </p>
               )}
               {err && (
-                <p id={`${id}-err`} className="mt-1 text-xs text-red-600">
+                <p id={`${id}-err`} className="mt-1 animate-slide-down text-xs text-red-600">
                   {err}
                 </p>
               )}
@@ -155,7 +171,7 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
           );
         })}
       </div>
-      {status && <Alert tone={status.tone}>{status.text}</Alert>}
+      {error && <Alert tone="error">{error}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="secondary" disabled={pending}>
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
@@ -165,4 +181,10 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
       </div>
     </form>
   );
+}
+
+/** Champ mot de passe relié à la valeur saisie (pour l'indicateur de solidité). */
+function WatchedPasswordInput({ control, name, ...props }: Omit<ComponentProps<typeof PasswordInput>, "value"> & { control: Control<FieldValues>; name: string }) {
+  const value = useWatch({ control, name });
+  return <PasswordInput name={name} value={String(value ?? "")} {...props} />;
 }

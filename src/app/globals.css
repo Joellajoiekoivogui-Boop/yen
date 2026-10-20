@@ -54,7 +54,7 @@
   --color-border: #dfe6f0;
   --color-muted: #5b6b82;
 
-  --radius-card: 0.875rem;
+  --radius-card: 1rem;
   --shadow-card: 0 1px 2px rgb(10 23 48 / 0.04), 0 1px 3px rgb(10 23 48 / 0.06);
 }
 
@@ -198,6 +198,32 @@
   from { transform: translateX(-120%) skewX(-20deg); }
   to { transform: translateX(260%) skewX(-20deg); }
 }
+@keyframes toast-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.96); }
+}
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+@keyframes step-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes palette-in {
+  from { opacity: 0; transform: translate3d(0, -10px, 0) scale(0.97); }
+}
+@keyframes nav-progress-load {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(0.9); }
+}
+@keyframes nav-progress-done {
+  from { transform: scaleX(0.9); opacity: 1; }
+  60% { transform: scaleX(1); opacity: 1; }
+  to { transform: scaleX(1); opacity: 0; }
+}
+@keyframes ring-draw {
+  from { stroke-dashoffset: var(--ring-circumference); }
+}
 @keyframes skeleton {
   to { background-position: -200% 0; }
 }
@@ -227,9 +253,9 @@
 
 @layer components {
   .field-input {
-    @apply block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy-950 shadow-xs placeholder:text-slate-400
-      focus:border-electric-500 focus:ring-2 focus:ring-electric-500/20 focus:outline-none
-      disabled:cursor-not-allowed disabled:bg-slate-50 aria-[invalid=true]:border-red-500;
+    @apply block w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-navy-950 shadow-xs transition duration-200 placeholder:text-slate-400
+      hover:border-navy-200 focus:border-electric-500 focus:ring-4 focus:ring-electric-500/15 focus:outline-none
+      disabled:cursor-not-allowed disabled:bg-slate-50 aria-[invalid=true]:border-red-500 aria-[invalid=true]:ring-red-500/15;
   }
   .prose-yen p {
     @apply mb-3 leading-relaxed text-slate-700;
@@ -413,6 +439,63 @@ html[data-scrolled] .site-header {
 .nav-link:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+/* Notifications éphémères */
+.toast-in {
+  animation: toast-in 0.45s var(--ease-spring) backwards;
+}
+.toast-progress {
+  animation: toast-progress linear forwards;
+}
+
+/* Étape en cours du parcours (accueil) */
+.step-progress {
+  animation: step-progress linear forwards;
+}
+
+/* Palette de recherche */
+.palette-in {
+  animation: palette-in 0.35s var(--ease-out-expo) backwards;
+}
+
+/* Barre de chargement entre les pages */
+.nav-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 80;
+  height: 3px;
+  pointer-events: none;
+  transform-origin: left;
+  transform: scaleX(0);
+  opacity: 0;
+  background: linear-gradient(90deg, var(--color-navy-700), var(--color-electric-500), var(--color-gold-400));
+  box-shadow: 0 0 10px rgb(237 180 19 / 0.6);
+}
+.nav-progress[data-state="loading"] {
+  opacity: 1;
+  animation: nav-progress-load 8s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+}
+.nav-progress[data-state="done"] {
+  animation: nav-progress-done 0.5s ease-out forwards;
+}
+
+/* Bouton retour en haut : anneau = progression de lecture */
+.back-to-top {
+  background: conic-gradient(var(--color-gold-400) calc(var(--scroll-progress, 0) * 360deg), rgb(10 42 108 / 0.18) 0);
+  opacity: 0;
+  pointer-events: none;
+  translate: 0 16px;
+}
+html[data-scrolled-far] .back-to-top {
+  opacity: 1;
+  pointer-events: auto;
+  translate: 0 0;
+}
+
+/* Anneau de progression */
+.ring-draw {
+  animation: ring-draw 1.6s var(--ease-out-expo) 0.2s backwards;
 }
 
 /* Squelettes de chargement */

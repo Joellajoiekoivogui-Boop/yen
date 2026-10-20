@@ -27,7 +27,14 @@ export function SignUpForms({ domains, initialType, phoneRequired }: { domains: 
 
   return (
     <div>
-      <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1" role="tablist" aria-label="Type de compte">
+      <div className="relative mb-6 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Type de compte">
+        <span
+          aria-hidden
+          className={cn(
+            "absolute inset-y-1 left-1 w-[calc(50%-0.375rem)] rounded-lg bg-white shadow-md shadow-navy-900/10 transition-transform duration-500 ease-spring",
+            type === "partenaire" && "translate-x-[calc(100%+0.25rem)]",
+          )}
+        />
         {(["candidat", "partenaire"] as const).map((t) => (
           <button
             key={t}
@@ -35,7 +42,7 @@ export function SignUpForms({ domains, initialType, phoneRequired }: { domains: 
             role="tab"
             aria-selected={type === t}
             onClick={() => setType(t)}
-            className={cn("rounded-md px-3 py-2 text-sm font-medium", type === t ? "bg-white text-navy-900 shadow-sm" : "text-slate-600")}
+            className={cn("relative z-10 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-300", type === t ? "text-navy-900" : "text-slate-600 hover:text-navy-900")}
           >
             {t === "candidat" ? "Étudiant / diplômé" : "Organisation partenaire"}
           </button>

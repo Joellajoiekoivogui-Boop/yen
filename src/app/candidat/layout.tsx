@@ -10,14 +10,14 @@ export default async function CandidateLayout({ children }: { children: React.Re
   const { count: unread } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null);
 
   const sections: NavSection[] = [
-    { items: [{ href: "/candidat", label: "Tableau de bord", icon: "LayoutDashboard", exact: true }] },
+    { items: [{ href: "/candidat", label: "Tableau de bord", short: "Accueil", icon: "LayoutDashboard", exact: true }] },
     {
       title: "Mon parcours",
       items: [
         { href: "/candidat/profil", label: "Mon profil", icon: "User" },
         { href: "/candidat/cv", label: "Mon CV", icon: "FileText" },
         { href: "/candidat/competences", label: "Mes compétences", icon: "Target" },
-        { href: "/candidat/evaluations", label: "Mes évaluations", icon: "ClipboardCheck" },
+        { href: "/candidat/evaluations", label: "Mes évaluations", short: "Évaluations", icon: "ClipboardCheck" },
         { href: "/candidat/projets", label: "Mes projets", icon: "FolderKanban" },
         { href: "/candidat/certifications", label: "Mes certifications", icon: "Trophy" },
       ],
@@ -26,8 +26,8 @@ export default async function CandidateLayout({ children }: { children: React.Re
       title: "Carrière",
       items: [
         { href: "/candidat/metiers", label: "Métiers recommandés", icon: "Sparkles" },
-        { href: "/candidat/offres", label: "Offres d'emploi et de stage", icon: "Briefcase" },
-        { href: "/candidat/candidatures", label: "Mes candidatures", icon: "Send" },
+        { href: "/candidat/offres", label: "Offres d'emploi et de stage", short: "Offres", icon: "Briefcase" },
+        { href: "/candidat/candidatures", label: "Mes candidatures", short: "Candidatures", icon: "Send" },
         { href: "/candidat/progression", label: "Mon plan de progression", icon: "Route" },
         { href: "/candidat/assistant", label: "Assistant IA", icon: "Bot" },
       ],
@@ -46,6 +46,7 @@ export default async function CandidateLayout({ children }: { children: React.Re
       sections={sections}
       homeHref="/candidat"
       spaceLabel="Espace candidat"
+      mobileNav={["/candidat", "/candidat/offres", "/candidat/evaluations", "/candidat/candidatures"]}
       user={{ name: fullName(ctx.profile), email: ctx.email, roleLabel: "Candidat" }}
       topBanner={
         ctx.profile.is_demo ? (

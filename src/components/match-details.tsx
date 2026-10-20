@@ -17,7 +17,7 @@ export function MatchDetails({ match, compact = false }: { match: MatchResult; c
       <div className="flex flex-wrap items-center gap-3">
         <ScorePill score={match.score} confidence={match.confidenceLabel} />
         {match.floorScore !== match.score && <span className="text-xs text-muted">Score plancher (données manquantes = 0) : {match.floorScore}</span>}
-        {!match.meetsMandatory && <Badge tone="amber">Exigence(s) obligatoire(s) non démontrée(s) : {match.unmetMandatory.join(", ")}</Badge>}
+        {!match.meetsMandatory && <Badge tone="amber" className="max-w-full whitespace-normal">Exigence(s) obligatoire(s) non démontrée(s) : {match.unmetMandatory.join(", ")}</Badge>}
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         {match.components.map((c) => (

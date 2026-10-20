@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, Handshake, LineChart, Lock, Scale, Search, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { DomainIcon } from "@/components/domain-icon";
+import { HowItWorksStepper } from "@/components/how-it-works-stepper";
 import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { listDomains } from "@/features/catalog/queries";
@@ -222,6 +223,23 @@ export default async function HomePage() {
               </ul>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Comment ça marche */}
+      <section data-reveal="none" className="relative bg-canvas">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <SectionTitle eyebrow="Comment ça marche" title="Du profil à l'emploi, en 6 étapes" description="Cliquez sur une étape ou laissez le parcours défiler." />
+            <div data-reveal="up">
+              <ButtonLink href="/fonctionnement" variant="outline" className="group">
+                Tout le fonctionnement <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+              </ButtonLink>
+            </div>
+          </div>
+          <div data-reveal="up" className="mt-10">
+            <HowItWorksStepper />
+          </div>
         </div>
       </section>
 

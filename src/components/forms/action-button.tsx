@@ -4,6 +4,7 @@ import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui";
+import { toast } from "@/components/feedback/toast";
 import type { ActionResultLike } from "./entity-form";
 
 /** Bouton déclenchant une action serveur, avec confirmation optionnelle et retour visible. */
@@ -42,7 +43,9 @@ export function ActionButton({
           setMsg(null);
           start(async () => {
             const r = await action();
-            setMsg({ ok: r.ok, text: r.ok ? (r.message ?? "Effectué.") : r.error });
+            // succès : notification éphémère ; erreur : message à côté du bouton
+            if (r.ok) toast.success(r.message ?? "Effectué.");
+            else setMsg({ ok: false, text: r.error });
             onDone?.(r);
             if (r.ok) {
               if (redirectTo) router.push(redirectTo);

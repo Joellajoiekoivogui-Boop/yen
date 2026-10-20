@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Suspense } from "react";
 import { MotionEngine } from "@/components/motion/motion-engine";
+import { NavigationProgress } from "@/components/feedback/navigation-progress";
+import { Toaster } from "@/components/feedback/toast";
 
 export const metadata: Metadata = {
   title: { default: "YEN Career Bridge", template: "%s · YEN Career Bridge" },
@@ -23,7 +26,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:shadow">
           Aller au contenu
         </a>
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
+        <Toaster />
         <MotionEngine />
       </body>
     </html>
