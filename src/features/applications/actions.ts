@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
@@ -114,7 +114,8 @@ export async function updateApplicationStatusAction(values: Record<string, unkno
     const v = parseInput(statusSchema, values);
     if ((v.status === "refusee" || v.status === "acceptee") && !v.reason) return fail("Indiquez le motif de la décision.");
     const supabase = await createClient();
-    const patch: Record<string, unknown> = { status: v.status, decision_reason: v.reason ?? null };
+    // étape interne : le motif reste sur l'étape masquée, jamais sur la candidature (lisible par le candidat)
+    const patch: Record<string, unknown> = { status: v.status, decision_reason: v.internal ? null : v.reason ?? null };
     if (v.status === "proposee_partenaire") patch.visible_to_partner = true;
     if (v.status === "acceptee" || v.status === "refusee") { patch.decided_by = ctx.userId; patch.decided_at = new Date().toISOString(); }
     const { data, error } = await supabase
@@ -127,7 +128,7 @@ export async function updateApplicationStatusAction(values: Record<string, unkno
     const offer = data.job_offers as unknown as { title: string; organization_id: string; offer_type: string };
     if (v.internal) {
       // Masque la dernière étape au candidat (ex. revue interne)
-      const hide = await supabase.rpc("hide_application_event", { p_application: data.id, p_status: v.status });
+      const hide = await supabase.rpc("hide_application_event", { p_application: data.id, p_status: v.status, p_note: v.reason ?? null });
       if (hide.error) console.error("[candidatures] étape non masquée", hide.error.message);
     }
     await syncPipeline(data.id);

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { listDomains } from "@/features/catalog/queries";
 import { DomainExplorer } from "./domain-explorer";
 
+// Page statique, régénérée toutes les heures (catalogue)
+export const revalidate = 3600;
+
 export const metadata: Metadata = { title: "Domaines d'ingénierie" };
 
 export default async function DomainsPage() {

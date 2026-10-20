@@ -1,6 +1,6 @@
 import "server-only";
 import { isSupabaseConfigured } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { domains as seedDomains, transversalSkills } from "../../../supabase/seed-data/catalog";
 import type { SkillLevel } from "@/lib/labels";
 
@@ -28,18 +28,21 @@ export interface DomainDetail extends DomainSummary {
 
 /** Domaines actifs. Si Supabase n'est pas configuré, le catalogue de référence est utilisé (données réelles du catalogue, pas des données fictives). */
 export async function listDomains(): Promise<DomainSummary[]> {
-  if (!isSupabaseConfigured()) {
-    return seedDomains.map((d) => ({
-      id: d.slug, slug: d.slug, name: d.name, short_description: d.short, icon: d.icon, skillCount: d.skills.length, occupationCount: d.occupations.length,
-    }));
-  }
-  const supabase = await createClient();
+  const reference = () => seedDomains.map((d) => ({
+    id: d.slug, slug: d.slug, name: d.name, short_description: d.short, icon: d.icon, skillCount: d.skills.length, occupationCount: d.occupations.length,
+  }));
+  if (!isSupabaseConfigured()) return reference();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("engineering_domains")
     .select("id, slug, name, short_description, icon, skills(count), occupations(count)")
     .eq("is_active", true)
     .order("position");
-  if (error) throw new Error("Impossible de charger les domaines");
+  // Base momentanément injoignable (ex. projet en pause) : catalogue de référence, identique à celui de la base
+  if (error) {
+    console.error("[catalogue] domaines indisponibles, catalogue de référence utilisé", error.message);
+    return reference();
+  }
   return (data ?? []).map((d) => ({
     id: d.id, slug: d.slug, name: d.name, short_description: d.short_description, icon: d.icon,
     skillCount: (d.skills as unknown as { count: number }[])[0]?.count ?? 0,
@@ -67,13 +70,15 @@ export async function getDomain(slug: string): Promise<DomainDetail | null> {
       assessments: d.assessments.map((a) => ({ id: a.slug, title: a.title, level: a.level, duration_minutes: a.duration, description: a.description })),
     };
   }
-  const supabase = await createClient();
-  const { data: d } = await supabase
+  const supabase = createPublicClient();
+  const { data: d, error } = await supabase
     .from("engineering_domains")
     .select("id, slug, name, short_description, description, icon, tools, certifications, project_types, progression_criteria")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
+  // une erreur n'est pas un « introuvable » : la version déjà en cache reste servie
+  if (error) throw new Error("Impossible de charger le domaine");
   if (!d) return null;
   const [skills, occupations, assessments] = await Promise.all([
     supabase.from("skills").select("id, slug, name, tier, category, level_criteria").eq("domain_id", d.id).eq("is_active", true).order("tier").order("name"),
@@ -98,7 +103,7 @@ export async function getDomain(slug: string): Promise<DomainDetail | null> {
 
 /** Options de sélection (formulaires) : domaines et compétences actifs. */
 export async function catalogOptions() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const [domains, skills] = await Promise.all([
     supabase.from("engineering_domains").select("id, name, slug").eq("is_active", true).order("position"),
     supabase.from("skills").select("id, name, slug, domain_id, category").eq("is_active", true).order("name"),

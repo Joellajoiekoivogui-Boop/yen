@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { safeInternalPath } from "@/lib/utils";
 
 /**
  * Point de retour des liens e-mail Supabase (confirmation d'inscription,
@@ -10,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const next = url.searchParams.get("suivant");
-  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/connexion?confirme=1";
+  const safeNext = safeInternalPath(next) ?? "/connexion?confirme=1";
   const supabase = await createClient();
 
   const code = url.searchParams.get("code");

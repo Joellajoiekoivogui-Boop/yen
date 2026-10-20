@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 const weight = z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().min(0).max(100).nullable().optional());
 

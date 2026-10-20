@@ -47,8 +47,26 @@ Les opérations qu'un utilisateur ne doit pas pouvoir faire directement passent 
 La clé de service n'est donc plus nécessaire en production (elle reste utilisée par les fonctions d'IA et la
 déconnexion immédiate d'un compte désactivé).
 
-Ces règles sont couvertes par 64 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`,
-`tests/db/server-functions.test.ts`).
+## Durcissement issu de l'audit (migration 12)
+
+- Compte désactivé : `auth_candidate_id()` et les politiques exigent `is_active` ; le partenaire ne voit plus
+  le candidat ; `revoke_user_sessions` ferme ses sessions.
+- Liens des notifications : caractères autorisés en liste blanche (`_safe_link`) ; envois limités par heure.
+- Redirections après connexion et lien e-mail : `safeInternalPath` (pas de caractère de contrôle ni de `\`).
+- Documents : plus d'insertion directe ; `register_cv_document` et `attach_certificate_document` imposent dossier,
+  extension et type ; « sain » est réservé à un antivirus de confiance ; un fichier signalé n'est jamais servi.
+- Évaluations : une tentative abandonnée expire et compte pour le délai ; questions refusées après le temps imparti.
+- Offres : un partenaire ne modifie plus une offre publiée (clôture seulement) ni les pondérations.
+- Limitation de débit : uniquement sur des clés propres à l'utilisateur connecté (connexions limitées par Supabase Auth).
+- Organisations : coordonnées internes invisibles des visiteurs et des candidats (colonnes et politique).
+- Étapes internes YEN et leur motif : invisibles du candidat et du partenaire.
+- Liens web `http(s)` imposés en base ; consentements non consultables sans connexion.
+
+Risques acceptés : `script-src 'unsafe-inline'` (requis par Next.js sans nonce, incompatible avec les pages
+statiques) ; un candidat peut se placer lui-même « en évaluation » (étape automatique sans enjeu de sécurité).
+
+Ces règles sont couvertes par 76 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`,
+`tests/db/server-functions.test.ts`, `tests/db/security-audit.test.ts`).
 
 ## Documents
 

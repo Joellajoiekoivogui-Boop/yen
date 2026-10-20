@@ -1,6 +1,7 @@
 "use server";
 
-import { clientIp, fail, logAudit, parseInput, rateLimit, runAction, type ActionResult } from "@/lib/action";
+import { fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
+import { safeInternalPath } from "@/lib/utils";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -9,19 +10,12 @@ import { candidateSignUpSchema, newPasswordSchema, partnerSignUpSchema, resetReq
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
 
-/** N'accepte que des chemins internes pour éviter les redirections ouvertes. */
-function safeNext(next: unknown): string | null {
-  return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : null;
-}
 
 export async function signInAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
   return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(signInSchema, values);
-    const ip = await clientIp();
-    if (!(await rateLimit(`login:ip:${ip}`)) || !(await rateLimit(`login:email:${input.email}`))) {
-      return fail("Trop de tentatives de connexion. Patientez 15 minutes avant de réessayer.");
-    }
+    // Tentatives limitées par Supabase Auth (par adresse IP) ; voir Authentication → Rate Limits
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
     if (error) {
@@ -33,7 +27,8 @@ export async function signInAction(values: Record<string, unknown>): Promise<Act
       await supabase.auth.signOut();
       return fail("Ce compte est désactivé. Contactez l'équipe YEN.");
     }
-    const next = safeNext(values.next);
+    // chemins internes uniquement (pas de redirection ouverte)
+    const next = safeInternalPath(values.next);
     return { ok: true, data: { redirectTo: next ?? (ctx ? homePathFor(ctx) : "/") } };
   });
 }
@@ -42,7 +37,6 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
   return runAction<{ redirectTo?: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(candidateSignUpSchema, values);
-    if (!(await rateLimit(`signup:ip:${await clientIp()}`))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
     const supabase = await createClient();
     const { password, password_confirm: _c, email, ...meta } = input;
     const { data, error } = await supabase.auth.signUp({
@@ -70,7 +64,6 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(partnerSignUpSchema, values);
-    if (!(await rateLimit(`signup:ip:${await clientIp()}`))) return fail("Trop d'inscriptions depuis cette connexion. Réessayez plus tard.");
     const supabase = await createClient();
     const { password, password_confirm: _c, email, ...meta } = input;
     const { error } = await supabase.auth.signUp({
@@ -97,9 +90,6 @@ export async function requestPasswordResetAction(values: Record<string, unknown>
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(resetRequestSchema, values);
-    if (!(await rateLimit(`reset:ip:${await clientIp()}`)) || !(await rateLimit(`reset:email:${input.email}`))) {
-      return fail("Trop de demandes. Réessayez plus tard.");
-    }
     const supabase = await createClient();
     await supabase.auth.resetPasswordForEmail(input.email, {
       redirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/reinitialiser-mot-de-passe`,

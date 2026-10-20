@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { EntityForm } from "@/components/forms/entity-form";
 import { Button } from "@/components/ui";
 import { partnerFeedbackAction, partnerUpdateApplicationAction, scheduleInterviewAction } from "@/features/applications/actions";

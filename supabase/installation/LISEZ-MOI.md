@@ -8,7 +8,8 @@ Dans Supabase → **SQL Editor** → *New query*, coller puis **Run**, dans cet 
 4. `4-MISE-A-JOUR.sql` — **à exécuter aussi sur une base déjà installée** :
    - certificats en PDF **ou en image** (JPEG, PNG, WebP) ;
    - téléphone obligatoire pour les candidats ;
-   - **toutes les fonctionnalités sans clé secrète** (évaluations, CV, notifications, vue partenaire…).
+   - **toutes les fonctionnalités sans clé secrète** (évaluations, CV, notifications, vue partenaire…) ;
+   - durcissement de sécurité issu de l'audit (comptes désactivés, liens, offres publiées…).
 
    Ce fichier peut être exécuté plusieurs fois sans risque. Il remplace les anciens fichiers 4 et 5.
 

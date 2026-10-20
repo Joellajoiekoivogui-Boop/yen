@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 import { PIPELINE_STATUSES } from "@/lib/labels";
 import { notifyCandidate } from "@/features/notifications/service";
@@ -138,12 +138,9 @@ export async function setUserActiveAction(values: Record<string, unknown>): Prom
       .eq("id", v.userId);
     if (error) return fail(dbErrorMessage(error));
     if (!v.active) {
-      // Révocation des sessions en cours
-      try {
-        await createAdminClient().auth.admin.signOut(v.userId, "global");
-      } catch {
-        /* la désactivation reste effective via les politiques (is_active) */
-      }
+      // Fermeture des sessions en cours ; l'accès est de toute façon coupé en base (is_active)
+      const rev = await supabase.rpc("revoke_user_sessions", { p_user: v.userId });
+      if (rev.error || rev.data !== true) console.warn("[utilisateurs] sessions non fermées, le jeton expirera de lui-même", rev.error?.message ?? "");
     }
     revalidatePath("/admin/utilisateurs");
     return { ok: true, message: v.active ? "Compte réactivé." : "Compte désactivé." };

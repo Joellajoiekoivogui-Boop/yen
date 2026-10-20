@@ -30,7 +30,9 @@ export function MotionEngine() {
       root.toggleAttribute("data-scrolled", y > 8);
       root.toggleAttribute("data-scrolled-far", y > 700);
       const max = root.scrollHeight - window.innerHeight;
-      root.style.setProperty("--scroll-progress", max > 0 ? (y / max).toFixed(4) : "0");
+      // variable posée sur ses seuls utilisateurs : la poser sur <html> recalculerait le style de toute la page à chaque défilement
+      const progress = max > 0 ? (y / max).toFixed(4) : "0";
+      document.querySelectorAll<HTMLElement>(".scroll-progress, .back-to-top").forEach((el) => el.style.setProperty("--scroll-progress", progress));
       if (!reduceMotion) {
         document.querySelectorAll<HTMLElement>("[data-parallax]").forEach((el) => {
           const factor = Number(el.dataset.parallax) || 0.2;
@@ -64,24 +66,31 @@ export function MotionEngine() {
       },
       { rootMargin: "0px 0px -6% 0px", threshold: 0 },
     );
-    const consider = (el: Element) => {
-      if (el.hasAttribute("data-reveal-seen")) return;
-      el.setAttribute("data-reveal-seen", "");
-      const rect = el.getBoundingClientRect();
-      if (rect.top < window.innerHeight && rect.bottom > 0) return; // déjà à l'écran
-      el.setAttribute("data-reveal-pending", "");
-      io.observe(el);
+    // Lectures de position groupées puis écritures groupées : un seul calcul de mise en page
+    const consider = (els: Element[]) => {
+      const fresh = els.filter((el) => !el.hasAttribute("data-reveal-seen"));
+      const offscreen = fresh.filter((el) => {
+        const rect = el.getBoundingClientRect();
+        return !(rect.top < window.innerHeight && rect.bottom > 0); // déjà à l'écran : animation CSS immédiate
+      });
+      fresh.forEach((el) => el.setAttribute("data-reveal-seen", ""));
+      offscreen.forEach((el) => {
+        el.setAttribute("data-reveal-pending", "");
+        io.observe(el);
+      });
     };
-    document.querySelectorAll(REVEAL_SELECTOR).forEach(consider);
+    consider([...document.querySelectorAll(REVEAL_SELECTOR)]);
     // Contenu ajouté ensuite (navigation, listes) : traité avant le prochain affichage
     const mo = new MutationObserver((mutations) => {
+      const added: Element[] = [];
       for (const m of mutations) {
         m.addedNodes.forEach((node) => {
           if (!(node instanceof Element)) return;
-          if (node.matches(REVEAL_SELECTOR)) consider(node);
-          node.querySelectorAll(REVEAL_SELECTOR).forEach(consider);
+          if (node.matches(REVEAL_SELECTOR)) added.push(node);
+          added.push(...node.querySelectorAll(REVEAL_SELECTOR));
         });
       }
+      if (added.length) consider(added);
     });
     mo.observe(document.body, { childList: true, subtree: true });
     cleanups.push(() => {

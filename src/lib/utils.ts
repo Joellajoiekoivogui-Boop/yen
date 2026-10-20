@@ -56,3 +56,19 @@ export function clampInt(v: string | undefined, def: number, min: number, max: n
 
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: unknown): v is string => typeof v === "string" && UUID_RE.test(v);
+
+/**
+ * Chemin interne sûr pour une redirection ou un lien (« /candidat?x=1 »), ou null.
+ * Refuse les caractères de contrôle et la barre oblique inverse, que les
+ * navigateurs suppriment ou normalisent (« /\t/site.example » mènerait ailleurs).
+ */
+export function safeInternalPath(path: unknown): string | null {
+  if (typeof path !== "string" || !path.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(path)) return null;
+  try {
+    const base = "http://yen.invalid";
+    const url = new URL(path, base);
+    return url.origin === base ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch {
+    return null;
+  }
+}

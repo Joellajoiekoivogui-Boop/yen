@@ -178,6 +178,7 @@ d("Sécurité base de données (RLS)", () => {
   });
 
   describe("Justificatifs de certification", () => {
+    // insertion technique (rôle propriétaire), pour tester les contraintes de la table
     const doc = (candidate: string, owner: string, mime: string, kind = "certification") =>
       db.query(
         `insert into public.candidate_documents (candidate_id, kind, storage_path, original_filename, mime_type, size_bytes, sha256, uploaded_by)
@@ -186,30 +187,41 @@ d("Sécurité base de données (RLS)", () => {
       );
 
     it("accepte un certificat en image mais exige un PDF pour le CV", async () => {
-      await asUser(db, U.alice, async () => {
-        await doc(alice, U.alice, "image/png");
-        await doc(alice, U.alice, "image/jpeg");
-      });
-      await expect(asUser(db, U.alice, () => doc(alice, U.alice, "image/png", "cv"))).rejects.toThrow(/cv_is_pdf/);
-      await expect(asUser(db, U.alice, () => doc(alice, U.alice, "image/svg+xml"))).rejects.toThrow(/mime_type_check/);
+      await doc(alice, U.alice, "image/png");
+      await doc(alice, U.alice, "image/jpeg");
+      await expect(doc(alice, U.alice, "image/png", "cv")).rejects.toThrow(/cv_is_pdf/);
+      await expect(doc(alice, U.alice, "image/svg+xml")).rejects.toThrow(/mime_type_check/);
+    });
+
+    it("un candidat ne peut plus insérer directement un document (statut d'analyse falsifiable)", async () => {
+      await expect(asUser(db, U.alice, () => db.query(
+        `insert into public.candidate_documents (candidate_id, kind, storage_path, original_filename, mime_type, size_bytes, sha256, uploaded_by, scan_status)
+         values ($1, 'cv', $2, 'x.pdf', 'application/pdf', 10, repeat('a', 64), $3, 'sain')`, [alice, `${U.alice}/x.pdf`, U.alice]))).rejects.toThrow(/row-level security|permission/);
     });
 
     it("un candidat ne peut pas joindre le justificatif d'un autre candidat", async () => {
-      const bobDoc = await asUser(db, U.bob, () => doc(bob, U.bob, "application/pdf"), { commit: true });
+      const bobDoc = await doc(bob, U.bob, "application/pdf");
       const cert = await db.query("insert into public.candidate_certifications (candidate_id, name, issuer) values ($1, 'CCNA', 'Cisco') returning id", [alice]);
       await expect(asUser(db, U.alice, () =>
         db.query("update public.candidate_certifications set document_id = $1 where id = $2", [bobDoc.rows[0].id, cert.rows[0].id])))
         .rejects.toThrow(/Justificatif invalide/);
     });
 
-    it("un nouveau justificatif annule la vérification faite par YEN", async () => {
+    it("un nouveau justificatif annule la vérification faite par YEN et retire l'ancien", async () => {
       const cert = await db.query("insert into public.candidate_certifications (candidate_id, name, issuer, verification_status) values ($1, 'PL-300', 'Microsoft', 'verifie') returning id", [alice]);
-      const r = await asUser(db, U.alice, async () => {
-        const d = await doc(alice, U.alice, "image/webp");
-        await db.query("update public.candidate_certifications set document_id = $1 where id = $2", [d.rows[0].id, cert.rows[0].id]);
-        return db.query("select verification_status from public.candidate_certifications where id = $1", [cert.rows[0].id]);
-      });
-      expect(r.rows[0].verification_status).toBe("non_verifie");
+      const attach = (path: string, mime: string) => asUser(db, U.alice, () => db.query(
+        "select public.attach_certificate_document($1, $2, 'certificat', $3, 100, repeat('a', 64), 'sain', null) r", [cert.rows[0].id, path, mime]), { commit: true });
+      const first = (await attach(`${U.alice}/c1.webp`, "image/webp")).rows[0].r;
+      const second = (await attach(`${U.alice}/c2.pdf`, "application/pdf")).rows[0].r;
+      expect(second.old_storage_path).toBe(`${U.alice}/c1.webp`);
+      const r = await db.query("select c.verification_status, d.scan_status from public.candidate_certifications c join public.candidate_documents d on d.id = c.document_id where c.id = $1", [cert.rows[0].id]);
+      // « sain » est réservé à un antivirus de confiance : le statut est ramené au contrôle de base
+      expect(r.rows[0]).toEqual({ verification_status: "non_verifie", scan_status: "controle_basique_ok" });
+      const old = await db.query("select deleted_at is not null as deleted from public.candidate_documents where id = $1", [first.document_id]);
+      expect(old.rows[0].deleted).toBe(true);
+      // dossier d'un autre utilisateur ou extension incohérente : refusés
+      await expect(attach(`${U.bob}/vol.pdf`, "application/pdf")).rejects.toThrow(/invalide/);
+      await expect(attach(`${U.alice}/faux.png`, "application/pdf")).rejects.toThrow(/invalide/);
     });
 
     it("le stockage accepte les images dans le dossier du candidat et refuse les autres formats", async () => {

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { EntityForm } from "@/components/forms/entity-form";
 import { Alert, Button } from "@/components/ui";
 import { addQuestionAction, saveAssessmentAction } from "@/features/assessments/actions";

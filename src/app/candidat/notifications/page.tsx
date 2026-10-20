@@ -5,7 +5,7 @@ import { ActionButton } from "@/components/forms/action-button";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, safeInternalPath } from "@/lib/utils";
 import { markNotificationsReadAction } from "@/features/candidates/actions";
 
 export const metadata: Metadata = { title: "Notifications" };
@@ -25,7 +25,7 @@ export default async function NotificationsPage() {
               <span className={`mt-1.5 size-2 shrink-0 rounded-full ${n.read_at ? "bg-transparent" : "bg-electric-600"}`} aria-label={n.read_at ? "Lue" : "Non lue"} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-medium text-navy-900">{n.link ? <Link href={n.link} className="hover:underline">{n.title}</Link> : n.title}</p>
+                  <p className="text-sm font-medium text-navy-900">{safeInternalPath(n.link) ? <Link href={safeInternalPath(n.link)!} className="hover:underline">{n.title}</Link> : n.title}</p>
                   <Badge>{n.category}</Badge>
                 </div>
                 {n.body && <p className="mt-0.5 text-sm text-slate-600">{n.body}</p>}

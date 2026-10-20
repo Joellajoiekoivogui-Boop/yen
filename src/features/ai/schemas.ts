@@ -3,7 +3,7 @@
  * des `source_ids` qui doivent correspondre à une source réellement fournie au
  * modèle (CV, réponse d'évaluation, projet, évaluation humaine…).
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 const nullableString = z.string().nullable();
 const sourceIds = z.array(z.string()).describe("Identifiants des sources fournies justifiant cette conclusion");

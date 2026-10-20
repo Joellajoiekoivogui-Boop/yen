@@ -6,6 +6,9 @@ import { DomainIcon } from "@/components/domain-icon";
 import { getDomain } from "@/features/catalog/queries";
 import { importanceLabel, levelLabel, SKILL_LEVELS } from "@/lib/labels";
 
+// Page statique, régénérée toutes les heures (catalogue)
+export const revalidate = 3600;
+
 export async function generateMetadata(props: PageProps<"/domaines/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   const d = await getDomain(slug);

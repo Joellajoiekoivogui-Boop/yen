@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 import { BackToTop } from "@/components/feedback/back-to-top";
-import { ButtonLink } from "@/components/ui";
-import { getSession, homePathFor } from "@/lib/auth/session";
+import { HeaderAuth } from "@/components/layout/header-auth";
 
 const NAV = [
   { href: "/presentation", label: "Présentation" },
@@ -11,8 +10,7 @@ const NAV = [
   { href: "/partenaires", label: "Partenaires" },
 ];
 
-export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession().catch(() => null);
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/90 backdrop-blur">
@@ -26,14 +24,7 @@ export default async function PublicLayout({ children }: { children: React.React
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            {session ? (
-              <ButtonLink href={homePathFor(session)} variant="secondary" size="sm">Mon espace</ButtonLink>
-            ) : (
-              <>
-                <ButtonLink href="/connexion" variant="ghost" size="sm">Connexion</ButtonLink>
-                <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic>Créer un compte</ButtonLink>
-              </>
-            )}
+            <HeaderAuth />
           </div>
         </div>
         <nav className="flex gap-4 overflow-x-auto border-t border-border/60 px-4 py-2 md:hidden" aria-label="Navigation publique (mobile)">

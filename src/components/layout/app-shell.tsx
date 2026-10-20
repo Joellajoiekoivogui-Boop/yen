@@ -75,7 +75,7 @@ export function AppShell({
     <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
       {sections.map((s, i) => (
         <div key={i}>
-          {s.title && <p className={cn("mb-1.5 px-2 text-[11px] font-semibold tracking-wider uppercase", dark ? "text-navy-300" : "text-slate-400")}>{s.title}</p>}
+          {s.title && <p className={cn("mb-1.5 px-2 text-[11px] font-semibold tracking-wider uppercase", dark ? "text-navy-300" : "text-slate-500")}>{s.title}</p>}
           <ul className="space-y-0.5">
             {s.items.map((item, j) => {
               const active = isActive(item);

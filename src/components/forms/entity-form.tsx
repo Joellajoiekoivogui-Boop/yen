@@ -103,6 +103,24 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
                     {f.required && <span className="text-red-600"> *</span>}
                   </span>
                 </label>
+              ) : type === "checkboxes" ? (
+                <fieldset id={id} aria-invalid={err ? true : undefined} aria-describedby={describedBy}>
+                  <legend className="mb-1 block text-sm font-medium text-navy-900">
+                    {f.label}
+                    {f.required && <span className="text-red-600" aria-hidden> *</span>}
+                  </legend>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {f.options?.map((o) => (
+                      <label
+                        key={o.value}
+                        className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-slate-700 transition duration-200 hover:border-navy-200 has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50 has-[:checked]:text-navy-900"
+                      >
+                        <input type="checkbox" value={o.value} className="size-4 rounded border-border accent-navy-700" {...register(f.name)} />
+                        {o.label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
               ) : (
                 <>
                   <label htmlFor={id} className="mb-1 block text-sm font-medium text-navy-900">
@@ -129,19 +147,6 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
                       {...common}
                       {...register(f.name)}
                     />
-                  ) : type === "checkboxes" ? (
-                    <fieldset className="flex flex-wrap gap-x-4 gap-y-2" {...common}>
-                      <legend className="sr-only">{f.label}</legend>
-                      {f.options?.map((o) => (
-                        <label
-                          key={o.value}
-                          className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-slate-700 transition duration-200 hover:border-navy-200 has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50 has-[:checked]:text-navy-900"
-                        >
-                          <input type="checkbox" value={o.value} className="size-4 rounded border-border accent-navy-700" {...register(f.name)} />
-                          {o.label}
-                        </label>
-                      ))}
-                    </fieldset>
                   ) : (
                     <input
                       type={type}

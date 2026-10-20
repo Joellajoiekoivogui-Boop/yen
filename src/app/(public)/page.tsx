@@ -8,6 +8,9 @@ import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { listDomains } from "@/features/catalog/queries";
 
+// Page statique, régénérée toutes les heures (catalogue)
+export const revalidate = 3600;
+
 const HERO_CARDS = [
   { icon: FileText, t: "Un profil professionnel complet", d: "CV, formations, projets, certifications et expériences au même endroit." },
   { icon: ClipboardCheck, t: "Des compétences démontrées", d: "Questionnaires, exercices et évaluations : ce qui est prouvé est distingué de ce qui est déclaré." },

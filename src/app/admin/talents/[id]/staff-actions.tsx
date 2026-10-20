@@ -1,6 +1,6 @@
 "use client";
 
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { EntityForm } from "@/components/forms/entity-form";
 import { addInternalNoteAction, requestInfoAction, updateCandidateFollowUpAction } from "@/features/admin/actions";
 import { associateCandidateAction, scheduleInterviewAction, shareProfileAction, updateApplicationStatusAction } from "@/features/applications/actions";

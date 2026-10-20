@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { phoneSchema } from "@/features/auth/schemas";
 
 /** Chaîne optionnelle : "" devient null. */

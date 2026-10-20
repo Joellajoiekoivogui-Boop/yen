@@ -220,7 +220,8 @@ export function ScorePill({ score, confidence }: { score: number; confidence?: "
  * ------------------------------------------------------------------------- */
 export function Table({ className, ...props }: ComponentProps<"table">) {
   return (
-    <div className="overflow-x-auto">
+    // région focalisable : le tableau défile au clavier sur petit écran
+    <div className="overflow-x-auto rounded-md focus-visible:ring-2 focus-visible:ring-electric-500 focus-visible:outline-none" tabIndex={0} role="region" aria-label="Tableau">
       <table className={cn("w-full min-w-[640px] border-collapse text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-electric-50/40", className)} {...props} />
     </div>
   );

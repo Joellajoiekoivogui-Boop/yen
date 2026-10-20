@@ -1,6 +1,6 @@
 "use client";
 
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { EntityForm } from "@/components/forms/entity-form";
 import { saveSettingsAction } from "@/features/admin/actions";
 

@@ -22,7 +22,9 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
   if (!t) notFound();
   const a = t.assessments as unknown as { title: string; passing_score: number };
 
-  if (t.status === "en_cours") {
+  // temps imparti (+ 5 min de tolérance) écoulé sans soumission : les questions ne sont plus distribuées
+  const expired = t.status === "en_cours" && isPastDeadline(t.deadline_at);
+  if (t.status === "en_cours" && !expired) {
     const questions = await deliverAttemptQuestions(t.id);
     return (
       <div className="mx-auto max-w-3xl">
@@ -41,7 +43,7 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title={a.title} description={`Soumise le ${formatDateTime(t.submitted_at)}`} actions={<ButtonLink href="/candidat/evaluations" variant="outline">Retour</ButtonLink>} />
       {t.status === "en_correction" && <Alert tone="info" title="Correction en cours">Certaines réponses sont corrigées par un évaluateur YEN. Vous serez notifié(e) du résultat.</Alert>}
-      {t.status === "expire" && <Alert tone="warning" title="Tentative expirée">Le temps imparti a été dépassé.</Alert>}
+      {(t.status === "expire" || expired) && <Alert tone="warning" title="Tentative expirée">Le temps imparti a été dépassé.</Alert>}
       {t.status === "corrige" && (
         <Card className="p-6">
           <div className="flex items-center gap-4">
@@ -92,4 +94,8 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
       )}
     </div>
   );
+}
+
+function isPastDeadline(deadline: string): boolean {
+  return new Date(deadline).getTime() + 5 * 60_000 < Date.now();
 }

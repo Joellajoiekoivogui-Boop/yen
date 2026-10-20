@@ -60,33 +60,26 @@ export async function uploadCertificateFileAction(formData: FormData): Promise<A
     const up = await supabase.storage.from(BUCKET).upload(path, bytes, { contentType: mime, upsert: false, cacheControl: "0" });
     if (up.error) return fail("Le fichier n'a pas pu être stocké. Réessayez.");
 
-    const ins = await supabase
-      .from("candidate_documents")
-      .insert({
-        candidate_id: ctx.candidateId,
-        kind: "certification",
-        storage_path: path,
-        original_filename: sanitizeFilename(file.name, ext),
-        mime_type: mime,
-        size_bytes: bytes.byteLength,
-        sha256: check.sha256,
-        version: 1,
-        is_current: true,
-        scan_status: scan.status,
-        scan_details: scan.details,
-        uploaded_by: ctx.userId,
-      })
-      .select("id")
-      .single();
-    if (ins.error || !ins.data) {
+    // enregistrement, rattachement et retrait de l'ancien justificatif en une transaction (dossier et type imposés en base)
+    const att = await supabase.rpc("attach_certificate_document", {
+      p_certification: cert.id,
+      p_storage_path: path,
+      p_filename: sanitizeFilename(file.name, ext),
+      p_mime: mime,
+      p_size: bytes.byteLength,
+      p_sha256: check.sha256,
+      p_scan_status: scan.status,
+      p_scan_details: scan.details,
+    });
+    if (att.error || !att.data) {
       await supabase.storage.from(BUCKET).remove([path]);
-      return fail(dbErrorMessage(ins.error, "Le justificatif n'a pas pu être enregistré."));
+      return fail(dbErrorMessage(att.error, "Le justificatif n'a pas pu être enregistré."));
     }
-
-    const upd = await supabase.from("candidate_certifications").update({ document_id: ins.data.id }).eq("id", cert.id);
-    if (upd.error) return fail(dbErrorMessage(upd.error, "Le justificatif n'a pas pu être associé à la certification."));
-
-    if (cert.document_id) await retireDocument(cert.document_id);
+    const oldPath = (att.data as { old_storage_path: string | null }).old_storage_path;
+    if (oldPath) {
+      const rm = await supabase.storage.from(BUCKET).remove([oldPath]);
+      if (rm.error) console.error("[certificats] ancien fichier conservé", rm.error.message);
+    }
     revalidatePath("/candidat/certifications");
     return { ok: true, message: "Justificatif ajouté à la certification." };
   });

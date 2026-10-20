@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { EntityForm } from "@/components/forms/entity-form";
 import { Button } from "@/components/ui";
 import { saveDomainAction, saveOccupationAction, saveSkillAction } from "@/features/admin/actions";

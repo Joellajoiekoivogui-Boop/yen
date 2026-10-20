@@ -992,3 +992,12 @@ begin
 
   raise exception 'Action non autorisée' using errcode = '42501';
 end $$;
+
+-- -----------------------------------------------------------------------------
+-- 12. Pages publiques : les métadonnées des évaluations publiées (titre, niveau,
+--     durée, description) sont lisibles sans connexion. Les questions et les
+--     clés de correction restent inaccessibles.
+-- -----------------------------------------------------------------------------
+drop policy if exists assessments_public_read on public.assessments;
+create policy assessments_public_read on public.assessments for select to anon using (status = 'publie');
+grant select on public.assessments to anon;

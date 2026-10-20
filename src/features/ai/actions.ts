@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { dbErrorMessage, fail, logAudit, parseInput, rateLimit, runAction, type ActionResult } from "@/lib/action";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";

@@ -4,13 +4,20 @@ import { Suspense } from "react";
 import { MotionEngine } from "@/components/motion/motion-engine";
 import { NavigationProgress } from "@/components/feedback/navigation-progress";
 import { Toaster } from "@/components/feedback/toast";
+import { publicEnv } from "@/lib/env";
+
+const DESCRIPTION =
+  "Plateforme de gestion des talents et d'insertion professionnelle du Youth Engineers Network : identifier les talents, renforcer les compétences et faciliter l'accès au stage et à l'emploi.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(publicEnv.siteUrl),
   title: { default: "YEN Career Bridge", template: "%s · YEN Career Bridge" },
-  description:
-    "Plateforme de gestion des talents et d'insertion professionnelle du Youth Engineers Network : identifier les talents, renforcer les compétences et faciliter l'accès au stage et à l'emploi.",
+  description: DESCRIPTION,
   applicationName: "YEN Career Bridge",
   robots: { index: true, follow: true },
+  // aperçu lors du partage d'un lien (image générée par app/opengraph-image.tsx)
+  openGraph: { type: "website", locale: "fr_FR", siteName: "YEN Career Bridge", title: "YEN Career Bridge", description: DESCRIPTION },
+  twitter: { card: "summary_large_image", title: "YEN Career Bridge", description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {
