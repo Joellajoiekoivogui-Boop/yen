@@ -20,7 +20,7 @@ export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
   const advanced = d.skills.filter((s) => s.tier === "avancee");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div data-reveal-children className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex items-start gap-4">
         <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-navy-800 text-teal-300"><DomainIcon name={d.icon} className="size-7" /></span>
         <div>

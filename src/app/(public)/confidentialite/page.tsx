@@ -4,7 +4,7 @@ export const metadata: Metadata = { title: "Politique de confidentialité" };
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+    <div data-reveal-children className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight text-navy-900">Politique de confidentialité</h1>
       <p className="mt-2 text-sm text-muted">Version 2026-10 — modèle à faire valider par le responsable juridique de YEN avant mise en production.</p>
       <div className="prose-yen mt-6">

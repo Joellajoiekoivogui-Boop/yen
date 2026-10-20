@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
  */
 export function Logo({ href = "/", inverted = false, className }: { href?: string; inverted?: boolean; className?: string }) {
   return (
-    <Link href={href} className={cn("inline-flex items-center gap-2 font-bold tracking-tight", className)} aria-label="YEN Career Bridge — accueil">
-      <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-electric-500 to-teal-400 text-sm text-white shadow-sm" aria-hidden>
+    <Link href={href} className={cn("group inline-flex items-center gap-2 font-bold tracking-tight", className)} aria-label="YEN Career Bridge — accueil">
+      <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-electric-500 to-teal-400 text-sm text-white shadow-sm transition-transform duration-700 ease-spring group-hover:scale-110 group-hover:rotate-[360deg]" aria-hidden>
         Y
       </span>
       <span className={cn("text-base", inverted ? "text-white" : "text-navy-900")}>

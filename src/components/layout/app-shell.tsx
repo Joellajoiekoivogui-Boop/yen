@@ -57,6 +57,9 @@ export function AppShell({
   const [open, setOpen] = useState(false);
   const dark = variant === "dark";
 
+  // rang de chaque lien dans la navigation, pour l'apparition en cascade
+  const sectionOffsets = sections.map((_, i) => sections.slice(0, i).reduce((n, sec) => n + sec.items.length, 0));
+
   const isActive = (item: NavItem) => (item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/"));
 
   const nav = (
@@ -65,25 +68,31 @@ export function AppShell({
         <div key={i}>
           {s.title && <p className={cn("mb-1.5 px-2 text-[11px] font-semibold tracking-wider uppercase", dark ? "text-navy-300" : "text-slate-400")}>{s.title}</p>}
           <ul className="space-y-0.5">
-            {s.items.map((item) => {
+            {s.items.map((item, j) => {
               const active = isActive(item);
               return (
-                <li key={item.href}>
+                <li key={item.href} className="animate-nav-item" style={{ animationDelay: `${120 + (sectionOffsets[i] + j) * 35}ms` }}>
                   <Link
                     href={item.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                      "group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all duration-300",
+                      "before:absolute before:top-1/2 before:left-0 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:transition-transform before:duration-300",
+                      active ? "before:scale-y-100" : "before:scale-y-0",
+                      dark ? "before:bg-teal-300" : "before:bg-electric-600",
                       dark
                         ? active ? "bg-white/10 text-white" : "text-navy-100 hover:bg-white/5 hover:text-white"
                         : active ? "bg-electric-50 text-electric-700" : "text-slate-600 hover:bg-slate-100 hover:text-navy-900",
                     )}
                   >
-                    <Icon name={item.icon} className={cn("size-4 shrink-0", active && !dark && "text-electric-600", active && dark && "text-teal-300")} />
+                    <Icon
+                      name={item.icon}
+                      className={cn("size-4 shrink-0 transition-transform duration-300 ease-spring group-hover:translate-x-0.5 group-hover:scale-110", active && !dark && "text-electric-600", active && dark && "text-teal-300")}
+                    />
                     <span className="truncate">{item.label}</span>
                     {item.badge ? (
-                      <span className={cn("ml-auto rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-teal-400 text-navy-950" : "bg-electric-600 text-white")}>{item.badge}</span>
+                      <span className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-teal-400 text-navy-950" : "bg-electric-600 text-white")}>{item.badge}</span>
                     ) : null}
                   </Link>
                 </li>
@@ -112,7 +121,7 @@ export function AppShell({
   return (
     <div className="min-h-dvh lg:pl-64">
       {/* Barre latérale fixe (ordinateur) */}
-      <aside className={cn(sidebarCls, "fixed inset-y-0 left-0 z-30 hidden lg:flex")}>
+      <aside className={cn(sidebarCls, "fixed inset-y-0 left-0 z-30 hidden animate-sidebar-in lg:flex")}>
         <div className={cn("flex h-16 items-center px-4", dark ? "border-b border-white/10" : "border-b border-border")}>
           <Logo href={homeHref} inverted={dark} />
         </div>
@@ -131,8 +140,8 @@ export function AppShell({
 
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className="absolute inset-0 bg-navy-950/40" onClick={() => setOpen(false)} />
-          <div className={cn("absolute inset-y-0 left-0 shadow-xl", sidebarCls)}>
+          <div className="absolute inset-0 animate-fade-in bg-navy-950/40 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+          <div className={cn("absolute inset-y-0 left-0 animate-drawer-in shadow-xl", sidebarCls)}>
             <div className={cn("flex h-14 items-center justify-between px-4", dark ? "border-b border-white/10" : "border-b border-border")}>
               <Logo href={homeHref} inverted={dark} />
               <button type="button" onClick={() => setOpen(false)} className={cn("rounded-md p-2", dark ? "text-white" : "text-navy-800")} aria-label="Fermer le menu">

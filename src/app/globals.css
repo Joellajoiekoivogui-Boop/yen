@@ -50,6 +50,150 @@
   --shadow-card: 0 1px 2px rgb(10 23 48 / 0.04), 0 1px 3px rgb(10 23 48 / 0.06);
 }
 
+@theme static {
+  /* ------------------------------------------------------------------------
+     Motion design : courbes et animations (utilitaires animate-*)
+     ------------------------------------------------------------------------ */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-slow: float 9s ease-in-out infinite;
+  --animate-blob: blob 18s ease-in-out infinite;
+  --animate-gradient-pan: gradient-pan 8s ease infinite;
+  --animate-marquee: marquee 45s linear infinite;
+  --animate-spin-slow: orbit 28s linear infinite;
+  --animate-spin-reverse: spin-reverse 36s linear infinite;
+  --animate-ping-slow: ping-slow 2.6s var(--ease-out-expo) infinite;
+  --animate-bounce-soft: bounce-soft 0.9s var(--ease-spring) infinite;
+  --animate-wiggle: wiggle 0.6s ease-in-out;
+  --animate-pop-in: pop-in 0.6s var(--ease-spring) backwards;
+  --animate-fade-in: fade-in 0.4s ease-out backwards;
+  --animate-slide-down: slide-down 0.5s var(--ease-out-expo) backwards;
+  --animate-header-in: header-in 0.8s var(--ease-out-expo) backwards;
+  --animate-sidebar-in: sidebar-in 0.8s var(--ease-out-expo) backwards;
+  --animate-drawer-in: drawer-in 0.45s var(--ease-out-expo) backwards;
+  --animate-nav-item: nav-item 0.6s var(--ease-out-expo) backwards;
+  --animate-progress-grow: progress-grow 1.4s var(--ease-out-expo) backwards;
+  --animate-glow-pulse: glow-pulse 2.4s ease-out infinite;
+  --animate-hero-card: reveal-right 1s var(--ease-out-expo) backwards;
+  --animate-underline: underline-draw 1s var(--ease-out-expo) 0.35s backwards;
+}
+
+/* Images clés du motion design (toujours émises, utilisées par les utilitaires et les classes ci-dessous) */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+}
+@keyframes reveal-zoom {
+  from { opacity: 0; transform: scale(0.92); }
+}
+@keyframes reveal-left {
+  from { opacity: 0; transform: translate3d(-28px, 0, 0); }
+}
+@keyframes reveal-right {
+  from { opacity: 0; transform: translate3d(36px, 0, 0); }
+}
+@keyframes reveal-blur {
+  from { opacity: 0; filter: blur(12px); transform: translate3d(0, 14px, 0); }
+}
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+@keyframes blob {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(40px, -50px, 0) scale(1.12); }
+  66% { transform: translate3d(-30px, 30px, 0) scale(0.92); }
+}
+@keyframes gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes marquee {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes spin-reverse {
+  to { transform: rotate(-360deg); }
+}
+@keyframes ping-slow {
+  0% { transform: scale(1); opacity: 0.55; }
+  80%, 100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes bounce-soft {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translate3d(0, -8px, 0); }
+}
+@keyframes header-in {
+  from { opacity: 0; transform: translate3d(0, -100%, 0); }
+}
+@keyframes sidebar-in {
+  from { opacity: 0; transform: translate3d(-40px, 0, 0); }
+}
+@keyframes drawer-in {
+  from { transform: translate3d(-100%, 0, 0); }
+}
+@keyframes nav-item {
+  from { opacity: 0; transform: translate3d(-12px, 0, 0); }
+}
+@keyframes progress-grow {
+  from { width: 0; }
+}
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.55); }
+  70%, 100% { box-shadow: 0 0 0 16px rgb(255 255 255 / 0); }
+}
+@keyframes underline-draw {
+  from { transform: scaleX(0); }
+}
+@keyframes rotate-words {
+  0%, 18% { transform: translate3d(0, 0, 0); }
+  22%, 40% { transform: translate3d(0, -20%, 0); }
+  44%, 62% { transform: translate3d(0, -40%, 0); }
+  66%, 84% { transform: translate3d(0, -60%, 0); }
+  88%, 100% { transform: translate3d(0, -80%, 0); }
+}
+@keyframes text-shine {
+  to { background-position: -200% center; }
+}
+@keyframes scroll-dot {
+  0% { transform: translate3d(0, 0, 0); opacity: 1; }
+  70% { transform: translate3d(0, 12px, 0); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes grid-pan {
+  to { background-position: 48px 48px; }
+}
+@keyframes particle {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  15% { opacity: 0.9; }
+  100% { transform: translate3d(0, -140px, 0); opacity: 0; }
+}
+@keyframes shine-sweep {
+  from { transform: translateX(-120%) skewX(-20deg); }
+  to { transform: translateX(260%) skewX(-20deg); }
+}
+@keyframes skeleton {
+  to { background-position: -200% 0; }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
@@ -57,6 +201,8 @@
   }
   body {
     @apply bg-canvas text-navy-950 antialiased;
+    /* aucun défilement horizontal pendant les animations (clip ne casse pas position: sticky) */
+    overflow-x: clip;
   }
   :focus-visible {
     outline: 2px solid var(--color-electric-500);
@@ -84,12 +230,195 @@
   }
 }
 
+/* ----------------------------------------------------------------------------
+   Motion design
+   ------------------------------------------------------------------------- */
+
+/* Apparition au chargement puis au défilement.
+   - Tout élément [data-reveal] (ou enfant direct d'un [data-reveal-children]) joue son
+     animation d'entrée en CSS dès l'affichage : aucun contenu n'est masqué sans JavaScript.
+   - Le moteur (components/motion/motion-engine.tsx) marque [data-reveal-pending] les éléments
+     hors de l'écran ; ils sont masqués puis rejouent leur animation en arrivant à l'écran. */
+@media (prefers-reduced-motion: no-preference) {
+  :where([data-reveal]:not([data-reveal="none"]), [data-reveal-children] > :not([data-reveal])) {
+    animation: var(--reveal-animation, reveal-up) 0.9s var(--ease-out-expo) var(--reveal-delay, 0ms) backwards;
+  }
+  [data-reveal="zoom"] { --reveal-animation: reveal-zoom; }
+  [data-reveal="left"] { --reveal-animation: reveal-left; }
+  [data-reveal="right"] { --reveal-animation: reveal-right; }
+  [data-reveal="blur"] { --reveal-animation: reveal-blur; }
+  [data-reveal-children] > :nth-child(2) { --reveal-delay: 70ms; }
+  [data-reveal-children] > :nth-child(3) { --reveal-delay: 140ms; }
+  [data-reveal-children] > :nth-child(4) { --reveal-delay: 210ms; }
+  [data-reveal-children] > :nth-child(5) { --reveal-delay: 280ms; }
+  [data-reveal-children] > :nth-child(6) { --reveal-delay: 350ms; }
+  [data-reveal-children] > :nth-child(n + 7) { --reveal-delay: 400ms; }
+
+  [data-reveal-pending] { opacity: 0; }
+  /* les animations des descendants repartent de zéro avec leur parent */
+  [data-reveal-pending],
+  [data-reveal-pending] * {
+    animation: none !important;
+  }
+}
+
+/* Halo qui suit le curseur ([data-spotlight], piloté par le moteur via --mx / --my) */
+[data-spotlight] {
+  position: relative;
+  isolation: isolate;
+}
+[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--spot-color, rgb(47 111 255 / 0.1)), transparent 45%);
+}
+[data-spotlight]:hover::before {
+  opacity: 1;
+}
+
+/* Inclinaison 3D et boutons magnétiques (pointeur fin uniquement, réglés par le moteur) */
+[data-tilt] {
+  transition: transform 0.5s var(--ease-out-expo);
+  transform-style: preserve-3d;
+}
+[data-magnetic] {
+  transition: translate 0.35s var(--ease-out-expo), transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Reflet lumineux qui traverse les boutons pleins au survol */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+}
+.btn-shine:hover::after {
+  animation: shine-sweep 0.9s var(--ease-out-expo);
+}
+
+/* Texte en dégradé animé */
+.text-shine {
+  background: linear-gradient(90deg, var(--color-teal-300), var(--color-electric-300), var(--color-teal-200), var(--color-teal-300));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 5s linear infinite;
+}
+
+/* Mots qui défilent dans le titre de l'accueil */
+.word-rotator {
+  display: inline-flex;
+  height: 1.15em;
+  overflow: hidden;
+  vertical-align: top;
+}
+.word-rotator-track {
+  display: flex;
+  flex-direction: column;
+  animation: rotate-words 11s var(--ease-out-expo) infinite;
+}
+.word-rotator-track > span {
+  height: 1.15em;
+  line-height: 1.15em;
+  white-space: nowrap;
+}
+
+/* Décor du héros */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
+  animation: grid-pan 6s linear infinite;
+}
+.hero-particle {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--color-teal-300);
+  box-shadow: 0 0 12px 2px rgb(86 216 202 / 0.6);
+  animation: particle var(--particle-duration, 7s) ease-in infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+.scroll-cue-dot {
+  animation: scroll-dot 1.8s ease-in-out infinite;
+}
+
+/* Bandeau défilant */
+.marquee {
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+/* En-tête public : ombre au défilement et barre de progression de lecture */
+.site-header {
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+html[data-scrolled] .site-header {
+  background-color: rgb(255 255 255 / 0.96);
+  box-shadow: 0 8px 30px -12px rgb(10 23 48 / 0.25);
+}
+.scroll-progress {
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left;
+}
+
+/* Soulignement animé des liens de navigation */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-electric-500), var(--color-teal-400));
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s var(--ease-out-expo);
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Squelettes de chargement */
+.skeleton {
+  background: linear-gradient(90deg, #e8eef6 25%, #f6f9fc 50%, #e8eef6 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+/* Préférence « réduire les animations » : tout s'affiche immédiatement, sans boucle */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

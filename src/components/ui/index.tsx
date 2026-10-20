@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, Info, XCircle, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CountUp } from "@/components/motion/count-up";
 
 /* ----------------------------------------------------------------------------
  * Boutons
@@ -10,12 +11,12 @@ type Variant = "primary" | "secondary" | "accent" | "ghost" | "danger" | "outlin
 type Size = "sm" | "md" | "lg";
 
 const variantClass: Record<Variant, string> = {
-  primary: "bg-navy-800 text-white hover:bg-navy-700 shadow-sm",
-  secondary: "bg-electric-600 text-white hover:bg-electric-700 shadow-sm",
-  accent: "bg-teal-500 text-white hover:bg-teal-600 shadow-sm",
+  primary: "btn-shine bg-navy-800 text-white hover:bg-navy-700 shadow-sm hover:shadow-md hover:shadow-navy-900/20",
+  secondary: "btn-shine bg-electric-600 text-white hover:bg-electric-700 shadow-sm hover:shadow-md hover:shadow-electric-600/30",
+  accent: "btn-shine bg-teal-500 text-white hover:bg-teal-600 shadow-sm hover:shadow-md hover:shadow-teal-500/30",
   ghost: "text-navy-700 hover:bg-navy-50",
-  danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
-  outline: "border border-border bg-white text-navy-800 hover:bg-navy-50",
+  danger: "btn-shine bg-red-600 text-white hover:bg-red-700 shadow-sm hover:shadow-md hover:shadow-red-600/30",
+  outline: "border border-border bg-white text-navy-800 hover:border-electric-200 hover:bg-navy-50",
 };
 const sizeClass: Record<Size, string> = {
   sm: "h-8 px-3 text-xs gap-1.5",
@@ -25,7 +26,7 @@ const sizeClass: Record<Size, string> = {
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", className?: string) {
   return cn(
-    "inline-flex items-center justify-center rounded-lg font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap",
+    "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap",
     variantClass[variant],
     sizeClass[size],
     className,
@@ -44,7 +45,7 @@ export function ButtonLink({ variant, size, className, ...props }: ComponentProp
  * Surfaces
  * ------------------------------------------------------------------------- */
 export function Card({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--shadow-card)]", className)} {...props} />;
+  return <div data-reveal="up" className={cn("rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--shadow-card)]", className)} {...props} />;
 }
 
 export function CardHeader({ title, description, action, icon: Icon }: { title: ReactNode; description?: ReactNode; action?: ReactNode; icon?: LucideIcon }) {
@@ -52,7 +53,7 @@ export function CardHeader({ title, description, action, icon: Icon }: { title: 
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
       <div className="flex min-w-0 items-start gap-3">
         {Icon && (
-          <span className="mt-0.5 rounded-md bg-electric-50 p-1.5 text-electric-600">
+          <span className="mt-0.5 animate-pop-in rounded-md bg-electric-50 p-1.5 text-electric-600 [animation-delay:250ms]">
             <Icon className="size-4" aria-hidden />
           </span>
         )}
@@ -73,12 +74,12 @@ export function CardBody({ className, ...props }: ComponentProps<"div">) {
 export function PageHeader({ title, description, actions, eyebrow }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
+      <div data-reveal-children className="min-w-0">
         {eyebrow && <div className="mb-1 text-xs font-semibold tracking-wide text-teal-600 uppercase">{eyebrow}</div>}
         <h1 className="text-2xl font-bold tracking-tight text-navy-900">{title}</h1>
         {description && <p className="mt-1 max-w-3xl text-sm text-muted">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div data-reveal="up" className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
@@ -117,7 +118,7 @@ const alertStyles = {
 export function Alert({ tone = "info", title, children, className }: { tone?: keyof typeof alertStyles; title?: ReactNode; children?: ReactNode; className?: string }) {
   const { cls, Icon } = alertStyles[tone];
   return (
-    <div role={tone === "error" ? "alert" : "status"} className={cn("flex gap-3 rounded-lg border px-4 py-3 text-sm", cls, className)}>
+    <div role={tone === "error" ? "alert" : "status"} className={cn("flex animate-slide-down gap-3 rounded-lg border px-4 py-3 text-sm", cls, className)}>
       <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
       <div className="min-w-0">
         {title && <p className="font-semibold">{title}</p>}
@@ -130,7 +131,7 @@ export function Alert({ tone = "info", title, children, className }: { tone?: ke
 export function EmptyState({ icon: Icon = Info, title, description, action }: { icon?: LucideIcon; title: string; description?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-white/60 px-6 py-10 text-center">
-      <span className="rounded-full bg-navy-50 p-3 text-navy-500">
+      <span className="animate-float rounded-full bg-navy-50 p-3 text-navy-500">
         <Icon className="size-6" aria-hidden />
       </span>
       <p className="mt-3 font-semibold text-navy-900">{title}</p>
@@ -146,15 +147,15 @@ export function EmptyState({ icon: Icon = Info, title, description, action }: { 
 export function StatCard({ label, value, hint, icon: Icon, tone = "blue" }: { label: string; value: ReactNode; hint?: ReactNode; icon?: LucideIcon; tone?: "blue" | "teal" | "navy" | "amber" }) {
   const iconTone = { blue: "bg-electric-50 text-electric-600", teal: "bg-teal-50 text-teal-600", navy: "bg-navy-50 text-navy-700", amber: "bg-amber-50 text-amber-700" }[tone];
   return (
-    <Card className="p-4">
+    <Card data-spotlight className="group p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg hover:shadow-electric-500/10">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted">{label}</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-navy-900 tabular-nums">{value}</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-navy-900 tabular-nums">{typeof value === "number" ? <CountUp value={value} /> : value}</p>
           {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
         </div>
         {Icon && (
-          <span className={cn("rounded-lg p-2", iconTone)}>
+          <span className={cn("rounded-lg p-2 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6", iconTone)}>
             <Icon className="size-5" aria-hidden />
           </span>
         )}
@@ -169,7 +170,7 @@ export function ProgressBar({ value, label, tone = "teal", className }: { value:
   return (
     <div className={className}>
       <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
-        <div className={cn("h-full rounded-full transition-[width] duration-500", bar)} style={{ width: `${v}%` }} />
+        <div className={cn("h-full animate-progress-grow rounded-full transition-[width] duration-500", bar)} style={{ width: `${v}%` }} />
       </div>
     </div>
   );
@@ -179,7 +180,7 @@ export function ScorePill({ score, confidence }: { score: number; confidence?: "
   const tone = score >= 75 ? "bg-teal-500" : score >= 50 ? "bg-electric-500" : score >= 30 ? "bg-amber-500" : "bg-slate-400";
   return (
     <span className="inline-flex items-center gap-2">
-      <span className={cn("inline-flex h-7 min-w-11 items-center justify-center rounded-md px-1.5 text-sm font-bold text-white tabular-nums", tone)}>{score}</span>
+      <span className={cn("inline-flex h-7 min-w-11 animate-pop-in items-center justify-center rounded-md px-1.5 text-sm font-bold text-white tabular-nums", tone)}>{score}</span>
       {confidence && <span className="text-xs text-muted">confiance {confidence === "elevee" ? "élevée" : confidence}</span>}
     </span>
   );
@@ -191,7 +192,7 @@ export function ScorePill({ score, confidence }: { score: number; confidence?: "
 export function Table({ className, ...props }: ComponentProps<"table">) {
   return (
     <div className="overflow-x-auto">
-      <table className={cn("w-full min-w-[640px] border-collapse text-left text-sm", className)} {...props} />
+      <table className={cn("w-full min-w-[640px] border-collapse text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-electric-50/40", className)} {...props} />
     </div>
   );
 }
@@ -214,8 +215,8 @@ export function TabLinks({ tabs, active }: { tabs: { key: string; label: string;
           href={t.href}
           aria-current={t.key === active ? "page" : undefined}
           className={cn(
-            "mx-1 border-b-2 px-2 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
-            t.key === active ? "border-electric-600 text-electric-700" : "border-transparent text-slate-500 hover:text-navy-800",
+            "mx-1 border-b-2 px-2 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-300",
+            t.key === active ? "border-electric-600 text-electric-700" : "border-transparent text-slate-500 hover:border-electric-200 hover:text-navy-800",
           )}
         >
           {t.label}
@@ -251,5 +252,28 @@ export function DefinitionList({ items }: { items: { label: string; value: React
         </div>
       ))}
     </dl>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+ * Chargement
+ * ------------------------------------------------------------------------- */
+export function PageSkeleton() {
+  return (
+    <div aria-busy="true" className="animate-fade-in">
+      <p className="sr-only" role="status">Chargement…</p>
+      <div className="skeleton h-3 w-24 rounded" />
+      <div className="skeleton mt-3 h-7 w-72 max-w-full rounded-lg" />
+      <div className="skeleton mt-3 h-4 w-96 max-w-full rounded" />
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="skeleton h-24 rounded-[var(--radius-card)]" style={{ animationDelay: `${i * 120}ms` }} />
+        ))}
+      </div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <div className="skeleton h-64 rounded-[var(--radius-card)] lg:col-span-2" />
+        <div className="skeleton h-64 rounded-[var(--radius-card)] [animation-delay:200ms]" />
+      </div>
+    </div>
   );
 }

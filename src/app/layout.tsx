@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { MotionEngine } from "@/components/motion/motion-engine";
 
 export const metadata: Metadata = {
   title: { default: "YEN Career Bridge", template: "%s · YEN Career Bridge" },
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Aller au contenu
         </a>
         {children}
+        <MotionEngine />
       </body>
     </html>
   );

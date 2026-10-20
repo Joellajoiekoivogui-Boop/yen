@@ -14,12 +14,12 @@ export default async function PublicLayout({ children }: { children: React.React
   const session = await getSession().catch(() => null);
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-white/90 backdrop-blur">
+      <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Logo />
           <nav className="hidden items-center gap-6 md:flex" aria-label="Navigation publique">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className="text-sm font-medium text-slate-600 hover:text-navy-900">
+              <Link key={n.href} href={n.href} className="nav-link text-sm font-medium text-slate-600 transition-colors hover:text-navy-900">
                 {n.label}
               </Link>
             ))}
@@ -30,7 +30,7 @@ export default async function PublicLayout({ children }: { children: React.React
             ) : (
               <>
                 <ButtonLink href="/connexion" variant="ghost" size="sm">Connexion</ButtonLink>
-                <ButtonLink href="/inscription" variant="secondary" size="sm">Créer un compte</ButtonLink>
+                <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic>Créer un compte</ButtonLink>
               </>
             )}
           </div>
@@ -42,10 +42,11 @@ export default async function PublicLayout({ children }: { children: React.React
             </Link>
           ))}
         </nav>
+        <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-electric-500 via-teal-400 to-electric-500" />
       </header>
       <main id="contenu" className="flex-1">{children}</main>
       <footer className="bg-navy-950 text-navy-100">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
+        <div data-reveal-children className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
             <Logo inverted />
             <p className="mt-3 max-w-sm text-sm text-navy-200">
@@ -56,15 +57,15 @@ export default async function PublicLayout({ children }: { children: React.React
             <p className="text-sm font-semibold text-white">Plateforme</p>
             <ul className="mt-3 space-y-2 text-sm">
               {NAV.map((n) => (
-                <li key={n.href}><Link href={n.href} className="hover:text-white">{n.label}</Link></li>
+                <li key={n.href}><Link href={n.href} className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">{n.label}</Link></li>
               ))}
             </ul>
           </div>
           <div>
             <p className="text-sm font-semibold text-white">Informations légales</p>
             <ul className="mt-3 space-y-2 text-sm">
-              <li><Link href="/confidentialite" className="hover:text-white">Politique de confidentialité</Link></li>
-              <li><Link href="/conditions" className="hover:text-white">Conditions d&apos;utilisation</Link></li>
+              <li><Link href="/confidentialite" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Politique de confidentialité</Link></li>
+              <li><Link href="/conditions" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Conditions d&apos;utilisation</Link></li>
             </ul>
           </div>
         </div>

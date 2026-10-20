@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Présentation" };
 
 export default function PresentationPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+    <div data-reveal-children className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
       <p className="text-sm font-semibold text-teal-600">Présentation</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy-900">YEN Career Bridge</h1>
       <div className="prose-yen mt-6">
