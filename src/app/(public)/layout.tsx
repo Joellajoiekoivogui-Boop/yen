@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 import { BackToTop } from "@/components/feedback/back-to-top";
-import { HeaderAuth } from "@/components/layout/header-auth";
+import { cookies } from "next/headers";
+import { ButtonLink } from "@/components/ui";
 
 const NAV = [
   { href: "/presentation", label: "Présentation" },
@@ -10,7 +11,9 @@ const NAV = [
   { href: "/partenaires", label: "Partenaires" },
 ];
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  // Présence d'une session (sans requête en base) ; « Mon espace » passe par la connexion, qui redirige vers l'espace du compte
+  const signedIn = (await cookies()).getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/90 backdrop-blur">
@@ -24,7 +27,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <HeaderAuth />
+            {signedIn ? (
+              <ButtonLink href="/connexion" variant="secondary" size="sm">Mon espace</ButtonLink>
+            ) : (
+              <>
+                <ButtonLink href="/connexion" variant="ghost" size="sm">Connexion</ButtonLink>
+                <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic>Créer un compte</ButtonLink>
+              </>
+            )}
           </div>
         </div>
         <nav className="flex gap-4 overflow-x-auto border-t border-border/60 px-4 py-2 md:hidden" aria-label="Navigation publique (mobile)">

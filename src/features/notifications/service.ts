@@ -48,7 +48,9 @@ async function rpcNotify(fn: string, args: Record<string, unknown>, n: Notificat
   }
 }
 
-/** Notification à un utilisateur précis (réservé au personnel YEN). */
+/** Notifications à texte libre : réservées au personnel YEN (contrôlé en base). */
+
+/** Notification à un utilisateur précis. */
 export async function notify(userId: string, n: NotificationInput): Promise<void> {
   await rpcNotify("notify_user", { p_user: userId }, n);
 }
@@ -71,4 +73,21 @@ export async function notifyStaffWithPermission(permission: string, n: Notificat
 /** Notifie les candidats d'un domaine (nouvelle évaluation, ou nouvelle offre d'un type donné). */
 export async function notifyDomainCandidates(domainId: string, offerType: string | null, n: NotificationInput): Promise<void> {
   await rpcNotify("notify_candidates_by_domain", { p_domain: domainId, p_offer_type: offerType }, n);
+}
+
+/**
+ * Événements déclenchés par un candidat ou un partenaire : la base vérifie que
+ * l'appelant en est l'auteur, puis rédige elle-même les messages (aucun texte
+ * libre) et choisit les destinataires. Un événement ne notifie qu'une fois.
+ */
+export type NotificationEvent = "application_submitted" | "application_withdrawn" | "partner_status_update" | "interview_scheduled" | "partner_feedback" | "offer_submitted";
+
+export async function notifyEvent(event: NotificationEvent, refId: string): Promise<void> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("notify_event", { p_event: event, p_ref: refId });
+    if (error) throw error;
+  } catch (e) {
+    console.error(`[notifications] ${event}`, e instanceof Error ? e.message : e);
+  }
 }

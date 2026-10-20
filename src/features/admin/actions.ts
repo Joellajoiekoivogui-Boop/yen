@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "@/lib/zod";
 import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
 import { createClient } from "@/lib/supabase/server";
@@ -228,7 +228,7 @@ export async function saveDomainAction(values: Record<string, unknown>): Promise
     const res = isUuid(values.id) ? await supabase.from("engineering_domains").update(v).eq("id", values.id) : await supabase.from("engineering_domains").insert(v);
     if (res.error) return fail(dbErrorMessage(res.error));
     revalidatePath("/admin/catalogue");
-    revalidatePath("/domaines");
+    revalidateTag("catalogue", "max");
     return { ok: true, message: "Domaine enregistré." };
   });
 }
@@ -253,6 +253,7 @@ export async function saveSkillAction(values: Record<string, unknown>): Promise<
     const res = isUuid(values.id) ? await supabase.from("skills").update(row).eq("id", values.id) : await supabase.from("skills").insert(row);
     if (res.error) return fail(dbErrorMessage(res.error));
     revalidatePath("/admin/catalogue");
+    revalidateTag("catalogue", "max");
     return { ok: true, message: "Compétence enregistrée." };
   });
 }
@@ -285,6 +286,7 @@ export async function saveOccupationAction(values: Record<string, unknown>): Pro
       if (ins.error) return fail(dbErrorMessage(ins.error));
     }
     revalidatePath("/admin/catalogue");
+    revalidateTag("catalogue", "max");
     return { ok: true, message: "Métier enregistré." };
   });
 }
@@ -315,6 +317,7 @@ export async function saveOrganizationAction(values: Record<string, unknown>): P
     await supabase.from("organization_domains").delete().eq("organization_id", res.data.id);
     if (domain_ids.length) await supabase.from("organization_domains").insert(domain_ids.map((domain_id) => ({ organization_id: res.data.id, domain_id })));
     revalidatePath("/admin/partenaires");
+    revalidateTag("partenaires", "max");
     return { ok: true, message: "Organisation enregistrée.", data: { id: res.data.id } };
   });
 }
@@ -331,6 +334,7 @@ export async function partnerUpdateOrganizationAction(values: Record<string, unk
     await supabase.from("organization_domains").delete().eq("organization_id", orgId);
     if (domain_ids.length) await supabase.from("organization_domains").insert(domain_ids.map((domain_id) => ({ organization_id: orgId, domain_id })));
     revalidatePath("/partenaire/organisation");
+    revalidateTag("partenaires", "max");
     return { ok: true, message: "Informations de l'organisation mises à jour." };
   });
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { MotionEngine } from "@/components/motion/motion-engine";
 import { NavigationProgress } from "@/components/feedback/navigation-progress";
 import { Toaster } from "@/components/feedback/toast";
@@ -26,7 +27,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Rendu à chaque requête : chaque page reçoit son propre nonce de sécurité (voir lib/security/csp.ts)
+  await connection();
   return (
     <html lang="fr">
       <body className="min-h-dvh">

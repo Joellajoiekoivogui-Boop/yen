@@ -6,10 +6,8 @@ import { DomainIcon } from "@/components/domain-icon";
 import { HowItWorksStepper } from "@/components/how-it-works-stepper";
 import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
-import { listDomains } from "@/features/catalog/queries";
+import { listDomains, referenceDomains } from "@/features/catalog/queries";
 
-// Page statique, régénérée toutes les heures (catalogue)
-export const revalidate = 3600;
 
 const HERO_CARDS = [
   { icon: FileText, t: "Un profil professionnel complet", d: "CV, formations, projets, certifications et expériences au même endroit." },
@@ -60,7 +58,7 @@ function SectionTitle({ eyebrow, title, description, inverted = false }: { eyebr
 }
 
 export default async function HomePage() {
-  const domains = await listDomains().catch(() => []);
+  const domains = await listDomains().catch(() => referenceDomains());
   const totalOccupations = domains.reduce((n, d) => n + d.occupationCount, 0);
   const totalSkills = domains.reduce((n, d) => n + d.skillCount, 0);
 

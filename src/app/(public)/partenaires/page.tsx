@@ -1,21 +1,13 @@
 import type { Metadata } from "next";
 import { Building2 } from "lucide-react";
 import { EmptyState } from "@/components/ui";
-import { isSupabaseConfigured } from "@/lib/env";
-import { createPublicClient } from "@/lib/supabase/public";
+import { listPublicPartners } from "@/features/catalog/queries";
 
 export const metadata: Metadata = { title: "Partenaires" };
-// Page statique, régénérée toutes les heures
-export const revalidate = 3600;
 
 /** N'affiche QUE les organisations dont la publication a été autorisée (is_public) et actives. */
 export default async function PartnersPage() {
-  let orgs: { id: string; name: string; sector: string; city: string | null; description: string; is_demo: boolean }[] = [];
-  if (isSupabaseConfigured()) {
-    const supabase = createPublicClient();
-    const { data } = await supabase.from("organizations").select("id, name, sector, city, description, is_demo").eq("is_public", true).eq("status", "actif").eq("is_demo", false).order("name");
-    orgs = data ?? [];
-  }
+  const orgs = await listPublicPartners();
   return (
     <div data-reveal-children className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
       <p className="text-sm font-semibold text-gold-600">Partenaires</p>

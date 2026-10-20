@@ -15,7 +15,8 @@ export default async function SignUpPage(props: PageProps<"/inscription">) {
   const session = await getSession().catch(() => null);
   if (session) redirect(homePathFor(session));
   const configured = isSupabaseConfigured();
-  const domains = configured ? await listDomains() : [];
+  // domaine facultatif : sans catalogue (base injoignable), le champ est simplement vide
+  const domains = configured ? await listDomains().catch(() => []) : [];
   return (
     <Card className="w-full max-w-3xl p-6 sm:p-8">
       <h1 className="text-2xl font-bold text-navy-900">Créer un compte</h1>

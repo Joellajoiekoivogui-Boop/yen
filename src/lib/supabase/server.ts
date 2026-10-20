@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { publicEnv, serverEnv } from "@/lib/env";
+import { AUTH_COOKIE_OPTIONS } from "./cookies";
 
 /**
  * Client Supabase lié à la session de l'utilisateur (cookies). Toutes les
@@ -11,6 +12,7 @@ import { publicEnv, serverEnv } from "@/lib/env";
 export async function createClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
   return createServerClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
+    cookieOptions: AUTH_COOKIE_OPTIONS,
     cookies: {
       getAll() {
         return cookieStore.getAll();

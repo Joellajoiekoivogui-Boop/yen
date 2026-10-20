@@ -3,21 +3,19 @@ import { notFound } from "next/navigation";
 import { Award, Briefcase, ClipboardCheck, FolderKanban, Wrench } from "lucide-react";
 import { Badge, ButtonLink, Card, CardBody, CardHeader } from "@/components/ui";
 import { DomainIcon } from "@/components/domain-icon";
-import { getDomain } from "@/features/catalog/queries";
+import { getDomain, referenceDomain } from "@/features/catalog/queries";
 import { importanceLabel, levelLabel, SKILL_LEVELS } from "@/lib/labels";
 
-// Page statique, régénérée toutes les heures (catalogue)
-export const revalidate = 3600;
 
 export async function generateMetadata(props: PageProps<"/domaines/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  const d = await getDomain(slug);
+  const d = await getDomain(slug).catch(() => referenceDomain(slug));
   return { title: d?.name ?? "Domaine" };
 }
 
 export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
   const { slug } = await props.params;
-  const d = await getDomain(slug);
+  const d = await getDomain(slug).catch(() => referenceDomain(slug));
   if (!d) notFound();
   const fundamentals = d.skills.filter((s) => s.tier === "fondamentale");
   const advanced = d.skills.filter((s) => s.tier === "avancee");

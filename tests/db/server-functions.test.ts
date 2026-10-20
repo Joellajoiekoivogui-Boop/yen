@@ -193,24 +193,33 @@ d("Fonctions serveur sans clé de service", () => {
   });
 
   describe("Notifications", () => {
-    it("un candidat prévient le personnel mais pas un utilisateur quelconque", async () => {
+    it("un candidat ne rédige aucune notification : il déclenche seulement des événements vérifiés", async () => {
       await expect(rpc(U.alice, "select public.notify_user($1, 'systeme', 'Faux message', '', '/')", [U.bob])).rejects.toThrow(/non autorisée/);
-      await rpc(U.alice, "select public.notify_staff('assessments.review', 'candidature', 'Nouvelle candidature', '', '/admin')", [], { commit: true });
-      const r = await db.query("select count(*)::int n from public.notifications where user_id = $1 and title = 'Nouvelle candidature'", [U.evaluator]);
-      expect(r.rows[0].n).toBe(1);
+      await expect(rpc(U.alice, "select public.notify_staff('assessments.review', 'systeme', 'Faux message', '', '/')")).rejects.toThrow(/non autorisée/);
+      await expect(rpc(U.alice, "select public.notify_organization($1, 'systeme', 'Faux message', '', '/')", [orgId])).rejects.toThrow(/non autorisée/);
+      const app = await asUser(db, U.alice, () => db.query("insert into public.applications (offer_id, candidate_id) values ($1, $2) returning id", [offerId, alice]), { commit: true });
+      const appId = app.rows[0].id;
+      await expect(rpc(U.bob, "select public.notify_event('application_submitted', $1)", [appId])).rejects.toThrow(/non autorisée/);
+      await rpc(U.alice, "select public.notify_event('application_submitted', $1)", [appId], { commit: true });
+      await rpc(U.alice, "select public.notify_event('application_submitted', $1)", [appId], { commit: true }); // rejeu : ignoré
+      const r = await db.query("select title, body, link from public.notifications where user_id = $1 and title = 'Nouvelle candidature'", [U.recruiter]);
+      expect(r.rows).toEqual([{ title: "Nouvelle candidature", body: "Stage dev", link: `/partenaire/candidatures/${appId}` }]);
+      await expect(rpc(U.alice, "select public.notify_event('inconnu', $1)", [appId])).rejects.toThrow(/inconnu/);
     });
 
-    it("seule l'organisation qui suit la candidature peut prévenir le candidat", async () => {
-      await asUser(db, U.alice, () => db.query("insert into public.applications (offer_id, candidate_id) values ($1, $2)", [offerId, alice]), { commit: true });
-      await rpc(U.recruiter, "select public.notify_candidate($1, 'entretien', 'Entretien programmé', '', '/candidat/candidatures')", [alice], { commit: true });
-      await expect(rpc(U.otherRecruiter, "select public.notify_candidate($1, 'entretien', 'Hameçonnage', '', '/')", [alice])).rejects.toThrow(/non autorisée/);
-      const n = await db.query("select link from public.notifications where user_id = $1 and title = 'Entretien programmé'", [U.alice]);
-      expect(n.rows).toEqual([{ link: "/candidat/candidatures" }]);
+    it("seule l'organisation qui suit la candidature déclenche une mise à jour pour le candidat", async () => {
+      const appId = (await db.query("select id from public.applications where candidate_id = $1 and offer_id = $2", [alice, offerId])).rows[0].id;
+      await expect(rpc(U.recruiter, "select public.notify_candidate($1, 'entretien', 'Texte libre', '', '/')", [alice])).rejects.toThrow(/non autorisée/);
+      await expect(rpc(U.otherRecruiter, "select public.notify_event('partner_status_update', $1)", [appId])).rejects.toThrow(/non autorisée/);
+      await rpc(U.recruiter, "select public.notify_event('partner_status_update', $1)", [appId], { commit: true });
+      const n = await db.query("select title, link from public.notifications where user_id = $1 and title like 'Candidature « Stage dev »%'", [U.alice]);
+      expect(n.rows).toEqual([{ title: "Candidature « Stage dev » : Soumise", link: "/candidat/candidatures" }]);
     });
 
-    it("refuse les liens externes", async () => {
-      await rpc(U.alice, "select public.notify_staff('assessments.review', 'systeme', 'Lien externe', '', '//evil.example')", [], { commit: true });
+    it("refuse les liens externes, même rédigés par le personnel", async () => {
+      await rpc(U.evaluator, "select public.notify_staff('assessments.review', 'systeme', 'Lien externe', '', '//evil.example')", [], { commit: true });
       const r = await db.query("select link from public.notifications where title = 'Lien externe'");
+      expect(r.rows.length).toBeGreaterThan(0);
       expect(r.rows.every((x) => x.link === null)).toBe(true);
     });
   });
@@ -228,13 +237,15 @@ d("Fonctions serveur sans clé de service", () => {
       await expect(rpc(U.otherRecruiter, "select public.sync_application_pipeline($1)", [id])).rejects.toThrow(/non autorisée/);
     });
 
-    it("le candidat ne peut régler que les étapes automatiques de son propre pipeline", async () => {
-      await db.query("update public.candidate_profiles set pipeline_status = 'profil_incomplet' where id = $1", [alice]);
-      await expect(rpc(U.alice, "select public.set_auto_pipeline_status($1, 'preselectionne')", [alice])).rejects.toThrow(/invalide/);
-      await expect(rpc(U.bob, "select public.set_auto_pipeline_status($1, 'en_evaluation')", [alice])).rejects.toThrow(/non autorisée/);
-      await expect(rpc(U.recruiter, "select public.set_auto_pipeline_status($1, 'en_evaluation')", [alice])).rejects.toThrow(/non autorisée/);
-      await rpc(U.alice, "select public.set_auto_pipeline_status($1, 'en_evaluation')", [alice], { commit: true });
-      expect((await db.query("select pipeline_status from public.candidate_profiles where id = $1", [alice])).rows[0].pipeline_status).toBe("en_evaluation");
+    it("le pipeline automatique est recalculé en base, sans valeur fournie par le navigateur", async () => {
+      await db.query("update public.candidate_profiles set pipeline_status = 'en_evaluation' where id = $1", [alice]);
+      await expect(rpc(U.bob, "select public.refresh_auto_pipeline($1)", [alice])).rejects.toThrow(/non autorisée/);
+      await expect(rpc(U.recruiter, "select public.refresh_auto_pipeline($1)", [alice])).rejects.toThrow(/non autorisée/);
+      const [{ next }] = await rpc<{ next: string }>(U.alice, "select public.refresh_auto_pipeline($1) next", [alice], { commit: true });
+      expect(next).toBe("profil_incomplet"); // profil peu renseigné
+      expect((await db.query("select pipeline_status from public.candidate_profiles where id = $1", [alice])).rows[0].pipeline_status).toBe("profil_incomplet");
+      // l'ancienne fonction (statut choisi par le client) n'existe plus
+      await expect(rpc(U.alice, "select public.set_auto_pipeline_status($1, 'en_evaluation')", [alice])).rejects.toThrow(/does not exist|n'existe pas/);
     });
 
     it("le retour d'un partenaire crée des preuves en attente, uniquement sur ses candidatures", async () => {

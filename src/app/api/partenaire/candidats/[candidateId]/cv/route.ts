@@ -17,9 +17,6 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/partenaire/
   if (!session || session.partnerOrganizationIds.length === 0) return new NextResponse("Accès refusé", { status: 403 });
 
   const supabase = await createClient();
-  const { data: allowed } = await supabase.rpc("partner_can_view_cv", { p_candidate: candidateId });
-  if (allowed !== true) return new NextResponse("Accès refusé", { status: 403 });
-
   // partner_cv_document et la politique de stockage n'autorisent que le CV courant d'un candidat visible
   const { data: rows } = await supabase.rpc("partner_cv_document", { p_candidate: candidateId });
   const doc = ((rows ?? []) as { id: string; storage_path: string }[])[0];

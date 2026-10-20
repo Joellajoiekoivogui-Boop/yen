@@ -53,7 +53,7 @@ d("Audit de sécurité : non-régression", () => {
     asUser(db, user, async () => (await db.query(sql, params)).rows as T[], opts);
 
   it("un compte désactivé perd tout accès candidat, et le partenaire ne le voit plus", async () => {
-    expect((await as(U.recruiter, "select public.partner_can_view_candidate($1) ok", [bob]))[0].ok).toBe(true);
+    expect((await as(U.recruiter, "select public.partner_candidate_data($1) is not null as ok", [bob]))[0].ok).toBe(true);
     await db.query("update public.profiles set is_active = false where id = $1", [U.bob]);
     try {
       expect((await as(U.bob, "select public.auth_candidate_id() id"))[0].id).toBeNull();
@@ -62,7 +62,7 @@ d("Audit de sécurité : non-régression", () => {
       await expect(as(U.bob, "insert into public.applications (offer_id, candidate_id) values ($1, $2)", [draftId, bob])).rejects.toThrow();
       await expect(as(U.bob, "insert into storage.objects (bucket_id, name) values ('candidate-documents', $1)", [`${U.bob}/cv.pdf`])).rejects.toThrow();
       await expect(as(U.bob, "select public.start_assessment_attempt((select id from public.assessments where status = 'publie' limit 1))")).rejects.toThrow(/réservée aux candidats/);
-      expect((await as(U.recruiter, "select public.partner_can_view_candidate($1) ok", [bob]))[0].ok).toBe(false);
+      expect((await as(U.recruiter, "select public.partner_candidate_data($1) is not null as ok", [bob]))[0].ok).toBe(false);
       expect((await as(U.recruiter, "select public.partner_candidate_data($1) d", [bob]))[0].d).toBeNull();
     } finally {
       await db.query("update public.profiles set is_active = true where id = $1", [U.bob]);
@@ -76,8 +76,10 @@ d("Audit de sécurité : non-régression", () => {
   });
 
   it("un lien de notification contenant un caractère de contrôle est neutralisé", async () => {
-    await as(U.alice, "select public.notify_staff('users.manage', 'systeme', 'Piège', '', '/' || chr(9) || '/evil.example')", [], { commit: true });
-    await as(U.alice, "select public.notify_staff('users.manage', 'systeme', 'Normal', '', '/admin/utilisateurs?page=2')", [], { commit: true });
+    // les candidats ne rédigent plus de notification ; même un membre du personnel ne peut pas glisser un lien externe
+    await expect(as(U.alice, "select public.notify_staff('users.manage', 'systeme', 'Piège', '', '/')")).rejects.toThrow(/non autorisée/);
+    await as(U.manager, "select public.notify_staff('users.manage', 'systeme', 'Piège', '', '/' || chr(9) || '/evil.example')", [], { commit: true });
+    await as(U.manager, "select public.notify_staff('users.manage', 'systeme', 'Normal', '', '/admin/utilisateurs?page=2')", [], { commit: true });
     const rows = await db.query("select title, link from public.notifications where user_id = $1 and title in ('Piège', 'Normal') order by title", [U.admin]);
     expect(rows.rows).toEqual([{ title: "Normal", link: "/admin/utilisateurs?page=2" }, { title: "Piège", link: null }]);
   });
@@ -142,6 +144,33 @@ d("Audit de sécurité : non-régression", () => {
     await expect(as(U.alice, "update public.candidate_profiles set linkedin_url = 'javascript:alert(1)' where user_id = $1", [U.alice])).rejects.toThrow(/_http/);
     const ok = await asUser(db, U.alice, () => db.query("update public.candidate_profiles set linkedin_url = 'https://linkedin.com/in/alice' where user_id = $1", [U.alice]));
     expect(ok.rowCount).toBe(1);
+  });
+
+  it("aucune fonction n'est exécutable sans connexion, et les visiteurs ne lisent que le catalogue", async () => {
+    const n = await db.query(`select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace
+      where ns.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')`);
+    expect(n.rows[0].n).toBe(0);
+    for (const table of ["profiles", "candidate_profiles", "job_offers", "applications", "notifications", "audit_logs", "partner_memberships"]) {
+      await expect(as(null, `select 1 from public.${table} limit 1`)).rejects.toThrow(/permission/);
+    }
+    expect((await as(null, "select count(*)::int n from public.engineering_domains"))[0].n).toBeGreaterThan(0);
+  });
+
+  it("les fonctions internes ne sont pas appelables par un compte connecté", async () => {
+    for (const sql of [
+      "select public._candidate_completion($1)", "select public.partner_can_view_candidate($1)", "select public.has_consent($1, 'partage_partenaires')",
+      "select public._candidate_is_active($1)",
+    ]) {
+      await expect(as(U.recruiter, sql, [alice])).rejects.toThrow(/permission/);
+    }
+    await expect(as(U.alice, "select public._as_service($1)", [U.alice])).rejects.toThrow(/permission/);
+    await expect(as(U.alice, "select public._notify($1, 'systeme', 'x', '', null)", [U.admin])).rejects.toThrow(/permission/);
+  });
+
+  it("le journal applicatif n'accepte que les actions connues", async () => {
+    await expect(as(U.alice, "select public.log_audit('user_promoted', 'profiles', 'x')")).rejects.toThrow(/invalide/);
+    await as(U.alice, "select public.log_audit('document_downloaded', 'candidate_documents', 'y')", [], { commit: true });
+    expect((await db.query("select actor_id from public.audit_logs where entity_id = 'y'")).rows).toEqual([{ actor_id: U.alice }]);
   });
 
   it("les consentements ne sont pas consultables sans connexion", async () => {

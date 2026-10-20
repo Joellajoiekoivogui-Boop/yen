@@ -5,7 +5,7 @@ import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResul
 import type { SessionContext } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
-import { notifyDomainCandidates, notifyOrganization, notifyStaffWithPermission } from "@/features/notifications/service";
+import { notifyDomainCandidates, notifyEvent, notifyOrganization } from "@/features/notifications/service";
 import { offerSchema, weightsFromInput } from "./schemas";
 
 async function persistOffer(ctx: SessionContext, values: Record<string, unknown>, mode: "staff" | "partner"): Promise<ActionResult<{ id: string }>> {
@@ -67,7 +67,7 @@ export async function setOfferStatusAction(offerId: string, status: string): Pro
     if (error || !offer) return fail(dbErrorMessage(error));
 
     if (status === "en_validation" && !isStaff) {
-      await notifyStaffWithPermission("offers.manage", { category: "offre", title: "Offre à valider", body: offer.title, link: `/admin/offres/${offer.id}` });
+      await notifyEvent("offer_submitted", offer.id);
     }
     if (status === "publiee") {
       await notifyOrganization(offer.organization_id, { category: "offre", title: "Votre offre est publiée", body: offer.title, link: `/partenaire/offres/${offer.id}` });

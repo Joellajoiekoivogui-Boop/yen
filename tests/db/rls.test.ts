@@ -345,16 +345,16 @@ d("Sécurité base de données (RLS)", () => {
     });
 
     it("la candidature rend le profil visible au seul partenaire concerné", async () => {
-      const before = await asUser(db, U.recruiter, () => db.query("select public.partner_can_view_candidate($1) v", [alice]));
+      const before = await asUser(db, U.recruiter, () => db.query("select public.partner_candidate_data($1) is not null as v", [alice]));
       expect(before.rows[0].v).toBe(false);
       await asUser(db, U.alice, () => db.query("insert into public.applications (offer_id, candidate_id, status) values ($1, $2, 'acceptee')", [offerId, alice]), { commit: true });
       const app = await db.query("select status, visible_to_partner from public.applications where candidate_id = $1", [alice]);
       expect(app.rows[0]).toEqual({ status: "soumise", visible_to_partner: true }); // statut forcé par le serveur
-      const after = await asUser(db, U.recruiter, () => db.query("select public.partner_can_view_candidate($1) v", [alice]));
+      const after = await asUser(db, U.recruiter, () => db.query("select public.partner_candidate_data($1) is not null as v", [alice]));
       expect(after.rows[0].v).toBe(true);
-      const other = await asUser(db, U.otherRecruiter, () => db.query("select public.partner_can_view_candidate($1) v", [alice]));
+      const other = await asUser(db, U.otherRecruiter, () => db.query("select public.partner_candidate_data($1) is not null as v", [alice]));
       expect(other.rows[0].v).toBe(false);
-      const bobView = await asUser(db, U.recruiter, () => db.query("select public.partner_can_view_candidate($1) v", [bob]));
+      const bobView = await asUser(db, U.recruiter, () => db.query("select public.partner_candidate_data($1) is not null as v", [bob]));
       expect(bobView.rows[0].v).toBe(false);
       const apps = await asUser(db, U.recruiter, () => db.query("select count(*)::int n from public.applications"));
       expect(apps.rows[0].n).toBe(1);
@@ -384,12 +384,12 @@ d("Sécurité base de données (RLS)", () => {
       await asUser(db, U.bob, () => db.query("insert into public.candidate_consents (candidate_id, consent_type, granted) values ($1, 'partage_partenaires', true)", [bob]), { commit: true });
       await asUser(db, U.manager, () =>
         db.query("insert into public.profile_shares (candidate_id, organization_id, reason) values ($1, $2, 'Profil pertinent')", [bob, orgId]), { commit: true });
-      const v = await asUser(db, U.recruiter, () => db.query("select public.partner_can_view_candidate($1) v", [bob]));
+      const v = await asUser(db, U.recruiter, () => db.query("select public.partner_candidate_data($1) is not null as v", [bob]));
       expect(v.rows[0].v).toBe(true);
 
       // Retrait du consentement : l'accès cesse immédiatement
       await asUser(db, U.bob, () => db.query("update public.candidate_consents set granted = false where candidate_id = $1 and consent_type = 'partage_partenaires'", [bob]), { commit: true });
-      const v2 = await asUser(db, U.recruiter, () => db.query("select public.partner_can_view_candidate($1) v", [bob]));
+      const v2 = await asUser(db, U.recruiter, () => db.query("select public.partner_candidate_data($1) is not null as v", [bob]));
       expect(v2.rows[0].v).toBe(false);
     });
 

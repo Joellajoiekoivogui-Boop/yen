@@ -1,5 +1,6 @@
 import "server-only";
 import { isSupabaseConfigured } from "@/lib/env";
+import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { domains as seedDomains, transversalSkills } from "../../../supabase/seed-data/catalog";
 import type { SkillLevel } from "@/lib/labels";
@@ -27,22 +28,23 @@ export interface DomainDetail extends DomainSummary {
 }
 
 /** Domaines actifs. Si Supabase n'est pas configuré, le catalogue de référence est utilisé (données réelles du catalogue, pas des données fictives). */
-export async function listDomains(): Promise<DomainSummary[]> {
-  const reference = () => seedDomains.map((d) => ({
+/** Catalogue de référence (identique à celui de la base, identifiants = slugs) : affichage seulement. */
+export function referenceDomains(): DomainSummary[] {
+  return seedDomains.map((d) => ({
     id: d.slug, slug: d.slug, name: d.name, short_description: d.short, icon: d.icon, skillCount: d.skills.length, occupationCount: d.occupations.length,
   }));
-  if (!isSupabaseConfigured()) return reference();
+}
+
+async function fetchDomains(): Promise<DomainSummary[]> {
+  if (!isSupabaseConfigured()) return referenceDomains();
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("engineering_domains")
     .select("id, slug, name, short_description, icon, skills(count), occupations(count)")
     .eq("is_active", true)
     .order("position");
-  // Base momentanément injoignable (ex. projet en pause) : catalogue de référence, identique à celui de la base
-  if (error) {
-    console.error("[catalogue] domaines indisponibles, catalogue de référence utilisé", error.message);
-    return reference();
-  }
+  // une erreur n'est jamais mise en cache : l'appelant choisit le repli (catalogue de référence pour l'affichage)
+  if (error) throw new Error(`Domaines indisponibles : ${error.message}`);
   return (data ?? []).map((d) => ({
     id: d.id, slug: d.slug, name: d.name, short_description: d.short_description, icon: d.icon,
     skillCount: (d.skills as unknown as { count: number }[])[0]?.count ?? 0,
@@ -50,26 +52,29 @@ export async function listDomains(): Promise<DomainSummary[]> {
   }));
 }
 
-export async function getDomain(slug: string): Promise<DomainDetail | null> {
-  if (!isSupabaseConfigured()) {
-    const d = seedDomains.find((x) => x.slug === slug);
-    if (!d) return null;
-    const allSkills = [...transversalSkills, ...seedDomains.flatMap((x) => x.skills)];
-    return {
-      id: d.slug, slug: d.slug, name: d.name, short_description: d.short, icon: d.icon, description: d.description, tools: d.tools,
-      certifications: d.certifications, project_types: d.projectTypes, progression_criteria: d.progression,
-      skillCount: d.skills.length, occupationCount: d.occupations.length, source: "reference",
-      skills: d.skills.map((s) => ({
-        id: s.slug, slug: s.slug, name: s.name, tier: s.tier, category: s.category ?? "technique",
-        level_criteria: { debutant: s.criteria[0], intermediaire: s.criteria[1], avance: s.criteria[2], expert: s.criteria[3] },
-      })),
-      occupations: d.occupations.map((o) => ({
-        id: o.slug, slug: o.slug, title: o.title, description: o.description, typical_education: o.education,
-        skills: o.skills.map(([sl, level, importance]) => ({ name: allSkills.find((s) => s.slug === sl)?.name ?? sl, required_level: level, importance })),
-      })),
-      assessments: d.assessments.map((a) => ({ id: a.slug, title: a.title, level: a.level, duration_minutes: a.duration, description: a.description })),
-    };
-  }
+/** Fiche de référence d'un domaine (affichage seulement, base injoignable ou non configurée). */
+export function referenceDomain(slug: string): DomainDetail | null {
+  const d = seedDomains.find((x) => x.slug === slug);
+  if (!d) return null;
+  const allSkills = [...transversalSkills, ...seedDomains.flatMap((x) => x.skills)];
+  return {
+    id: d.slug, slug: d.slug, name: d.name, short_description: d.short, icon: d.icon, description: d.description, tools: d.tools,
+    certifications: d.certifications, project_types: d.projectTypes, progression_criteria: d.progression,
+    skillCount: d.skills.length, occupationCount: d.occupations.length, source: "reference",
+    skills: d.skills.map((s) => ({
+      id: s.slug, slug: s.slug, name: s.name, tier: s.tier, category: s.category ?? "technique",
+      level_criteria: { debutant: s.criteria[0], intermediaire: s.criteria[1], avance: s.criteria[2], expert: s.criteria[3] },
+    })),
+    occupations: d.occupations.map((o) => ({
+      id: o.slug, slug: o.slug, title: o.title, description: o.description, typical_education: o.education,
+      skills: o.skills.map(([sl, level, importance]) => ({ name: allSkills.find((s) => s.slug === sl)?.name ?? sl, required_level: level, importance })),
+    })),
+    assessments: d.assessments.map((a) => ({ id: a.slug, title: a.title, level: a.level, duration_minutes: a.duration, description: a.description })),
+  };
+}
+
+async function fetchDomain(slug: string): Promise<DomainDetail | null> {
+  if (!isSupabaseConfigured()) return referenceDomain(slug);
   const supabase = createPublicClient();
   const { data: d, error } = await supabase
     .from("engineering_domains")
@@ -100,6 +105,31 @@ export async function getDomain(slug: string): Promise<DomainDetail | null> {
     source: "database",
   };
 }
+
+// Données publiques mises en cache une heure (pages publiques rendues à chaque requête pour leur nonce de sécurité) ;
+// invalidées par les actions d'administration du catalogue (étiquette « catalogue »).
+const CACHE = { revalidate: 3600, tags: ["catalogue"] };
+
+/** Domaines actifs (cache d'une heure). */
+export const listDomains = unstable_cache(fetchDomains, ["catalogue-domaines-v2"], CACHE);
+
+/** Fiche d'un domaine (cache d'une heure). */
+export const getDomain = unstable_cache(fetchDomain, ["catalogue-domaine-v2"], CACHE);
+
+/** Organisations dont la publication a été autorisée, actives et réelles (cache d'une heure). */
+export const listPublicPartners = unstable_cache(
+  async () => {
+    if (!isSupabaseConfigured()) return [];
+    const { data } = await createPublicClient()
+      .from("organizations")
+      .select("id, name, sector, city, description, is_demo")
+      .eq("is_public", true).eq("status", "actif").eq("is_demo", false)
+      .order("name");
+    return data ?? [];
+  },
+  ["partenaires-publics-v2"],
+  { revalidate: 3600, tags: ["catalogue", "partenaires"] },
+);
 
 /** Options de sélection (formulaires) : domaines et compétences actifs. */
 export async function catalogOptions() {

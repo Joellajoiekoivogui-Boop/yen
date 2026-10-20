@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import { listDomains } from "@/features/catalog/queries";
+import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { DomainExplorer } from "./domain-explorer";
 
-// Page statique, régénérée toutes les heures (catalogue)
-export const revalidate = 3600;
 
 export const metadata: Metadata = { title: "Domaines d'ingénierie" };
 
 export default async function DomainsPage() {
-  const domains = await listDomains();
+  // base momentanément injoignable : catalogue de référence (même contenu)
+  const domains = await listDomains().catch(() => referenceDomains());
   return (
     <div data-reveal-children className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
       <p className="text-sm font-semibold text-gold-600">Catalogue</p>
