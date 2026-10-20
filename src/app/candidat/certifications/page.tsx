@@ -5,6 +5,7 @@ import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { loadCandidateBundle } from "@/features/candidates/queries";
+import { getMaxCvBytes } from "@/features/admin/settings";
 import { CertificationsList } from "./certs-client";
 
 export const metadata: Metadata = { title: "Mes certifications" };
@@ -14,13 +15,27 @@ export default async function CertificationsPage() {
   const supabase = await createClient();
   const b = await loadCandidateBundle(supabase, ctx.candidateId);
   if (!b) return null;
+  // justificatifs joints (PDF ou image)
+  const docIds = b.certifications.map((c) => c.document_id).filter((id): id is string => Boolean(id));
+  const { data: docs } = docIds.length
+    ? await supabase.from("candidate_documents").select("id, original_filename, mime_type, size_bytes").in("id", docIds).is("deleted_at", null)
+    : { data: [] };
+  const files = Object.fromEntries(
+    b.certifications.flatMap((c) => {
+      const d = docs?.find((x) => x.id === c.document_id);
+      return d ? [[c.id, { id: d.id, filename: d.original_filename, mime: d.mime_type, size: d.size_bytes }]] : [];
+    }),
+  );
+  const maxBytes = await getMaxCvBytes();
   return (
     <div className="space-y-6">
-      <PageHeader title="Mes certifications" description="Ajoutez un lien de vérification lorsque l'organisme le permet : YEN pourra confirmer la certification." />
+      <PageHeader title="Mes certifications" description="Joignez chaque certificat en PDF ou en photo (JPEG, PNG, WebP) et ajoutez un lien de vérification lorsque l'organisme le permet : YEN pourra confirmer la certification." />
       <Card>
         <CardHeader icon={Trophy} title="Certifications" />
         <CardBody>
           <CertificationsList
+            files={files}
+            maxBytes={maxBytes}
             items={b.certifications.map((c) => ({
               id: c.id,
               title: c.name,

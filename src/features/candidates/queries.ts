@@ -17,7 +17,7 @@ export interface CandidateBundle {
   education: { id: string; institution: string; degree: string; field_of_study: string | null; start_year: number | null; end_year: number | null; is_yen_program: boolean; description: string | null; source: string }[];
   experiences: { id: string; title: string; organization: string; experience_type: string; city: string | null; start_date: string; end_date: string | null; is_current: boolean; description: string | null; achievements: string | null; domain_id: string | null; source: string }[];
   projects: { id: string; title: string; description: string; role: string | null; technologies: string[]; outcomes: string | null; project_url: string | null; repository_url: string | null; start_date: string | null; end_date: string | null; domain_id: string | null; verification_status: string; verification_note: string | null; project_skills: { skill_id: string; skills: { name: string } | null }[] }[];
-  certifications: { id: string; name: string; issuer: string; issue_date: string | null; expiry_date: string | null; credential_id: string | null; credential_url: string | null; verification_status: string }[];
+  certifications: { id: string; name: string; issuer: string; issue_date: string | null; expiry_date: string | null; credential_id: string | null; credential_url: string | null; verification_status: string; document_id: string | null }[];
   declaredSkills: { id: string; skill_id: string; self_level: SkillLevel; years_experience: number | null; evidence_note: string | null; source: string; skills: { name: string; domain_id: string | null; slug: string } | null }[];
   languages: { id: string; language: string; proficiency: string }[];
   consents: Record<string, boolean>;

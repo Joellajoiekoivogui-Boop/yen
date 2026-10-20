@@ -26,8 +26,9 @@ const ACTIVE_CONTENT_MARKERS: { pattern: RegExp; label: string }[] = [
   { pattern: /\/ImportData\b/, label: "Import de données" },
 ];
 
-export function sanitizeFilename(name: string): string {
-  const base = name.split(/[\\/]/).pop() ?? "document.pdf";
+/** Nom de fichier sûr, avec l'extension attendue (pdf par défaut). */
+export function sanitizeFilename(name: string, ext = "pdf"): string {
+  const base = name.split(/[\\/]/).pop() ?? `document.${ext}`;
   const cleaned = base
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -35,7 +36,8 @@ export function sanitizeFilename(name: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 120);
-  return cleaned.toLowerCase().endsWith(".pdf") ? cleaned : `${cleaned || "document"}.pdf`;
+  const extensions = ext === "jpg" ? [".jpg", ".jpeg"] : [`.${ext}`];
+  return extensions.some((e) => cleaned.toLowerCase().endsWith(e)) ? cleaned : `${cleaned || "document"}.${ext}`;
 }
 
 export function checkPdf(bytes: Uint8Array, maxBytes: number): PdfCheckResult {

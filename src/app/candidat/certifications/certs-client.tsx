@@ -1,10 +1,11 @@
 "use client";
 
 import { CrudSection, type CrudItem } from "@/components/forms/crud-section";
+import { CertificateFile, type CertificateDoc } from "./certificate-file";
 import { deleteCertificationAction, saveCertificationAction } from "@/features/candidates/actions";
 import { certificationSchema } from "@/features/candidates/schemas";
 
-export function CertificationsList({ items }: { items: CrudItem[] }) {
+export function CertificationsList({ items, files, maxBytes }: { items: CrudItem[]; files: Record<string, CertificateDoc>; maxBytes: number }) {
   return (
     <CrudSection
       items={items}
@@ -13,6 +14,7 @@ export function CertificationsList({ items }: { items: CrudItem[] }) {
       remove={deleteCertificationAction}
       addLabel="Ajouter une certification"
       emptyTitle="Aucune certification renseignée"
+      extra={(item) => <CertificateFile certificationId={item.id} doc={files[item.id]} maxBytes={maxBytes} />}
       fields={[
         { name: "name", label: "Certification", required: true },
         { name: "issuer", label: "Organisme", required: true },

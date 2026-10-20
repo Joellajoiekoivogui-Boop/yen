@@ -146,6 +146,30 @@ test("le candidat téléverse un CV PDF et refuse un faux PDF", async ({ page })
   expect(generated.headers()["content-type"]).toBe("application/pdf");
 });
 
+test("le candidat joint un certificat en image et voit son aperçu", async ({ page }) => {
+  await login(page, candidate.email, candidate.password);
+  await page.goto("/candidat/certifications");
+  await page.getByRole("button", { name: "Ajouter une certification" }).click();
+  await page.getByRole("textbox", { name: /^Certification/ }).fill("Certificat E2E");
+  await page.getByRole("textbox", { name: /^Organisme/ }).fill("Organisme fictif");
+  await page.locator("main form").getByRole("button", { name: "Ajouter une certification" }).click();
+  await expect(page.getByText("Certificat E2E")).toBeVisible();
+
+  const input = page.locator('input[type="file"][accept*="image/png"]').first();
+  await input.setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("pas un certificat") });
+  await expect(page.getByText(/Format non accepté/)).toBeVisible();
+
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
+  await input.setInputFiles({ name: "certificat.png", mimeType: "image/png", buffer: png });
+  await expect(page.getByText("Justificatif ajouté à la certification.")).toBeVisible({ timeout: 20_000 });
+  const thumb = page.getByRole("img", { name: "Justificatif : certificat.png" });
+  await expect(thumb).toBeVisible();
+  await expect.poll(() => thumb.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+
+  const file = await page.request.get((await thumb.getAttribute("src"))!);
+  expect(file.headers()["content-type"]).toBe("image/png");
+});
+
 test("le candidat consulte les métiers et postule à une offre", async ({ page }) => {
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/metiers");

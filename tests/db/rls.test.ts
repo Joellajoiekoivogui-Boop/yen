@@ -177,6 +177,48 @@ d("Sécurité base de données (RLS)", () => {
     });
   });
 
+  describe("Justificatifs de certification", () => {
+    const doc = (candidate: string, owner: string, mime: string, kind = "certification") =>
+      db.query(
+        `insert into public.candidate_documents (candidate_id, kind, storage_path, original_filename, mime_type, size_bytes, sha256, uploaded_by)
+         values ($1, $2, $3, 'certificat', $4, 100, repeat('a', 64), $5) returning id`,
+        [candidate, kind, `${owner}/${crypto.randomUUID()}.bin`, mime, owner],
+      );
+
+    it("accepte un certificat en image mais exige un PDF pour le CV", async () => {
+      await asUser(db, U.alice, async () => {
+        await doc(alice, U.alice, "image/png");
+        await doc(alice, U.alice, "image/jpeg");
+      });
+      await expect(asUser(db, U.alice, () => doc(alice, U.alice, "image/png", "cv"))).rejects.toThrow(/cv_is_pdf/);
+      await expect(asUser(db, U.alice, () => doc(alice, U.alice, "image/svg+xml"))).rejects.toThrow(/mime_type_check/);
+    });
+
+    it("un candidat ne peut pas joindre le justificatif d'un autre candidat", async () => {
+      const bobDoc = await asUser(db, U.bob, () => doc(bob, U.bob, "application/pdf"), { commit: true });
+      const cert = await db.query("insert into public.candidate_certifications (candidate_id, name, issuer) values ($1, 'CCNA', 'Cisco') returning id", [alice]);
+      await expect(asUser(db, U.alice, () =>
+        db.query("update public.candidate_certifications set document_id = $1 where id = $2", [bobDoc.rows[0].id, cert.rows[0].id])))
+        .rejects.toThrow(/Justificatif invalide/);
+    });
+
+    it("un nouveau justificatif annule la vérification faite par YEN", async () => {
+      const cert = await db.query("insert into public.candidate_certifications (candidate_id, name, issuer, verification_status) values ($1, 'PL-300', 'Microsoft', 'verifie') returning id", [alice]);
+      const r = await asUser(db, U.alice, async () => {
+        const d = await doc(alice, U.alice, "image/webp");
+        await db.query("update public.candidate_certifications set document_id = $1 where id = $2", [d.rows[0].id, cert.rows[0].id]);
+        return db.query("select verification_status from public.candidate_certifications where id = $1", [cert.rows[0].id]);
+      });
+      expect(r.rows[0].verification_status).toBe("non_verifie");
+    });
+
+    it("le stockage accepte les images dans le dossier du candidat et refuse les autres formats", async () => {
+      await asUser(db, U.alice, () => db.query("insert into storage.objects (bucket_id, name) values ('candidate-documents', $1)", [`${U.alice}/certificat.jpg`]));
+      await expect(asUser(db, U.alice, () =>
+        db.query("insert into storage.objects (bucket_id, name) values ('candidate-documents', $1)", [`${U.alice}/page.html`]))).rejects.toThrow();
+    });
+  });
+
   describe("Évaluations", () => {
     it("les questions et les clés de correction sont invisibles pour les candidats", async () => {
       const q = await asUser(db, U.alice, () => db.query("select count(*)::int n from public.assessment_questions"));

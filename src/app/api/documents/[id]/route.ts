@@ -10,8 +10,9 @@ const CV_BUCKET = "candidate-documents";
  * Téléchargement d'un document privé : vérifie l'accès (propriétaire ou
  * personnel avec documents.read, via RLS) puis redirige vers une URL signée
  * valable 60 secondes. Aucune URL publique permanente n'existe.
+ * `?inline=1` : affichage dans le navigateur (aperçu d'image, lecture d'un PDF) au lieu du téléchargement.
  */
-export async function GET(_req: NextRequest, ctx: RouteContext<"/api/documents/[id]">) {
+export async function GET(req: NextRequest, ctx: RouteContext<"/api/documents/[id]">) {
   const { id } = await ctx.params;
   if (!isUuid(id)) return new NextResponse("Document introuvable", { status: 404 });
   const session = await getSession();
@@ -26,7 +27,8 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/documents/[
     .maybeSingle();
   if (!doc) return new NextResponse("Document introuvable", { status: 404 });
 
-  const { data, error } = await supabase.storage.from(CV_BUCKET).createSignedUrl(doc.storage_path, 60, { download: doc.original_filename });
+  const inline = req.nextUrl.searchParams.get("inline") === "1";
+  const { data, error } = await supabase.storage.from(CV_BUCKET).createSignedUrl(doc.storage_path, 60, inline ? undefined : { download: doc.original_filename });
   if (error || !data) return new NextResponse("Lien indisponible", { status: 403 });
 
   if (doc.candidate_id !== session.candidateId) {

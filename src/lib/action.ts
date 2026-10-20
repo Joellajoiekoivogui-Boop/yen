@@ -68,6 +68,10 @@ export async function runAction<T>(
     // Les redirections Next.js doivent se propager
     if (e && typeof e === "object" && "digest" in e && String((e as { digest: unknown }).digest).startsWith("NEXT_")) throw e;
     console.error("[action] erreur inattendue", e instanceof Error ? e.message : e);
+    // Configuration du serveur incomplète : message explicite pour l'administrateur
+    if (e instanceof Error && e.message.includes("SUPABASE_SECRET_KEY")) {
+      return fail("Fonction momentanément indisponible : la configuration du serveur est incomplète (clé secrète Supabase manquante). Prévenez l'administrateur de la plateforme.");
+    }
     return fail("Une erreur inattendue est survenue. Veuillez réessayer.");
   }
 }

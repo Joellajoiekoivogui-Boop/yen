@@ -207,7 +207,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
             {b!.certifications.map((ce) => (
               <div key={ce.id} className="rounded-lg border border-border p-3 text-sm">
                 <p className="font-medium text-navy-900">{ce.name} <Badge tone={ce.verification_status === "verifie" ? "green" : "neutral"}>{ce.verification_status}</Badge></p>
-                <p className="text-muted">{ce.issuer} {ce.issue_date && `· ${formatDate(ce.issue_date)}`} {ce.credential_url && <a className="text-electric-700 underline" href={ce.credential_url} target="_blank" rel="noopener noreferrer nofollow">lien de vérification</a>}</p>
+                <p className="text-muted">{ce.issuer} {ce.issue_date && `· ${formatDate(ce.issue_date)}`} {ce.credential_url && <a className="text-electric-700 underline" href={ce.credential_url} target="_blank" rel="noopener noreferrer nofollow">lien de vérification</a>} {ce.document_id && <a className="text-electric-700 underline" href={`/api/documents/${ce.document_id}?inline=1`} target="_blank" rel="noopener">voir le justificatif</a>}</p>
               </div>
             ))}
             {b!.languages.length > 0 && <p className="text-sm text-slate-700">Langues : {b!.languages.map((l) => `${l.language} (${l.proficiency})`).join(" · ")}</p>}

@@ -71,7 +71,8 @@ async function storage(req, res, url) {
     if (!claims || claims.url !== `${bucket}/${name}`) return send(res, 400, { error: "InvalidSignature" });
     const f = fileOf(bucket, name);
     if (!existsSync(f)) return send(res, 404, { error: "not_found" });
-    res.writeHead(200, { "content-type": "application/pdf", ...(url.searchParams.has("download") ? { "content-disposition": `attachment; filename="${url.searchParams.get("download") || "fichier.pdf"}"` } : {}) });
+    const mime = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" }[name.split(".").pop().toLowerCase()] ?? "application/octet-stream";
+    res.writeHead(200, { "content-type": mime, "x-content-type-options": "nosniff", ...(url.searchParams.has("download") ? { "content-disposition": `attachment; filename="${url.searchParams.get("download") || "fichier.pdf"}"` } : {}) });
     return res.end(readFileSync(f));
   }
   const claims = verify(auth);
