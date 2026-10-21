@@ -82,7 +82,7 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-14 z-10 space-y-3 rounded-[var(--radius-card)] border border-border bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:top-2">
+      <div className="sticky top-14 z-10 space-y-3 rounded-[var(--radius-card)] border border-border bg-white px-4 py-3 shadow-sm lg:top-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span
             className={cn(

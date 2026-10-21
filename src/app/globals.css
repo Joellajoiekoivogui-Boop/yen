@@ -68,7 +68,7 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float 9s ease-in-out infinite;
   --animate-blob: blob 18s ease-in-out infinite;
-  --animate-gradient-pan: gradient-pan 8s ease infinite;
+  --animate-gradient-drift: gradient-drift 8s ease-in-out infinite;
   --animate-marquee: marquee 45s linear infinite;
   --animate-spin-slow: orbit 28s linear infinite;
   --animate-spin-reverse: spin-reverse 36s linear infinite;
@@ -83,7 +83,6 @@
   --animate-drawer-in: drawer-in 0.45s var(--ease-out-expo) backwards;
   --animate-nav-item: nav-item 0.35s var(--ease-out-expo) backwards;
   --animate-progress-grow: progress-grow 0.8s var(--ease-out-expo) backwards;
-  --animate-glow-pulse: glow-pulse 2.4s ease-out infinite;
   --animate-hero-card: reveal-right 1s var(--ease-out-expo) backwards;
   --animate-underline: underline-draw 1s var(--ease-out-expo) 0.35s backwards;
 }
@@ -116,9 +115,11 @@
   33% { transform: translate3d(40px, -50px, 0) scale(1.12); }
   66% { transform: translate3d(-30px, 30px, 0) scale(0.92); }
 }
-@keyframes gradient-pan {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+/* Dégradé qui glisse : une couche plus large déplacée par transform (sur la carte graphique),
+   au lieu d'animer background-position, qui repeint la zone à chaque image */
+@keyframes gradient-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(var(--drift, -50%), 0, 0); }
 }
 @keyframes marquee {
   to { transform: translate3d(-50%, 0, 0); }
@@ -167,28 +168,27 @@
 @keyframes progress-grow {
   from { width: 0; }
 }
-@keyframes glow-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(237 180 19 / 0.6); }
-  70%, 100% { box-shadow: 0 0 0 16px rgb(237 180 19 / 0); }
+/* Halo d'un bouton : anneau agrandi et estompé (transform et opacité, sans repeindre l'ombre) */
+@keyframes glow-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  70%, 100% { transform: scale(1.12, 1.6); opacity: 0; }
 }
 @keyframes underline-draw {
   from { transform: scaleX(0); }
 }
 @keyframes word-cycle {
-  0% { opacity: 0; transform: translate3d(0, 0.5em, 0); filter: blur(6px); }
-  5%, 22% { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
-  27%, 100% { opacity: 0; transform: translate3d(0, -0.5em, 0); filter: blur(6px); }
-}
-@keyframes text-shine {
-  to { background-position: -200% center; }
+  0% { opacity: 0; transform: translate3d(0, 0.5em, 0); }
+  5%, 22% { opacity: 1; transform: translate3d(0, 0, 0); }
+  27%, 100% { opacity: 0; transform: translate3d(0, -0.5em, 0); }
 }
 @keyframes scroll-dot {
   0% { transform: translate3d(0, 0, 0); opacity: 1; }
   70% { transform: translate3d(0, 12px, 0); opacity: 0; }
   100% { opacity: 0; }
 }
+/* Grille du héros : la couche quadrillée glisse d'une maille par transform (sur la carte graphique) */
 @keyframes grid-pan {
-  to { background-position: 48px 48px; }
+  to { transform: translate3d(48px, 48px, 0); }
 }
 @keyframes particle {
   0% { transform: translate3d(0, 0, 0); opacity: 0; }
@@ -357,13 +357,12 @@
 }
 
 /* Texte en dégradé animé */
+/* Mot en dégradé doré, fixe : animer background-position repeignait le titre à chaque image */
 .text-shine {
-  background: linear-gradient(90deg, var(--color-gold-300), var(--color-gold-100), var(--color-gold-400), var(--color-gold-300));
-  background-size: 200% auto;
+  background: linear-gradient(90deg, var(--color-gold-300), var(--color-gold-100) 45%, var(--color-gold-400));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: text-shine 5s linear infinite;
 }
 
 /* Mots qui défilent dans le titre de l'accueil : mots superposés dans la même cellule de grille
@@ -390,11 +389,17 @@
 
 /* Décor du héros */
 .hero-grid {
+  overflow: hidden;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
+}
+.hero-grid::before {
+  content: "";
+  position: absolute;
+  inset: -48px 0 0 -48px;
   background-image:
     linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
   background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
   animation: grid-pan 6s linear infinite;
 }
 .hero-particle {
@@ -436,7 +441,9 @@
 }
 
 /* Animations continues mises en pause par le visiteur (bouton du héros ou du parcours) */
-[data-motion-paused] :is(.animate-marquee, .animate-blob, .animate-spin-slow, .animate-spin-reverse, .animate-float, .animate-float-slow, .animate-ping-slow, .animate-gradient-pan, .animate-glow-pulse, .hero-particle, .text-shine, .scroll-cue-dot) {
+[data-motion-paused] :is(.animate-marquee, .animate-blob, .animate-spin-slow, .animate-spin-reverse, .animate-float, .animate-float-slow, .animate-ping-slow, .animate-gradient-drift, .glow-ring, .hero-particle, .scroll-cue-dot),
+[data-motion-paused] .glow-ring::before,
+[data-motion-paused] .hero-grid::before {
   animation-play-state: paused;
 }
 [data-motion-paused] .word-rotator > span {
@@ -490,6 +497,23 @@ html[data-scrolled] .site-header {
 /* Étape en cours du parcours (accueil) */
 .step-progress {
   animation: step-progress linear forwards;
+}
+
+.glow-ring {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  border-radius: 0.75rem;
+}
+.glow-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: rgb(237 180 19 / 0.55);
+  animation: glow-ring 2.4s ease-out infinite;
+  pointer-events: none;
 }
 
 /* Palette de recherche */

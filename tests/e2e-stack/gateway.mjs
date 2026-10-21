@@ -207,16 +207,23 @@ function proxy(req, res, port, stripPrefix) {
 // Mesure des performances : latence réseau simulée (GATEWAY_DELAY_MS) et compteur d'appels (GET /__stats)
 const DELAY = Number(process.env.GATEWAY_DELAY_MS ?? 0);
 const stats = { auth: 0, rest: 0, storage: 0 };
+const calls = []; // derniers appels (GET /__stats?paths), pour repérer les requêtes en double
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/__stats") {
-    const out = { ...stats };
-    if (url.searchParams.has("reset")) Object.keys(stats).forEach((k) => (stats[k] = 0));
+    const out = url.searchParams.has("paths") ? { ...stats, calls: [...calls] } : { ...stats };
+    if (url.searchParams.has("reset")) {
+      Object.keys(stats).forEach((k) => (stats[k] = 0));
+      calls.length = 0;
+    }
     return send(res, 200, out);
   }
   const kind = url.pathname.startsWith("/auth/v1") ? "auth" : url.pathname.startsWith("/rest/v1") ? "rest" : url.pathname.startsWith("/storage/v1") ? "storage" : null;
-  if (kind) stats[kind]++;
+  if (kind) {
+    stats[kind]++;
+    if (calls.length < 500) calls.push(`${req.method} ${url.pathname}${decodeURIComponent(url.search).slice(0, 160)}`);
+  }
   if (DELAY && kind) await new Promise((r) => setTimeout(r, DELAY));
   if (url.pathname.startsWith("/auth/v1")) return proxy(req, res, 9999, /^\/auth\/v1/);
   if (url.pathname.startsWith("/rest/v1")) return proxy(req, res, 3001, /^\/rest\/v1/);

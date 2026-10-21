@@ -1,3 +1,4 @@
+import Form from "next/form";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ActionButton } from "@/components/forms/action-button";
@@ -71,12 +72,12 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
           Vivier : candidats ayant consenti à la visibilité dans le vivier YEN, et candidats ayant postulé. Le classement est explicable et révisable ; il ne constitue jamais une décision de recrutement.
           Pondération appliquée : {Object.entries(target.weights).map(([k, v]) => `${WEIGHT_LABELS[k as keyof typeof WEIGHT_LABELS]} ${v}`).join(" · ")}.
         </Alert>
-        <form className="flex flex-wrap gap-4 text-sm" method="get">
+        <Form action={`/admin/offres/${id}`} className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-1.5"><input type="checkbox" name="obligatoires" value="1" defaultChecked={onlyMandatory} className="accent-electric-600" /> Exigences obligatoires satisfaites</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="evaluees" value="1" defaultChecked={onlyEvaluated} className="accent-electric-600" /> Au moins une compétence requise évaluée</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="demo" value="1" defaultChecked={param(sp.demo) === "1"} className="accent-electric-600" /> Inclure la démo</label>
           <button className="rounded-md border border-border bg-white px-3 py-1 font-medium">Appliquer</button>
-        </form>
+        </Form>
         {top.length === 0 && <Alert tone="warning">Aucun candidat du vivier ne correspond pour l&apos;instant.</Alert>}
         <div className="space-y-3">
           {top.map((r, i) => (

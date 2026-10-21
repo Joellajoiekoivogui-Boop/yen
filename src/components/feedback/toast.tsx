@@ -77,7 +77,7 @@ function ToastCard({ item }: { item: ToastItem }) {
 
   return (
     <div
-      className="toast-in pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-2xl border border-border bg-white/95 py-3 pr-10 pl-4 shadow-2xl shadow-navy-900/15 backdrop-blur"
+      className="toast-in pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-2xl border border-border bg-white py-3 pr-10 pl-4 shadow-2xl shadow-navy-900/15"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

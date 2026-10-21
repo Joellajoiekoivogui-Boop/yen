@@ -104,7 +104,8 @@ export default async function HomePage() {
           {PARTICLES.map((p, i) => (
             <span
               key={i}
-              className="hero-particle"
+              // une particule sur deux sur téléphone : chaque boucle d'animation sollicite le fil principal
+              className={cn("hero-particle", i % 2 === 1 && "max-sm:hidden")}
               style={{ left: `${p.left}%`, top: `${p.top}%`, width: p.size, height: p.size, "--particle-delay": `${p.delay}s`, "--particle-duration": `${p.duration}s` } as CSSProperties}
             />
           ))}
@@ -112,7 +113,7 @@ export default async function HomePage() {
 
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pt-20 pb-28 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8 lg:pt-28 lg:pb-36">
           <div data-reveal-children>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gold-200 ring-1 ring-white/15 backdrop-blur">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gold-200 ring-1 ring-white/15">
               <span className="relative flex size-2" aria-hidden>
                 <span className="absolute inline-flex size-full animate-ping-slow rounded-full bg-gold-300" />
                 <span className="relative inline-flex size-2 rounded-full bg-gold-300" />
@@ -141,7 +142,7 @@ export default async function HomePage() {
               <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
                 Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
               </ButtonLink>
-              <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/20 sm:w-auto">
+              <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20 sm:w-auto">
                 Comment ça marche
               </ButtonLink>
             </div>
@@ -176,7 +177,7 @@ export default async function HomePage() {
             {HERO_CARDS.map(({ icon: Icon, t, d }, i) => (
               <div key={t} className="relative animate-hero-card" style={animationDelay(450 + i * 160)}>
                 <div className="animate-float" style={animationDelay(-i * 1900)}>
-                  <div data-tilt className="group flex gap-4 rounded-2xl bg-white/[0.06] p-5 ring-1 ring-white/15 backdrop-blur-md transition-colors duration-300 hover:bg-white/[0.1] hover:ring-gold-300/40">
+                  <div data-tilt className="group flex gap-4 rounded-2xl bg-white/[0.08] p-5 ring-1 ring-white/15 transition-colors duration-300 hover:bg-white/[0.1] hover:ring-gold-300/40">
                     <span className="relative grid size-11 shrink-0 place-items-center rounded-xl bg-gold-400/15 text-gold-300">
                       <span className="absolute inset-0 animate-ping-slow rounded-xl ring-1 ring-gold-300/50" style={animationDelay(i * 800)} aria-hidden />
                       <Icon className="size-5 transition-transform duration-500 ease-spring group-hover:scale-125 group-hover:rotate-6" aria-hidden />
@@ -277,7 +278,7 @@ export default async function HomePage() {
 
       {/* Engagements */}
       <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
-        <div aria-hidden className="pointer-events-none absolute inset-0 animate-gradient-pan bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))] bg-[length:200%_200%]" />
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos engagements" title="Une plateforme digne de confiance" inverted />
           <div data-reveal-children className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -350,7 +351,8 @@ export default async function HomePage() {
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
         <div data-reveal="zoom">
-          <div className="relative animate-gradient-pan overflow-hidden rounded-3xl bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] bg-[length:300%_300%] p-8 text-white sm:p-12">
+          <div className="relative overflow-hidden rounded-3xl bg-navy-800 p-8 text-white sm:p-12">
+            <span aria-hidden className="absolute inset-y-0 left-0 w-[300%] animate-gradient-drift bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] [--drift:-66.667%]" />
             <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
             <span aria-hidden className="absolute -bottom-20 left-1/3 size-44 animate-float rounded-full bg-white/10 [animation-delay:-3s]" />
             <span aria-hidden className="absolute top-8 left-8 hidden size-3 animate-ping-slow rounded-full bg-gold-300 sm:block" />
@@ -359,9 +361,11 @@ export default async function HomePage() {
                 <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN ?</h2>
                 <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
               </div>
-              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group animate-glow-pulse">
-                Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-              </ButtonLink>
+              <span className="glow-ring">
+                <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group">
+                  Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                </ButtonLink>
+              </span>
             </div>
           </div>
         </div>

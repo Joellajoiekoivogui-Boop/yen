@@ -28,10 +28,10 @@ export default async function AdminApplicationsPage(props: PageProps<"/admin/can
   return (
     <div className="space-y-5">
       <PageHeader title="Candidatures" description="Toutes les candidatures et présélections, toutes offres confondues." />
-      <div className="flex flex-wrap gap-3 text-sm">
-        <Link href="/admin/candidatures" className={!status ? "font-semibold text-electric-700" : "text-muted"}>Toutes</Link>
-        {APPLICATION_STATUSES.map((s) => <Link key={s} href={`/admin/candidatures?statut=${s}`} className={status === s ? "font-semibold text-electric-700" : "text-muted hover:text-navy-900"}>{applicationStatusLabel[s]}</Link>)}
-      </div>
+      <nav className="flex flex-wrap gap-3 text-sm" aria-label="Filtrer par statut">
+        <Link href="/admin/candidatures" aria-current={!status ? "page" : undefined} className={!status ? "font-semibold text-electric-700" : "text-muted hover:text-navy-900"}>Toutes</Link>
+        {APPLICATION_STATUSES.map((s) => <Link key={s} href={`/admin/candidatures?statut=${s}`} aria-current={status === s ? "page" : undefined} className={status === s ? "font-semibold text-electric-700" : "text-muted hover:text-navy-900"}>{applicationStatusLabel[s]}</Link>)}
+      </nav>
       <Card>
         <Table>
           <thead><tr><Th>Candidat</Th><Th>Offre</Th><Th>Origine</Th><Th>Compatibilité</Th><Th>Statut</Th><Th>Mise à jour</Th></tr></thead>

@@ -74,8 +74,8 @@ export function CommandPalette({ sections, renderIcon }: { sections: NavSection[
 
   return (
     <div className="fixed inset-0 z-[70] flex items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true" aria-label="Recherche rapide">
-      <div className="absolute inset-0 animate-fade-in bg-navy-950/40 backdrop-blur-sm" onClick={hide} />
-      <div className="palette-in relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-2xl shadow-navy-950/30 backdrop-blur-xl">
+      <div className="absolute inset-0 animate-fade-in bg-navy-950/50" onClick={hide} />
+      <div className="palette-in relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/60 bg-white shadow-2xl shadow-navy-950/30">
         <div className="flex items-center gap-3 border-b border-border px-4">
           <Search className="size-5 shrink-0 text-slate-400" aria-hidden />
           <input

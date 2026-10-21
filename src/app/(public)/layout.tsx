@@ -11,7 +11,7 @@ export default async function PublicLayout({ children }: { children: React.React
   const signedIn = (await cookies()).getAll().some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/90 backdrop-blur">
+      <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/95">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Logo compact />
           <PublicNav variant="desktop" />

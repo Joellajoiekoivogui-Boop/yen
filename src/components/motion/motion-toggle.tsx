@@ -59,7 +59,7 @@ export function MotionToggle({ className }: { className?: string }) {
       aria-label="Mettre les animations en pause"
       title={isPaused ? "Relancer les animations" : "Mettre les animations en pause"}
       className={cn(
-        "grid size-10 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20 focus-visible:ring-4 focus-visible:ring-gold-300/50 focus-visible:outline-none",
+        "grid size-10 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition hover:bg-white/20 focus-visible:ring-4 focus-visible:ring-gold-300/50 focus-visible:outline-none",
         className,
       )}
     >

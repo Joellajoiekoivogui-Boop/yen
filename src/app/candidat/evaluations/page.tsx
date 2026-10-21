@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Form from "next/form";
 import Link from "next/link";
 import { ClipboardCheck, Clock } from "lucide-react";
 import { Badge, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
@@ -28,7 +29,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
     <div className="space-y-6">
       <PageHeader title="Mes évaluations" description="Questionnaires, études de cas et exercices par domaine. Chaque évaluation affiche son barème. Un questionnaire ne peut jamais attribuer le niveau expert." />
 
-      <form className="flex flex-wrap items-end gap-3" method="get">
+      <Form action="/candidat/evaluations" className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor="domaine" className="mb-1 block text-xs font-medium text-muted">Domaine</label>
           <select id="domaine" name="domaine" defaultValue={domainFilter ?? ""} className="field-input min-w-64">
@@ -38,7 +39,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
         </div>
         <input type="hidden" name="tous" value="1" />
         <button className="h-10 rounded-lg border border-border bg-white px-4 text-sm font-medium text-navy-800 hover:bg-navy-50">Filtrer</button>
-      </form>
+      </Form>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {(assessments.data ?? []).length === 0 && <div className="md:col-span-3"><EmptyState icon={ClipboardCheck} title="Aucune évaluation publiée pour ce domaine" description="Choisissez un autre domaine dans la liste ci-dessus : l'équipe YEN publie régulièrement de nouvelles évaluations." /></div>}

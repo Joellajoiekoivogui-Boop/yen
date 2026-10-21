@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Form from "next/form";
 import { Card, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -23,11 +24,11 @@ export default async function AuditPage(props: PageProps<"/admin/audit">) {
   return (
     <div className="space-y-5">
       <PageHeader title="Journal d'audit" description="Changements importants (rôles, documents, consentements, candidatures, placements, partages, analyses IA) et accès sensibles (téléchargements, exports). Le journal est en ajout seul et ne contient ni mot de passe ni secret." />
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <Form action="/admin/audit" className="flex flex-wrap items-end gap-3">
         <div><label htmlFor="entite" className="mb-1 block text-xs font-medium text-muted">Entité</label><input id="entite" name="entite" defaultValue={entity} className="field-input" placeholder="ex. user_roles" /></div>
         <div><label htmlFor="action" className="mb-1 block text-xs font-medium text-muted">Action</label><input id="action" name="action" defaultValue={action} className="field-input" placeholder="ex. update, document_downloaded" /></div>
         <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white">Filtrer</button>
-      </form>
+      </Form>
       <Card>
         <Table className="min-w-[900px]">
           <thead><tr><Th>Date</Th><Th>Acteur</Th><Th>Action</Th><Th>Entité</Th><Th>Détails</Th></tr></thead>

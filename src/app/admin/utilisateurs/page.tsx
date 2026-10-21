@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Form from "next/form";
 import { Badge, Card, CardBody, CardHeader, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -24,11 +25,11 @@ export default async function UsersPage(props: PageProps<"/admin/utilisateurs">)
   return (
     <div className="space-y-6">
       <PageHeader title="Utilisateurs et rôles" description="Les rôles ne peuvent être modifiés que par un administrateur principal. Aucun utilisateur ne peut modifier son propre rôle." />
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <Form action="/admin/utilisateurs" className="flex flex-wrap items-end gap-3">
         <div><label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Recherche</label><input id="q" name="q" defaultValue={qText} className="field-input" placeholder="Nom ou e-mail" /></div>
         <div><label htmlFor="type" className="mb-1 block text-xs font-medium text-muted">Type de compte</label><select id="type" name="type" defaultValue={type ?? ""} className="field-input"><option value="">Tous</option><option value="candidate">Candidats</option><option value="partner">Partenaires</option><option value="staff">Personnel YEN</option></select></div>
         <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white">Filtrer</button>
-      </form>
+      </Form>
       <Card>
         <Table className="min-w-[900px]">
           <thead><tr><Th>Utilisateur</Th><Th>Type</Th><Th>Rôles</Th><Th>Inscription</Th><Th>Actions</Th></tr></thead>

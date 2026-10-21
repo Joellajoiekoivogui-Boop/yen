@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Form from "next/form";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { SimpleBarChart } from "@/components/charts";
@@ -50,7 +51,7 @@ export default async function ReportsPage(props: PageProps<"/admin/rapports">) {
         ) : undefined}
       />
       <Card className="p-4">
-        <form method="get" className="flex flex-wrap items-end gap-3">
+        <Form action="/admin/rapports" className="flex flex-wrap items-end gap-3">
           <div>
             <label htmlFor="periode" className="mb-1 block text-xs font-medium text-muted">Période</label>
             <select id="periode" name="periode" defaultValue={kind} className="field-input">
@@ -62,7 +63,7 @@ export default async function ReportsPage(props: PageProps<"/admin/rapports">) {
           <div><label htmlFor="fin" className="mb-1 block text-xs font-medium text-muted">Fin (personnalisée)</label><input id="fin" name="fin" type="date" defaultValue={param(sp.fin)} className="field-input" /></div>
           <label className="flex h-10 items-center gap-1.5 text-sm"><input type="checkbox" name="demo" value="1" defaultChecked={includeDemo} className="accent-electric-600" /> Inclure la démo</label>
           <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white">Afficher</button>
-        </form>
+        </Form>
       </Card>
       {error || !r ? <Alert tone="error">Le rapport n&apos;a pas pu être calculé.</Alert> : (
         <>

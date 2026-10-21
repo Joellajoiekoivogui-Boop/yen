@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Form from "next/form";
 import Link from "next/link";
 import { IntentLink } from "@/components/layout/intent-link";
 import { ChevronDown, Download, Flag, Phone, SlidersHorizontal } from "lucide-react";
@@ -63,7 +64,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
         actions={ctx.permissions.has("reports.export") ? <ButtonLink href={`/api/admin/export/talents?${params}`} variant="outline" prefetch={false}><Download className="size-4" aria-hidden /> Export CSV</ButtonLink> : undefined}
       />
       <Card className="p-4">
-        <form method="get" className="space-y-3">
+        <Form action="/admin/talents" className="space-y-3">
           {/* Filtres principaux toujours visibles ; les autres sont regroupés (page plus courte, surtout sur téléphone) */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto]">
             <div className="sm:col-span-2 lg:col-span-1">
@@ -100,7 +101,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
               </div>
             </div>
           </details>
-        </form>
+        </Form>
       </Card>
 
       <p className="text-sm text-muted" role="status"><strong className="text-navy-900 tabular-nums">{total}</strong> candidat{total > 1 ? "s" : ""}</p>

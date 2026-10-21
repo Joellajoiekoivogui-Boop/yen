@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Form from "next/form";
 import Link from "next/link";
 import { Briefcase, MapPin } from "lucide-react";
 import { Badge, Card, EmptyState, PageHeader, Pagination, ScorePill } from "@/components/ui";
@@ -52,7 +53,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
   return (
     <div className="space-y-6">
       <PageHeader title="Offres d'emploi et de stage" description="Offres validées par YEN. Le score indique une compatibilité estimée, pas une probabilité d'embauche." />
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <Form action="/candidat/offres" className="flex flex-wrap items-end gap-3">
         <div className="min-w-48 flex-1">
           <label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Recherche</label>
           <input id="q" name="q" defaultValue={qText} className="field-input" placeholder="Intitulé…" />
@@ -72,7 +73,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
           </select>
         </div>
         <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white hover:bg-navy-700">Filtrer</button>
-      </form>
+      </Form>
 
       {(offers ?? []).length === 0 ? (
         <EmptyState icon={Briefcase} title="Aucune offre ne correspond" description="Les nouvelles offres pertinentes vous seront notifiées." />
