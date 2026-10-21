@@ -30,8 +30,21 @@ function Sources({ ids }: { ids: string[] }) {
   return <span className="ml-1 text-[11px] text-muted">[{ids.map((s) => s.split(":")[0]).join(", ")}]</span>;
 }
 
+/** Alerte réservée à l'équipe YEN : le texte analysé semble contenir des consignes adressées à l'IA. */
+export function SecurityWarnings({ output }: { output: unknown }) {
+  const warnings = (output as { security_warnings?: string[] } | null)?.security_warnings ?? [];
+  if (!warnings.length) return null;
+  const [message, ...signals] = warnings;
+  return (
+    <p role="note" className="rounded-md border border-amber-200 bg-amber-50 p-2 text-sm text-amber-900">
+      <strong>Attention :</strong> {message}
+      {signals.length > 0 && <span className="block text-xs text-amber-800">Signaux : {signals.join(" · ")}</span>}
+    </p>
+  );
+}
+
 /** Affichage d'une analyse de profil : chaque conclusion montre le type de ses sources. */
-export function ProfileAnalysisView({ row }: { row: AnalysisRow }) {
+export function ProfileAnalysisView({ row, staff = false }: { row: AnalysisRow; staff?: boolean }) {
   const meta = (
     <p className="text-xs text-muted">
       {formatDateTime(row.created_at)} · {row.provider} / {row.model ?? "?"} · prompt {row.prompt_version}{" "}
@@ -55,6 +68,7 @@ export function ProfileAnalysisView({ row }: { row: AnalysisRow }) {
         {o.traceability && o.traceability.dropped > 0 && <Badge tone="amber">{o.traceability.dropped} conclusion(s) sans source écartée(s)</Badge>}
         {o.insufficient_data && <Badge tone="amber">Données insuffisantes</Badge>}
       </div>
+      {staff && <SecurityWarnings output={row.output} />}
       {o.insufficient_data_notes.length > 0 && <p className="text-sm text-amber-800">{o.insufficient_data_notes.join(" ")}</p>}
       {row.correction_note && <p className="rounded-md bg-slate-50 p-2 text-sm"><strong>Note YEN :</strong> {row.correction_note}</p>}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

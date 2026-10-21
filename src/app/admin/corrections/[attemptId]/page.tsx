@@ -22,11 +22,21 @@ export default async function CorrectionPage(props: PageProps<"/admin/correction
     .eq("id", attemptId)
     .maybeSingle();
   if (!t) notFound();
-  const { data: answers } = await supabase
-    .from("assessment_answers")
-    .select("id, text_answer, auto_points, ai_suggested_points, ai_feedback, assessment_questions(prompt, points, question_type, rubric, position)")
-    .eq("attempt_id", attemptId);
-  const rows = (answers ?? []).map((a) => ({ ...a, q: a.assessment_questions as unknown as { prompt: string; points: number; question_type: QuestionType; rubric: { criterion: string; points: number }[]; position: number } })).sort((x, y) => x.q.position - y.q.position);
+  const [{ data: answers }, suggestions] = await Promise.all([
+    supabase
+      .from("assessment_answers")
+      .select("id, text_answer, auto_points, assessment_questions(prompt, points, question_type, rubric, position)")
+      .eq("attempt_id", attemptId),
+    loadAiSuggestions(supabase, attemptId),
+  ]);
+  const rows = (answers ?? [])
+    .map((a) => ({
+      ...a,
+      ai_suggested_points: suggestions.get(a.id)?.points ?? null,
+      ai_feedback: suggestions.get(a.id)?.feedback ?? null,
+      q: a.assessment_questions as unknown as { prompt: string; points: number; question_type: QuestionType; rubric: { criterion: string; points: number }[]; position: number },
+    }))
+    .sort((x, y) => x.q.position - y.q.position);
   const manual = rows.filter((r) => MANUAL_TYPES.includes(r.q.question_type) || r.auto_points == null);
   const { data: consent } = await supabase.from("candidate_consents").select("granted").eq("candidate_id", t.candidate_id).eq("consent_type", "traitement_ia").maybeSingle();
   const aiOk = isAIConfigured() && Boolean(consent?.granted);
@@ -56,4 +66,20 @@ export default async function CorrectionPage(props: PageProps<"/admin/correction
       )}
     </div>
   );
+}
+
+/**
+ * Propositions de note de l'IA, lisibles par les seuls correcteurs (fonction ai_grading_suggestions,
+ * migration 15). Base pas encore mise à jour : lecture directe des colonnes, comme avant.
+ */
+async function loadAiSuggestions(supabase: Awaited<ReturnType<typeof createClient>>, attemptId: string) {
+  const map = new Map<string, { points: number; feedback: string | null }>();
+  const { data, error } = await supabase.rpc("ai_grading_suggestions", { p_attempt_id: attemptId });
+  if (!error) {
+    for (const r of (data ?? []) as { answer_id: string; suggested_points: number; feedback: string | null }[]) map.set(r.answer_id, { points: Number(r.suggested_points), feedback: r.feedback });
+    return map;
+  }
+  const legacy = await supabase.from("assessment_answers").select("id, ai_suggested_points, ai_feedback").eq("attempt_id", attemptId).not("ai_suggested_points", "is", null);
+  for (const r of legacy.data ?? []) map.set(r.id, { points: Number(r.ai_suggested_points), feedback: r.ai_feedback });
+  return map;
 }

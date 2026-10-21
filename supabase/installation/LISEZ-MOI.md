@@ -11,7 +11,9 @@ Dans Supabase → **SQL Editor** → *New query*, coller puis **Run**, dans cet 
    - **toutes les fonctionnalités sans clé secrète** (évaluations, CV, notifications, vue partenaire…) ;
    - durcissement de sécurité issu de l'audit (comptes désactivés, liens, offres publiées…) ;
    - surface d'exposition minimale (aucune fonction ni donnée accessible sans connexion hors catalogue) ;
-   - certificats simplifiés : formation suivie, organisme, période de la formation et justificatif.
+   - certificats simplifiés : formation suivie, organisme, période de la formation et justificatif ;
+   - sécurité de l'IA : propositions de note de l'IA invisibles du candidat avant validation, résultats
+     d'analyse non modifiables, plafond horaire des analyses lancées par l'équipe.
 
    Ce fichier peut être exécuté plusieurs fois sans risque, même si une version précédente a déjà été
    exécutée : **ré-exécutez-le après chaque mise à jour du site**. Tant qu'il manque, un bandeau rouge

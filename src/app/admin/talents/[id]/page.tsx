@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Award, Brain, Download, Eye, FileText, Flag, GraduationCap, Mail, MapPin, MessageCircle, Phone, ShieldCheck, ShieldX, Sparkles, Target } from "lucide-react";
-import { ProfileAnalysisView, type AnalysisRow } from "@/components/ai-analysis-view";
+import { ProfileAnalysisView, SecurityWarnings, type AnalysisRow } from "@/components/ai-analysis-view";
 import { ActionButton } from "@/components/forms/action-button";
 import { MatchDetails } from "@/components/match-details";
 import { Alert, ApplicationStatusBadge, Badge, ButtonLink, Card, CardBody, CardHeader, DefinitionList, DemoBadge, EmptyState, PageHeader, ProgressBar, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
@@ -572,7 +572,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
               action={can("ai.run") && aiReady && row.kind !== "correction_reponse" ? <ActionButton action={recomputeAnalysisAction.bind(null, row.id)}>Recalculer</ActionButton> : undefined}
             />
             <CardBody className="space-y-4">
-              {row.kind === "analyse_profil" ? <ProfileAnalysisView row={row as AnalysisRow} /> : (
+              {row.kind === "analyse_profil" ? <ProfileAnalysisView row={row as AnalysisRow} staff /> : (
                 <div className="space-y-2">
                   <p className="text-xs text-muted">{formatDateTime(row.created_at)} · {row.provider} / {row.model} · prompt {row.prompt_version} · revue : {row.validation_status}</p>
                   {row.error ? <p className="text-sm text-red-700">{row.error}</p> : <SummaryOutput output={row.output} />}
@@ -726,6 +726,7 @@ function SummaryOutput({ output }: { output: unknown }) {
   if (o.summary) {
     return (
       <div className="space-y-2 text-sm text-slate-700">
+        <SecurityWarnings output={output} />
         <p className="whitespace-pre-line">{o.summary}</p>
         {o.key_evidence?.length ? <ul className="list-disc pl-5">{o.key_evidence.map((k, i) => <li key={i}>{k.text}</li>)}</ul> : null}
         {o.points_to_verify?.length ? <p><strong>À vérifier :</strong> {o.points_to_verify.map((k) => k.text).join(" · ")}</p> : null}

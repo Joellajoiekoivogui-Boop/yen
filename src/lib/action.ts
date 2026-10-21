@@ -93,9 +93,11 @@ export async function clientIp(): Promise<string> {
 /**
  * Limitation de débit partagée (table rate_limits, fonction SQL rate_limit_hit).
  * Le plafond et la fenêtre de chaque type de clé sont fixés en base. En cas
- * d'indisponibilité, la limite n'est pas appliquée mais l'erreur est journalisée.
+ * d'indisponibilité, l'erreur est journalisée et la limite n'est pas appliquée,
+ * sauf pour les appels payants à l'IA (onError: "deny") : mieux vaut refuser
+ * qu'ouvrir la porte à des appels illimités facturés.
  */
-export async function rateLimit(key: string): Promise<boolean> {
+export async function rateLimit(key: string, { onError = "allow" }: { onError?: "allow" | "deny" } = {}): Promise<boolean> {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("rate_limit_hit", { p_key: key });
@@ -103,7 +105,7 @@ export async function rateLimit(key: string): Promise<boolean> {
     return data === true;
   } catch (e) {
     console.error("[rate-limit] indisponible", e instanceof Error ? e.message : e);
-    return true;
+    return onError === "allow";
   }
 }
 

@@ -2,7 +2,7 @@
 
 import { getMaxCvBytes } from "@/features/admin/settings";
 import { fail, rateLimit, runAction, type ActionResult } from "@/lib/action";
-import { isDatabaseUpToDate } from "@/lib/schema-version";
+import { isDatabaseUpToDate, UPLOADS_SCHEMA_VERSION } from "@/lib/schema-version";
 import { createClient } from "@/lib/supabase/server";
 import { FILE_TYPES } from "./file-validation";
 import { cleanupStaleUploads, declaredFileType, DOCUMENTS_BUCKET, isTemporaryUploadPath, temporaryUploadPath } from "./uploads";
@@ -34,7 +34,7 @@ export async function prepareUploadAction(input: { purpose: UploadPurpose; filen
     if (!Number.isFinite(size) || size <= 0) return fail("Le fichier est vide.");
     if (size > maxBytes) return fail(`Le fichier dépasse la taille maximale autorisée (${Math.round(maxBytes / 1024 / 1024)} Mo).`);
     // base sans la dernière mise à jour SQL : règles de stockage et fonctions d'enregistrement absentes
-    if (!(await isDatabaseUpToDate())) return fail(UPLOADS_NOT_READY);
+    if (!(await isDatabaseUpToDate(UPLOADS_SCHEMA_VERSION))) return fail(UPLOADS_NOT_READY);
     if (!(await rateLimit(`${purpose === "cv" ? "cv-upload" : "certificate-upload"}:${ctx.userId}`))) return fail("Trop de téléversements récents. Réessayez dans une heure.");
 
     const supabase = await createClient();

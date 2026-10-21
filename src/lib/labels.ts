@@ -141,7 +141,7 @@ export const consentLabel = {
   },
   traitement_ia: {
     title: "Analyse de mon profil par l'intelligence artificielle",
-    description: "Autorise l'extraction des informations de votre CV et la génération de recommandations. Les résultats restent des suggestions que vous validez.",
+    description: "Autorise l'envoi de votre CV, de votre profil et de vos réponses écrites au fournisseur d'IA de YEN (Anthropic, traitement hors de Guinée) pour extraire vos informations, proposer des recommandations, répondre à l'assistant et aider l'équipe YEN dans ses analyses. Les résultats restent des suggestions vérifiées par des personnes.",
   },
   visibilite_vivier: {
     title: "Visibilité dans le vivier de talents YEN",

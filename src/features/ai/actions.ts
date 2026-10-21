@@ -7,12 +7,22 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 import { notifyCandidate } from "@/features/notifications/service";
 import { refreshPipelineStatus } from "@/features/candidates/pipeline";
+import { trimChatHistory } from "./chat-history";
 import { AINotConfiguredError, isAIConfigured } from "./provider";
 import type { CvExtraction } from "./schemas";
 import {
   analyzeProfile, assistantReply, ConsentRequiredError, extractCv, improveCv, managerSummary, normalizeExtractedSkills, progressPlan, suggestAnswerGrade,
   type AnalysisRecord,
 } from "./services";
+
+const STAFF_LIMIT_MSG = "Limite d'analyses IA atteinte pour l'heure en cours (protection contre les abus et les coûts). Réessayez plus tard.";
+
+/**
+ * Analyses lancées par le personnel : plafond horaire par compte (un compte compromis ne peut pas
+ * épuiser le budget d'IA). Avant la mise à jour SQL n° 5, la clé est inconnue de la base : l'appel
+ * est alors autorisé (et l'erreur journalisée) pour ne pas bloquer l'équipe.
+ */
+const staffRateLimit = (userId: string) => rateLimit(`ai:staff:${userId}`, { onError: "allow" });
 
 const NOT_CONFIGURED_MSG = "Le service d'IA n'est pas configuré sur cette plateforme. Les autres fonctionnalités restent disponibles ; contactez l'administrateur YEN.";
 
@@ -42,7 +52,7 @@ function resultFrom(rec: AnalysisRecord, okMsg: string): ActionResult<{ analysis
 export async function runCvExtractionAction(documentId: string): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
     if (!isUuid(documentId)) return fail("Document invalide.");
-    if (!(await rateLimit(`ai:cv:${ctx.userId}`))) return fail("Limite d'extractions atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:cv:${ctx.userId}`, { onError: "deny" }))) return fail("Limite d'extractions atteinte pour l'heure en cours.");
     const r = await guardAI(() => extractCv(ctx.candidateId!, documentId, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat/cv");
@@ -136,7 +146,7 @@ export async function applyCvExtractionAction(values: Record<string, unknown>): 
 
 export async function analyzeMyProfileAction(): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`ai:profile:${ctx.userId}`))) return fail("Limite d'analyses atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:profile:${ctx.userId}`, { onError: "deny" }))) return fail("Limite d'analyses atteinte pour l'heure en cours.");
     const r = await guardAI(() => analyzeProfile(ctx.candidateId!, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat", "layout");
@@ -146,7 +156,7 @@ export async function analyzeMyProfileAction(): Promise<ActionResult<{ analysisI
 
 export async function improveMyCvAction(): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`ai:cvimp:${ctx.userId}`))) return fail("Limite atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:cvimp:${ctx.userId}`, { onError: "deny" }))) return fail("Limite atteinte pour l'heure en cours.");
     const r = await guardAI(() => improveCv(ctx.candidateId!, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat/cv");
@@ -184,7 +194,7 @@ export async function applyCvSuggestionAction(values: Record<string, unknown>): 
 
 export async function generateProgressPlanAction(): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ requireCandidate: true }, async (ctx) => {
-    if (!(await rateLimit(`ai:plan:${ctx.userId}`))) return fail("Limite atteinte pour l'heure en cours.");
+    if (!(await rateLimit(`ai:plan:${ctx.userId}`, { onError: "deny" }))) return fail("Limite atteinte pour l'heure en cours.");
     const r = await guardAI(() => progressPlan(ctx.candidateId!, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/candidat/progression");
@@ -196,12 +206,14 @@ const chatSchema = z.object({
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(4000) })).min(1).max(30),
 });
 
+
 export async function assistantAction(values: Record<string, unknown>): Promise<ActionResult<{ reply: string }>> {
   return runAction<{ reply: string }>({ requireCandidate: true }, async (ctx) => {
     const v = parseInput(chatSchema, values);
     if (v.messages[v.messages.length - 1].role !== "user") return fail("Message invalide.");
-    if (!(await rateLimit(`ai:chat:${ctx.userId}`))) return fail("Vous avez atteint la limite de messages pour l'heure en cours.");
-    const r = await guardAI(() => assistantReply(ctx.candidateId!, v.messages));
+    if (!(await rateLimit(`ai:chat:${ctx.userId}`, { onError: "deny" }))) return fail("Vous avez atteint la limite de messages pour l'heure en cours.");
+    const history = trimChatHistory(v.messages);
+    const r = await guardAI(() => assistantReply(ctx.candidateId!, history));
     if (!r.ok) return fail(r.error);
     return { ok: true, data: { reply: r.value } };
   });
@@ -212,6 +224,7 @@ export async function assistantAction(values: Record<string, unknown>): Promise<
 export async function staffAnalyzeProfileAction(candidateId: string): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ permission: "ai.run" }, async (ctx) => {
     if (!isUuid(candidateId)) return fail("Candidat invalide.");
+    if (!(await staffRateLimit(ctx.userId))) return fail(STAFF_LIMIT_MSG);
     const r = await guardAI(() => analyzeProfile(candidateId, ctx.userId));
     if (!r.ok) return fail(r.error);
     await notifyCandidate(candidateId, { category: "recommandation", title: "Nouvelle analyse de votre profil", body: "Des recommandations sont disponibles dans votre espace.", link: "/candidat/metiers" });
@@ -223,6 +236,7 @@ export async function staffAnalyzeProfileAction(candidateId: string): Promise<Ac
 export async function staffManagerSummaryAction(candidateId: string, offerId?: string): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ permission: "ai.run" }, async (ctx) => {
     if (!isUuid(candidateId) || (offerId && !isUuid(offerId))) return fail("Paramètres invalides.");
+    if (!(await staffRateLimit(ctx.userId))) return fail(STAFF_LIMIT_MSG);
     const r = await guardAI(() => managerSummary(candidateId, ctx.userId, offerId));
     if (!r.ok) return fail(r.error);
     revalidatePath(`/admin/talents/${candidateId}`);
@@ -273,6 +287,7 @@ export async function reviewAnalysisAction(values: Record<string, unknown>): Pro
 export async function recomputeAnalysisAction(analysisId: string): Promise<ActionResult<{ analysisId: string }>> {
   return runAction<{ analysisId: string }>({ permission: "ai.run" }, async (ctx) => {
     if (!isUuid(analysisId)) return fail("Analyse invalide.");
+    if (!(await staffRateLimit(ctx.userId))) return fail(STAFF_LIMIT_MSG);
     const admin = createAdminClient();
     const { data: old } = await admin.from("ai_analyses").select("id, kind, candidate_id, document_id, offer_id").eq("id", analysisId).maybeSingle();
     if (!old?.candidate_id) return fail("Analyse introuvable.");
@@ -301,6 +316,7 @@ export async function recomputeAnalysisAction(analysisId: string): Promise<Actio
 export async function suggestGradeAction(answerId: string): Promise<ActionResult> {
   return runAction({ permission: "assessments.review" }, async (ctx) => {
     if (!isUuid(answerId)) return fail("Réponse invalide.");
+    if (!(await staffRateLimit(ctx.userId))) return fail(STAFF_LIMIT_MSG);
     const r = await guardAI(() => suggestAnswerGrade(answerId, ctx.userId));
     if (!r.ok) return fail(r.error);
     revalidatePath("/admin/corrections");

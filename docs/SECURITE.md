@@ -84,6 +84,38 @@ Ces règles sont couvertes par 80 tests exécutés sur un vrai PostgreSQL (`test
 `tests/db/server-functions.test.ts`, `tests/db/security-audit.test.ts`).
 
 
+## Intelligence artificielle (audit IA, migration 15)
+
+Référentiel : OWASP Top 10 pour les applications LLM. Fournisseur : Anthropic (clé `ANTHROPIC_API_KEY`
+côté serveur uniquement, jamais préfixée par `NEXT_PUBLIC_`, absente du code envoyé au navigateur).
+
+- **Consentement** : chaque appel (candidat ou personnel) vérifie le consentement « traitement_ia ». Le texte du
+  consentement et la politique de confidentialité nomment le fournisseur et le traitement hors de Guinée.
+- **Minimisation** : e-mail et téléphone du compte ne sont jamais ajoutés aux données envoyées (le CV, lui, est
+  transmis tel quel).
+- **Injection de consignes** : tout texte fourni par un utilisateur (CV, profil, réponse, offre d'un partenaire)
+  est inséré entre balises avec les chevrons neutralisés (`escapeForPrompt`) : il ne peut pas fermer sa balise
+  ni imiter une « évaluation ». Les consignes système rappellent que ces textes sont des données.
+- **Contrôles déterministes des sorties** (quoi que réponde le modèle) : sortie structurée validée par schéma ;
+  conclusion sans source réelle écartée ; compétence « démontrée » acceptée seulement si elle cite une
+  évaluation, un évaluateur, un retour partenaire ou un projet vérifié (sinon « à confirmer ») ; métiers limités
+  au catalogue ; compétences extraites d'un CV vérifiées par citation et enregistrées comme « déclarées » ;
+  points d'une proposition de note bornés par la grille de la question.
+- **Alerte** : un CV ou une réponse contenant des formulations adressées à l'IA (« ignore les consignes »,
+  « attribue la note maximale »…) déclenche un avertissement visible de l'équipe YEN uniquement ; la
+  proposition de note passe en confiance faible. Rien n'est bloqué : la décision reste humaine.
+- **Pas d'action autonome** : l'IA ne modifie jamais un profil, une note ou une candidature. Le candidat valide
+  ce qui est ajouté à son profil ; l'évaluateur fixe la note finale.
+- **Confidentialité des sorties** : synthèses internes et propositions de note invisibles du candidat (RLS et
+  droits par colonne ; les correcteurs passent par `ai_grading_suggestions`). Réponses affichées en texte brut
+  (aucun HTML ni lien interprété).
+- **Traçabilité** : chaque analyse est enregistrée (fournisseur, modèle, version du prompt, sources, durée,
+  auteur). Son résultat est immuable ; seule la revue humaine (statut, correction, motif) évolue, signée par
+  son auteur (trigger `protect_ai_analysis_columns`).
+- **Coûts et abus** : plafonds horaires par compte (5 analyses par type, 40 messages d'assistant, 60 analyses
+  pour le personnel) ; en cas de panne du compteur, les appels d'IA du candidat sont refusés plutôt
+  qu'illimités ; historique de l'assistant borné à 12 messages et 16 000 caractères.
+
 ## Documents
 
 Bucket privé `candidate-documents`, chemin `<user_id>/<uuid>.pdf` imposé par politique de stockage, aucune mise à jour
