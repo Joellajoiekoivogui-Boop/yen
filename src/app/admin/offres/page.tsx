@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
+import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { offerStatusLabel, OFFER_STATUSES, opportunityLabel, type OfferStatus, type OpportunityType } from "@/lib/labels";
@@ -39,7 +39,7 @@ export default async function AdminOffersPage(props: PageProps<"/admin/offres">)
                 <Td><Badge tone={o.status === "publiee" ? "green" : o.status === "en_validation" ? "amber" : "neutral"}>{offerStatusLabel[o.status as OfferStatus]}</Badge></Td>
               </tr>
             ))}
-            {(data ?? []).length === 0 && <tr><Td colSpan={6} className="text-center text-muted">Aucune offre.</Td></tr>}
+            {(data ?? []).length === 0 && <TableEmpty colSpan={6}>Aucune offre.</TableEmpty>}
           </tbody>
         </Table>
       </Card>

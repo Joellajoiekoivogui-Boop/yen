@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { MailCheck } from "lucide-react";
 import { EntityForm } from "@/components/forms/entity-form";
-import { Alert } from "@/components/ui";
 import { signUpCandidateAction, signUpPartnerAction } from "@/features/auth/actions";
 import { candidateSignUpSchema, partnerSignUpSchema } from "@/features/auth/schemas";
 import { availabilityLabel, candidateStatusLabel, opportunityLabel } from "@/lib/labels";
@@ -22,7 +22,19 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
   const [type, setType] = useState(initialType);
   const [done, setDone] = useState<string | null>(null);
 
-  if (done) return <Alert tone="success" title="Vérifiez votre boîte de réception">{done}</Alert>;
+  if (done)
+    return (
+      <div role="status" className="flex flex-col items-center py-6 text-center">
+        <span className="relative grid size-16 place-items-center">
+          <span aria-hidden className="absolute inset-0 animate-ping-slow rounded-full bg-emerald-200" />
+          <span className="relative grid size-16 animate-pop-in place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
+            <MailCheck className="size-7" aria-hidden />
+          </span>
+        </span>
+        <p className="mt-5 font-heading text-lg font-semibold text-navy-900">Vérifiez votre boîte de réception</p>
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{done}</p>
+      </div>
+    );
 
   return (
     <div>
@@ -61,22 +73,22 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
             else if (r.ok) setDone(r.message ?? "Compte créé.");
           }}
           fields={[
-            { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name" },
+            { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name", section: "Identité et contact" },
             { name: "last_name", label: "Nom", required: true, autoComplete: "family-name" },
             { name: "email", label: "Adresse e-mail", type: "email", required: true, autoComplete: "email" },
             { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "Obligatoire : l'équipe YEN vous appelle pour les opportunités." },
             { name: "city", label: "Ville", required: true, autoComplete: "address-level2" },
             { name: "country", label: "Pays", required: true, autoComplete: "country-name" },
-            { name: "institution", label: "Établissement de formation", required: true },
+            { name: "institution", label: "Établissement de formation", required: true, section: "Formation" },
             { name: "yen_program", label: "Formation suivie chez YEN", required: true },
             { name: "education_level", label: "Niveau d'études", required: true, placeholder: "Ex. Licence 3, BTS, Master…" },
             { name: "graduation_year", label: "Année de formation ou de diplomation", type: "number", required: true, min: 1970, max: 2100 },
-            { name: "status", label: "Statut", type: "select", required: true, options: opts(candidateStatusLabel) },
+            { name: "status", label: "Statut", type: "select", required: true, options: opts(candidateStatusLabel), section: "Projet professionnel" },
             { name: "availability", label: "Disponibilité", type: "select", required: true, options: opts(availabilityLabel) },
             { name: "primary_domain_id", label: "Domaine d'intérêt principal", type: "select", options: domains.map((d) => ({ value: d.id, label: d.name })) },
             { name: "interest_area", label: "Précisions sur votre projet professionnel", placeholder: "Ex. développement web, maintenance minière…" },
             { name: "opportunity_types", label: "Type d'opportunité recherchée", type: "checkboxes", required: true, options: opts(opportunityLabel) },
-            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP },
+            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP, section: "Sécurité du compte" },
             { name: "password_confirm", label: "Confirmer le mot de passe", type: "password", required: true, autoComplete: "new-password" },
             { name: "accepted_terms", label: terms, type: "checkbox", required: true, colSpan: 2 },
           ]}
@@ -90,15 +102,15 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
           action={signUpPartnerAction}
           onSuccess={(r) => r.ok && setDone(r.message ?? "Demande enregistrée.")}
           fields={[
-            { name: "organization_name", label: "Nom de l'organisation", required: true, autoComplete: "organization" },
+            { name: "organization_name", label: "Nom de l'organisation", required: true, autoComplete: "organization", section: "Organisation" },
             { name: "organization_sector", label: "Secteur d'activité", required: true },
-            { name: "first_name", label: "Prénom du contact", required: true, autoComplete: "given-name" },
+            { name: "first_name", label: "Prénom du contact", required: true, autoComplete: "given-name", section: "Personne à contacter" },
             { name: "last_name", label: "Nom du contact", required: true, autoComplete: "family-name" },
             { name: "email", label: "E-mail professionnel", type: "email", required: true, autoComplete: "email" },
             { name: "phone", label: "Téléphone professionnel", type: "tel", autoComplete: "tel" },
             { name: "city", label: "Ville", required: true, autoComplete: "address-level2" },
             { name: "country", label: "Pays", required: true, autoComplete: "country-name" },
-            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP },
+            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP, section: "Sécurité du compte" },
             { name: "password_confirm", label: "Confirmer le mot de passe", type: "password", required: true, autoComplete: "new-password" },
             { name: "accepted_terms", label: terms, type: "checkbox", required: true, colSpan: 2 },
           ]}

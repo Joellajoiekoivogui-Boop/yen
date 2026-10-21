@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { Badge, ButtonLink, Card, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Badge, ButtonLink, Card, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requirePartner } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { offerStatusLabel, opportunityLabel, type OfferStatus, type OpportunityType } from "@/lib/labels";
@@ -25,7 +25,7 @@ export default async function PartnerOffersPage() {
                 <Td><Badge tone={o.status === "publiee" ? "green" : o.status === "en_validation" ? "amber" : "neutral"}>{offerStatusLabel[o.status as OfferStatus]}</Badge></Td>
               </tr>
             ))}
-            {(data ?? []).length === 0 && <tr><Td colSpan={4} className="text-center text-muted">Aucune offre.</Td></tr>}
+            {(data ?? []).length === 0 && <TableEmpty colSpan={4}>Aucune offre.</TableEmpty>}
           </tbody>
         </Table>
       </Card>

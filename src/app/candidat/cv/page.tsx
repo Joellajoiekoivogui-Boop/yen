@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Download, FileText, History, ScanText, Sparkles, Wand2 } from "lucide-react";
 import { ActionButton } from "@/components/forms/action-button";
-import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/utils";
@@ -162,7 +162,7 @@ export default async function CvPage() {
                   </Td>
                 </tr>
               ))}
-              {(docs.data ?? []).length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Aucune version.</Td></tr>}
+              {(docs.data ?? []).length === 0 && <TableEmpty colSpan={5}>Aucune version.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

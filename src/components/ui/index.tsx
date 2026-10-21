@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Info, XCircle, type LucideIcon } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Inbox, Info, XCircle, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CountUp } from "@/components/motion/count-up";
 
@@ -231,6 +231,21 @@ export function Th({ className, ...props }: ComponentProps<"th">) {
 }
 export function Td({ className, ...props }: ComponentProps<"td">) {
   return <td className={cn("border-b border-border px-3 py-2.5 align-top text-slate-700", className)} {...props} />;
+}
+/** Ligne affichée quand un tableau n'a aucune donnée : message centré avec pictogramme. */
+export function TableEmpty({ colSpan, children }: { colSpan: number; children: ReactNode }) {
+  return (
+    <tr className="hover:bg-transparent!">
+      <td colSpan={colSpan} className="border-b border-border px-3 py-8 text-center">
+        <span className="inline-flex animate-fade-in flex-col items-center gap-2 text-sm text-muted">
+          <span className="grid size-9 place-items-center rounded-full bg-navy-50 text-navy-400">
+            <Inbox className="size-4" aria-hidden />
+          </span>
+          {children}
+        </span>
+      </td>
+    </tr>
+  );
 }
 
 /* ----------------------------------------------------------------------------

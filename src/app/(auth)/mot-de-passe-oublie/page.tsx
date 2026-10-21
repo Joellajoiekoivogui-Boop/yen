@@ -13,6 +13,7 @@ export default function ForgotPasswordPage() {
       <EntityForm
         schema={resetRequestSchema}
         submitLabel="Envoyer le lien"
+        stacked
         resetOnSuccess
         fields={[{ name: "email", label: "Adresse e-mail", type: "email", required: true, autoComplete: "email", colSpan: 2 }]}
         action={requestPasswordResetAction}

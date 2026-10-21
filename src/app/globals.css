@@ -174,12 +174,10 @@
 @keyframes underline-draw {
   from { transform: scaleX(0); }
 }
-@keyframes rotate-words {
-  0%, 18% { transform: translate3d(0, 0, 0); }
-  22%, 40% { transform: translate3d(0, -20%, 0); }
-  44%, 62% { transform: translate3d(0, -40%, 0); }
-  66%, 84% { transform: translate3d(0, -60%, 0); }
-  88%, 100% { transform: translate3d(0, -80%, 0); }
+@keyframes word-cycle {
+  0% { opacity: 0; transform: translate3d(0, 0.5em, 0); filter: blur(6px); }
+  5%, 22% { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+  27%, 100% { opacity: 0; transform: translate3d(0, -0.5em, 0); filter: blur(6px); }
 }
 @keyframes text-shine {
   to { background-position: -200% center; }
@@ -368,22 +366,26 @@
   animation: text-shine 5s linear infinite;
 }
 
-/* Mots qui défilent dans le titre de l'accueil */
+/* Mots qui défilent dans le titre de l'accueil : mots superposés dans la même cellule de grille
+   (largeur du mot le plus long, aucun débordement sur la ligne suivante), fondu enchaîné.
+   Chaque mot porte --i (son rang) ; le cycle dure 4 × 2,6 s. */
 .word-rotator {
-  display: inline-flex;
-  height: 1.3em;
-  overflow: hidden;
-  vertical-align: top;
+  display: inline-grid;
+  vertical-align: bottom;
 }
-.word-rotator-track {
-  display: flex;
-  flex-direction: column;
-  animation: rotate-words 11s var(--ease-out-expo) infinite;
-}
-.word-rotator-track > span {
-  height: 1.3em;
-  line-height: 1.3em;
+.word-rotator > span {
+  grid-area: 1 / 1;
   white-space: nowrap;
+  opacity: 0;
+  animation: word-cycle 10.4s var(--ease-out-expo) calc(var(--i, 0) * 2.6s) infinite backwards;
+}
+.word-rotator > span:first-child {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .word-rotator > span {
+    animation: none;
+  }
 }
 
 /* Décor du héros */
@@ -405,6 +407,15 @@
 }
 .scroll-cue-dot {
   animation: scroll-dot 1.8s ease-in-out infinite;
+}
+
+/* Rangée défilante horizontalement : bords estompés pour signaler la suite */
+.scroll-fade-x {
+  mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 2rem), transparent);
+  scrollbar-width: none;
+}
+.scroll-fade-x::-webkit-scrollbar {
+  display: none;
 }
 
 /* Bandeau défilant */
@@ -445,7 +456,8 @@ html[data-scrolled] .site-header {
   transform-origin: right;
   transition: transform 0.4s var(--ease-out-expo);
 }
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link[aria-current="page"]::after {
   transform: scaleX(1);
   transform-origin: left;
 }
@@ -529,6 +541,10 @@ html[data-scrolled-far] .back-to-top {
 @media print {
   .no-print {
     display: none !important;
+  }
+  /* impression : tout le contenu, même celui qui attend d'apparaître au défilement */
+  [data-reveal-pending] {
+    opacity: 1 !important;
   }
   body {
     background: white;

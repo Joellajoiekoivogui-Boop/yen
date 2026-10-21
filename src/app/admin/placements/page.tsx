@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Badge, Card, CardBody, CardHeader, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Badge, Card, CardBody, CardHeader, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { placementContractLabel } from "@/lib/labels";
@@ -49,7 +49,7 @@ export default async function PlacementsPage(props: PageProps<"/admin/placements
                 </tr>
               );
             })}
-            {(placements.data ?? []).length === 0 && <tr><Td colSpan={7} className="text-center text-muted">Aucun placement enregistré.</Td></tr>}
+            {(placements.data ?? []).length === 0 && <TableEmpty colSpan={7}>Aucun placement enregistré.</TableEmpty>}
           </tbody>
         </Table>
       </Card>

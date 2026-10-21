@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useTransition, type ComponentProps, type ReactNode } from "react";
+import { Fragment, useId, useState, useTransition, type ComponentProps, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch, type Control, type FieldValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,8 @@ export interface FieldConfig {
   min?: number;
   max?: number;
   step?: number;
+  /** Titre de groupe affiché avant ce champ (formulaires longs découpés en parties). */
+  section?: string;
 }
 
 export type ActionResultLike = { ok: true; message?: string; data?: unknown } | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
@@ -41,6 +43,8 @@ interface EntityFormProps {
   onSuccess?: (result: ActionResultLike) => void;
   redirectTo?: string;
   footer?: ReactNode;
+  /** Bouton d'envoi sur toute la largeur, pied de formulaire centré dessous (écrans de connexion). */
+  stacked?: boolean;
   className?: string;
 }
 
@@ -48,7 +52,7 @@ interface EntityFormProps {
  * Formulaire générique : validation côté client (React Hook Form + Zod) puis
  * appel d'une action serveur qui revalide avec le MÊME schéma.
  */
-export function EntityForm({ schema, fields, defaultValues, action, submitLabel = "Enregistrer", resetOnSuccess, onSuccess, redirectTo, footer, className }: EntityFormProps) {
+export function EntityForm({ schema, fields, defaultValues, action, submitLabel = "Enregistrer", resetOnSuccess, onSuccess, redirectTo, footer, stacked, className }: EntityFormProps) {
   const router = useRouter();
   const formId = useId();
   const [pending, startTransition] = useTransition();
@@ -94,91 +98,98 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
           const common = { id, "aria-invalid": err ? true : undefined, "aria-describedby": describedBy };
           const type = f.type ?? "text";
           return (
-            <div key={f.name} className={cn(f.colSpan === 2 || type === "textarea" || type === "checkboxes" ? "sm:col-span-2" : "")}>
-              {type === "checkbox" ? (
-                <label htmlFor={id} className="flex items-start gap-2 text-sm text-navy-900">
-                  <input type="checkbox" className="mt-0.5 size-4 rounded border-border accent-navy-700" {...common} {...register(f.name)} />
-                  <span>
-                    {f.label}
-                    {f.required && <span className="text-red-600"> *</span>}
-                  </span>
-                </label>
-              ) : type === "checkboxes" ? (
-                <fieldset id={id} aria-invalid={err ? true : undefined} aria-describedby={describedBy}>
-                  <legend className="mb-1 block text-sm font-medium text-navy-900">
-                    {f.label}
-                    {f.required && <span className="text-red-600" aria-hidden> *</span>}
-                  </legend>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2">
-                    {f.options?.map((o) => (
-                      <label
-                        key={o.value}
-                        className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-slate-700 transition duration-200 hover:border-navy-200 has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50 has-[:checked]:text-navy-900"
-                      >
-                        <input type="checkbox" value={o.value} className="size-4 rounded border-border accent-navy-700" {...register(f.name)} />
-                        {o.label}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              ) : (
-                <>
-                  <label htmlFor={id} className="mb-1 block text-sm font-medium text-navy-900">
-                    {f.label}
-                    {f.required && <span className="text-red-600" aria-hidden> *</span>}
+            <Fragment key={f.name}>
+              {f.section && (
+                <h2 className="flex items-center gap-3 pt-2 text-xs font-semibold tracking-wider text-gold-600 uppercase first:pt-0 after:h-px after:flex-1 after:bg-border sm:col-span-2">
+                  {f.section}
+                </h2>
+              )}
+              <div className={cn(f.colSpan === 2 || type === "textarea" || type === "checkboxes" ? "sm:col-span-2" : "")}>
+                {type === "checkbox" ? (
+                  <label htmlFor={id} className="flex items-start gap-2 text-sm text-navy-900">
+                    <input type="checkbox" className="mt-0.5 size-4 rounded border-border accent-navy-700" {...common} {...register(f.name)} />
+                    <span>
+                      {f.label}
+                      {f.required && <span className="text-red-600"> *</span>}
+                    </span>
                   </label>
-                  {type === "textarea" ? (
-                    <textarea rows={f.rows ?? 4} placeholder={f.placeholder} className="field-input" {...common} {...register(f.name)} />
-                  ) : type === "select" ? (
-                    <select className="field-input" {...common} {...register(f.name, { setValueAs: (v) => (v === "" ? null : v) })}>
-                      <option value="">— Sélectionner —</option>
+                ) : type === "checkboxes" ? (
+                  <fieldset id={id} aria-invalid={err ? true : undefined} aria-describedby={describedBy}>
+                    <legend className="mb-1 block text-sm font-medium text-navy-900">
+                      {f.label}
+                      {f.required && <span className="text-red-600" aria-hidden> *</span>}
+                    </legend>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2">
                       {f.options?.map((o) => (
-                        <option key={o.value} value={o.value}>
+                        <label
+                          key={o.value}
+                          className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-slate-700 transition duration-200 hover:border-navy-200 has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50 has-[:checked]:text-navy-900"
+                        >
+                          <input type="checkbox" value={o.value} className="size-4 rounded border-border accent-navy-700" {...register(f.name)} />
                           {o.label}
-                        </option>
+                        </label>
                       ))}
-                    </select>
-                  ) : type === "password" ? (
-                    <WatchedPasswordInput
-                      control={control}
-                      placeholder={f.placeholder}
-                      autoComplete={f.autoComplete}
-                      showStrength={f.name === "password" && f.autoComplete === "new-password"}
-                      {...common}
-                      {...register(f.name)}
-                    />
-                  ) : (
-                    <input
-                      type={type}
-                      placeholder={f.placeholder}
-                      autoComplete={f.autoComplete}
-                      min={f.min}
-                      max={f.max}
-                      step={f.step}
-                      className="field-input"
-                      {...common}
-                      {...register(f.name, type === "number" ? { setValueAs: (v) => (v === "" || v == null ? null : Number(v)) } : undefined)}
-                    />
-                  )}
-                </>
-              )}
-              {f.help && (
-                <p id={`${id}-help`} className="mt-1 text-xs text-muted">
-                  {f.help}
-                </p>
-              )}
-              {err && (
-                <p id={`${id}-err`} className="mt-1 animate-slide-down text-xs text-red-600">
-                  {err}
-                </p>
-              )}
-            </div>
+                    </div>
+                  </fieldset>
+                ) : (
+                  <>
+                    <label htmlFor={id} className="mb-1 block text-sm font-medium text-navy-900">
+                      {f.label}
+                      {f.required && <span className="text-red-600" aria-hidden> *</span>}
+                    </label>
+                    {type === "textarea" ? (
+                      <textarea rows={f.rows ?? 4} placeholder={f.placeholder} className="field-input" {...common} {...register(f.name)} />
+                    ) : type === "select" ? (
+                      <select className="field-input" {...common} {...register(f.name, { setValueAs: (v) => (v === "" ? null : v) })}>
+                        <option value="">— Sélectionner —</option>
+                        {f.options?.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : type === "password" ? (
+                      <WatchedPasswordInput
+                        control={control}
+                        placeholder={f.placeholder}
+                        autoComplete={f.autoComplete}
+                        showStrength={f.name === "password" && f.autoComplete === "new-password"}
+                        {...common}
+                        {...register(f.name)}
+                      />
+                    ) : (
+                      <input
+                        type={type}
+                        placeholder={f.placeholder}
+                        autoComplete={f.autoComplete}
+                        min={f.min}
+                        max={f.max}
+                        step={f.step}
+                        className="field-input"
+                        {...common}
+                        {...register(f.name, type === "number" ? { setValueAs: (v) => (v === "" || v == null ? null : Number(v)) } : undefined)}
+                      />
+                    )}
+                  </>
+                )}
+                {f.help && (
+                  <p id={`${id}-help`} className="mt-1 text-xs text-muted">
+                    {f.help}
+                  </p>
+                )}
+                {err && (
+                  <p id={`${id}-err`} className="mt-1 animate-slide-down text-xs text-red-600">
+                    {err}
+                  </p>
+                )}
+              </div>
+            </Fragment>
           );
         })}
       </div>
       {error && <Alert tone="error">{error}</Alert>}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" variant="secondary" disabled={pending}>
+      <div className={cn("flex flex-wrap items-center gap-3", stacked && "flex-col items-stretch text-center")}>
+        <Button type="submit" variant="secondary" size={stacked ? "lg" : "md"} disabled={pending} aria-busy={pending || undefined}>
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
           {submitLabel}
         </Button>

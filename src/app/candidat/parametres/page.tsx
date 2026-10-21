@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Download, KeyRound, Share2, ShieldCheck } from "lucide-react";
-import { ButtonLink, Card, CardBody, CardHeader, PageHeader, Table, Td, Th } from "@/components/ui";
+import { ButtonLink, Card, CardBody, CardHeader, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
@@ -42,7 +42,7 @@ export default async function SettingsPage() {
                   <Td>{s.revoked_at ? "Révoqué" : new Date(s.expires_at) < new Date() ? "Expiré" : c.partage_partenaires ? "Actif" : "Suspendu (consentement retiré)"}</Td>
                 </tr>
               ))}
-              {(shares.data ?? []).length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Votre profil n&apos;a été partagé avec aucun partenaire.</Td></tr>}
+              {(shares.data ?? []).length === 0 && <TableEmpty colSpan={5}>Votre profil n&apos;a été partagé avec aucun partenaire.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

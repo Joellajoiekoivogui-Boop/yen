@@ -5,7 +5,7 @@ import { Award, Brain, Download, Eye, FileText, Flag, GraduationCap, Mail, MapPi
 import { ProfileAnalysisView, type AnalysisRow } from "@/components/ai-analysis-view";
 import { ActionButton } from "@/components/forms/action-button";
 import { MatchDetails } from "@/components/match-details";
-import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, DefinitionList, DemoBadge, EmptyState, PageHeader, ProgressBar, TabLinks, Table, Td, Th } from "@/components/ui";
+import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, DefinitionList, DemoBadge, EmptyState, PageHeader, ProgressBar, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
@@ -376,7 +376,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                     )}</Td>
                   </tr>
                 ))}
-                {(docs ?? []).length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Aucun document.</Td></tr>}
+                {(docs ?? []).length === 0 && <TableEmpty colSpan={5}>Aucun document.</TableEmpty>}
               </tbody>
             </Table>
           )}
@@ -440,7 +440,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                   <Td>{demonstrated[d.skill_id] ? <Badge tone="gold">{levelLabel[demonstrated[d.skill_id].level]}</Badge> : <Badge tone="amber">À confirmer</Badge>}</Td>
                 </tr>
               ))}
-              {b!.declaredSkills.length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Aucune compétence déclarée.</Td></tr>}
+              {b!.declaredSkills.length === 0 && <TableEmpty colSpan={5}>Aucune compétence déclarée.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>
@@ -477,7 +477,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                     )}
                   </tr>
                 ))}
-                {b!.skillAssessments.length === 0 && <tr><Td colSpan={7} className="text-center text-muted">Aucune preuve.</Td></tr>}
+                {b!.skillAssessments.length === 0 && <TableEmpty colSpan={7}>Aucune preuve.</TableEmpty>}
               </tbody>
             </Table>
           </CardBody>
@@ -515,7 +515,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                   </tr>
                 );
               })}
-              {(data ?? []).length === 0 && <tr><Td colSpan={6} className="text-center text-muted">Aucune tentative.</Td></tr>}
+              {(data ?? []).length === 0 && <TableEmpty colSpan={6}>Aucune tentative.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

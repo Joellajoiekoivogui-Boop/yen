@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ActionButton } from "@/components/forms/action-button";
 import { OfferForm } from "@/components/forms/offer-form";
 import { MatchDetails } from "@/components/match-details";
-import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, ScorePill, TabLinks, Table, Td, Th } from "@/components/ui";
+import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, ScorePill, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
@@ -152,7 +152,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
                   </tr>
                 );
               })}
-              {(data ?? []).length === 0 && <tr><Td colSpan={6} className="text-center text-muted">Aucune candidature pour l&apos;instant. Utilisez le classement intelligent pour présélectionner des candidats.</Td></tr>}
+              {(data ?? []).length === 0 && <TableEmpty colSpan={6}>Aucune candidature pour l&apos;instant. Utilisez le classement intelligent pour présélectionner des candidats.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

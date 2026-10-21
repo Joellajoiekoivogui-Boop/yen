@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IntentLink } from "@/components/layout/intent-link";
 import { Download, Flag } from "lucide-react";
-import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
+import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { availabilityLabel, levelLabel, opportunityLabel, pipelineLabel, PIPELINE_STATUSES, SKILL_LEVELS, type Availability, type PipelineStatus, type SkillLevel } from "@/lib/labels";
@@ -113,7 +113,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
                 <Td><Badge tone="blue">{pipelineLabel[r.pipeline_status as PipelineStatus]}</Badge></Td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><Td colSpan={12} className="py-8 text-center text-muted">Aucun candidat ne correspond à ces critères.</Td></tr>}
+            {rows.length === 0 && <TableEmpty colSpan={12}>Aucun candidat ne correspond à ces critères.</TableEmpty>}
           </tbody>
         </Table>
       </Card>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Badge, Card, PageHeader, Pagination, ScorePill, Table, Td, Th } from "@/components/ui";
+import { Badge, Card, PageHeader, Pagination, ScorePill, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
@@ -51,7 +51,7 @@ export default async function AdminApplicationsPage(props: PageProps<"/admin/can
                 </tr>
               );
             })}
-            {(data ?? []).length === 0 && <tr><Td colSpan={6} className="text-center text-muted">Aucune candidature.</Td></tr>}
+            {(data ?? []).length === 0 && <TableEmpty colSpan={6}>Aucune candidature.</TableEmpty>}
           </tbody>
         </Table>
       </Card>

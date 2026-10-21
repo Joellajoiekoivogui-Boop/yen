@@ -69,10 +69,8 @@ export function MotionEngine() {
     // Lectures de position groupées puis écritures groupées : un seul calcul de mise en page
     const consider = (els: Element[]) => {
       const fresh = els.filter((el) => !el.hasAttribute("data-reveal-seen"));
-      const offscreen = fresh.filter((el) => {
-        const rect = el.getBoundingClientRect();
-        return !(rect.top < window.innerHeight && rect.bottom > 0); // déjà à l'écran : animation CSS immédiate
-      });
+      // seuls les éléments sous l'écran attendent : ceux déjà à l'écran (ou au-dessus) gardent l'animation CSS immédiate
+      const offscreen = fresh.filter((el) => el.getBoundingClientRect().top >= window.innerHeight);
       fresh.forEach((el) => el.setAttribute("data-reveal-seen", ""));
       offscreen.forEach((el) => {
         el.setAttribute("data-reveal-pending", "");

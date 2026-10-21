@@ -10,8 +10,9 @@ export function SignInForm({ next }: { next?: string }) {
     <EntityForm
       schema={signInSchema}
       submitLabel="Se connecter"
+      stacked
       fields={[
-        { name: "email", label: "Adresse e-mail", type: "email", autoComplete: "email", required: true, colSpan: 2 },
+        { name: "email", label: "Adresse e-mail", type: "email", autoComplete: "username", required: true, colSpan: 2 },
         { name: "password", label: "Mot de passe", type: "password", autoComplete: "current-password", required: true, colSpan: 2 },
       ]}
       action={(v) => signInAction({ ...v, next })}
@@ -19,7 +20,7 @@ export function SignInForm({ next }: { next?: string }) {
         const to = (r.ok && (r.data as { redirectTo?: string } | undefined)?.redirectTo) || "/";
         window.location.assign(to);
       }}
-      footer={<Link href="/mot-de-passe-oublie" className="text-sm text-electric-700 hover:underline">Mot de passe oublié ?</Link>}
+      footer={<Link href="/mot-de-passe-oublie" className="mx-auto text-sm font-medium text-electric-700 hover:underline">Mot de passe oublié ?</Link>}
     />
   );
 }

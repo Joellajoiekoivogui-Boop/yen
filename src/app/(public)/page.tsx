@@ -28,7 +28,7 @@ const COMMITMENTS = [
 ];
 
 /** Mots qui défilent dans le titre (le dernier répète le premier pour une boucle sans saut). */
-const ROTATING_WORDS = ["au stage", "à l’emploi", "à l’alternance", "aux missions", "au stage"];
+const ROTATING_WORDS = ["au stage", "à l’emploi", "à l’alternance", "aux missions"];
 
 /** Particules du héros : positions fixes pour un rendu identique serveur / navigateur. */
 const PARTICLES = [
@@ -106,11 +106,11 @@ export default async function HomePage() {
               <span aria-hidden className="text-gold-300">
                 ouvrir l&apos;accès{" "}
                 <span className="word-rotator">
-                  <span className="word-rotator-track">
-                    {ROTATING_WORDS.map((w, i) => (
-                      <span key={i} className="text-shine">{w}</span>
-                    ))}
-                  </span>
+                  {ROTATING_WORDS.map((w, i) => (
+                    <span key={w} style={{ "--i": i } as CSSProperties}>
+                      <span className="text-shine">{w}</span>
+                    </span>
+                  ))}
                 </span>
               </span>
             </h1>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, ListChecks, Target } from "lucide-react";
-import { Badge, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Badge, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { confidenceLabel, levelLabel, skillSourceLabel } from "@/lib/labels";
@@ -121,7 +121,7 @@ export default async function SkillsPage() {
                   <Td><Badge tone={statusTone[s.status]}>{statusText[s.status]}</Badge></Td>
                 </tr>
               ))}
-              {b.skillAssessments.length === 0 && <tr><Td colSpan={6} className="text-center text-muted">Aucune preuve enregistrée.</Td></tr>}
+              {b.skillAssessments.length === 0 && <TableEmpty colSpan={6}>Aucune preuve enregistrée.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

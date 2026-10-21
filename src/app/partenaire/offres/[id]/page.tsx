@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ActionButton } from "@/components/forms/action-button";
 import { OfferForm } from "@/components/forms/offer-form";
-import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requirePartner } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { applicationStatusLabel, offerStatusLabel, type ApplicationStatus, type OfferStatus, type SkillLevel } from "@/lib/labels";
@@ -48,7 +48,7 @@ export default async function PartnerOfferPage(props: PageProps<"/partenaire/off
                   <Td className="text-right"><Link href={`/partenaire/candidatures/${a.id}`} className="text-sm text-electric-700 hover:underline">Ouvrir</Link></Td>
                 </tr>
               ))}
-              {(apps ?? []).length === 0 && <tr><Td colSpan={4} className="text-center text-muted">Aucune candidature visible.</Td></tr>}
+              {(apps ?? []).length === 0 && <TableEmpty colSpan={4}>Aucune candidature visible.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

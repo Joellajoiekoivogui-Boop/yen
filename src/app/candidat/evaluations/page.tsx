@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClipboardCheck, Clock } from "lucide-react";
-import { Badge, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Badge, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { attemptStatusLabel, levelLabel, type SkillLevel } from "@/lib/labels";
@@ -72,7 +72,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
                   <Td className="text-right"><Link href={`/candidat/evaluations/tentative/${t.id}`} className="text-sm text-electric-700 hover:underline">{t.status === "en_cours" ? "Reprendre" : "Détail"}</Link></Td>
                 </tr>
               ))}
-              {(attempts.data ?? []).length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Aucune tentative.</Td></tr>}
+              {(attempts.data ?? []).length === 0 && <TableEmpty colSpan={5}>Aucune tentative.</TableEmpty>}
             </tbody>
           </Table>
         </CardBody>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, Card, PageHeader, Table, Td, Th } from "@/components/ui";
+import { Badge, Card, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requirePartner } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { applicationStatusLabel, type ApplicationStatus } from "@/lib/labels";
@@ -31,7 +31,7 @@ export default async function PartnerApplicationsPage() {
                 <Td><Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge></Td>
               </tr>
             ))}
-            {(data ?? []).length === 0 && <tr><Td colSpan={5} className="text-center text-muted">Aucune candidature.</Td></tr>}
+            {(data ?? []).length === 0 && <TableEmpty colSpan={5}>Aucune candidature.</TableEmpty>}
           </tbody>
         </Table>
       </Card>

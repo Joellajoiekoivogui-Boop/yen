@@ -1,6 +1,6 @@
-import Link from "next/link";
+import { FlaskConical, PhoneCall } from "lucide-react";
 import { AppShell, type NavSection } from "@/components/layout/app-shell";
-import { Alert } from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fullName } from "@/lib/utils";
@@ -51,11 +51,27 @@ export default async function CandidateLayout({ children }: { children: React.Re
       user={{ name: fullName(ctx.profile), email: ctx.email, roleLabel: "Candidat" }}
       topBanner={
         <>
-          {ctx.profile.is_demo && <Alert tone="warning" className="mb-4" title="Compte de démonstration">Ce compte et ses données sont fictifs.</Alert>}
+          {ctx.profile.is_demo && (
+            <p className="mb-4 inline-flex animate-slide-down items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-800 ring-1 ring-violet-200">
+              <FlaskConical className="size-3.5 shrink-0" aria-hidden />
+              Compte de démonstration · données fictives
+            </p>
+          )}
           {!ctx.profile.phone?.trim() && (
-            <Alert tone="error" className="mb-4" title="Numéro de téléphone obligatoire">
-              Ajoutez votre numéro dans <Link href="/candidat/profil" className="font-semibold underline">Mon profil</Link> : sans lui, l&apos;équipe YEN ne peut pas vous contacter et vous ne pouvez pas postuler aux offres.
-            </Alert>
+            <div role="status" className="mb-6 flex animate-slide-down items-start gap-3 rounded-[var(--radius-card)] border border-red-200 bg-gradient-to-r from-red-50 to-white p-4 sm:items-center">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-red-100 text-red-700">
+                <PhoneCall className="size-5" aria-hidden />
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-red-900">Numéro de téléphone obligatoire</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-red-800">Sans lui, l&apos;équipe YEN ne peut pas vous contacter et vous ne pouvez pas postuler aux offres.</p>
+                </div>
+                <ButtonLink href="/candidat/profil" variant="primary" size="sm" className="self-start sm:self-auto">
+                  Ajouter mon numéro
+                </ButtonLink>
+              </div>
+            </div>
           )}
         </>
       }

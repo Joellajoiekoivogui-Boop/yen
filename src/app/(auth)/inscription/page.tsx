@@ -28,7 +28,7 @@ export default async function SignUpPage(props: PageProps<"/inscription">) {
           <SignUpForms domains={domains.map((d) => ({ id: d.id, name: d.name }))} initialType={param(sp.type) === "partenaire" ? "partenaire" : "candidat"} />
         )}
       </div>
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-6 border-t border-border pt-5 text-center text-sm text-slate-600">
         Déjà inscrit ? <Link href="/connexion" className="font-medium text-electric-700 hover:underline">Se connecter</Link>
       </p>
     </Card>

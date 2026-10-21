@@ -2,14 +2,9 @@ import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 import { BackToTop } from "@/components/feedback/back-to-top";
 import { cookies } from "next/headers";
+import { PublicNav } from "@/components/layout/public-nav";
+import { PUBLIC_NAV as NAV } from "@/components/layout/public-nav-links";
 import { ButtonLink } from "@/components/ui";
-
-const NAV = [
-  { href: "/presentation", label: "Présentation" },
-  { href: "/fonctionnement", label: "Fonctionnement" },
-  { href: "/domaines", label: "Domaines" },
-  { href: "/partenaires", label: "Partenaires" },
-];
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   // Présence d'une session (sans requête en base) ; « Mon espace » passe par la connexion, qui redirige vers l'espace du compte
@@ -19,13 +14,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Logo compact />
-          <nav className="hidden items-center gap-6 md:flex" aria-label="Navigation publique">
-            {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className="nav-link text-sm font-medium text-slate-600 transition-colors hover:text-navy-900">
-                {n.label}
-              </Link>
-            ))}
-          </nav>
+          <PublicNav variant="desktop" />
           <div className="flex items-center gap-2">
             {signedIn ? (
               <ButtonLink href="/connexion" variant="secondary" size="sm">Mon espace</ButtonLink>
@@ -37,13 +26,7 @@ export default async function PublicLayout({ children }: { children: React.React
             )}
           </div>
         </div>
-        <nav className="flex gap-4 overflow-x-auto border-t border-border/60 px-4 py-2 md:hidden" aria-label="Navigation publique (mobile)">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="text-sm whitespace-nowrap text-slate-600">
-              {n.label}
-            </Link>
-          ))}
-        </nav>
+        <PublicNav variant="mobile" />
         <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-navy-700 via-gold-400 to-navy-700" />
       </header>
       <main id="contenu" className="flex-1">{children}</main>
