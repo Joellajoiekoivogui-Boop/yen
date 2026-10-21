@@ -251,3 +251,37 @@ begin
     execute format('create policy %I on public.%I for select to authenticated using (is_active or public.has_permission(''catalog.manage''))', t || '_member_read', t);
   end loop;
 end $$;
+
+-- -----------------------------------------------------------------------------
+-- 6. Stockage : compte actif exigé pour lire ou supprimer ses fichiers, et
+--    40 fichiers au plus par compte (pas d'hébergement de fichiers détourné).
+-- -----------------------------------------------------------------------------
+create or replace function public._storage_quota_ok()
+returns boolean language sql stable security definer set search_path = public as $$
+  select (select count(*) from storage.objects o
+          where o.bucket_id = 'candidate-documents' and (storage.foldername(o.name))[1] = auth.uid()::text) < 40
+$$;
+create or replace function public._is_active_user()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_active)
+$$;
+revoke all on function public._storage_quota_ok() from public, anon;
+revoke all on function public._is_active_user() from public, anon;
+grant execute on function public._storage_quota_ok() to authenticated, service_role;
+grant execute on function public._is_active_user() to authenticated, service_role;
+
+drop policy if exists "candidate_documents_insert_own" on storage.objects;
+create policy "candidate_documents_insert_own" on storage.objects for insert to authenticated
+  with check (bucket_id = 'candidate-documents' and (storage.foldername(name))[1] = auth.uid()::text
+              and lower(name) ~ '\.(pdf|jpe?g|png|webp)$'
+              and public._is_active_user() and public._storage_quota_ok());
+
+drop policy if exists "candidate_documents_select" on storage.objects;
+create policy "candidate_documents_select" on storage.objects for select to authenticated
+  using (bucket_id = 'candidate-documents'
+         and (((storage.foldername(name))[1] = auth.uid()::text and public._is_active_user())
+              or public.has_permission('documents.read')));
+
+drop policy if exists "candidate_documents_delete_own" on storage.objects;
+create policy "candidate_documents_delete_own" on storage.objects for delete to authenticated
+  using (bucket_id = 'candidate-documents' and (storage.foldername(name))[1] = auth.uid()::text and public._is_active_user());

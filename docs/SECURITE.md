@@ -62,11 +62,27 @@ déconnexion immédiate d'un compte désactivé).
 - Étapes internes YEN et leur motif : invisibles du candidat et du partenaire.
 - Liens web `http(s)` imposés en base ; consentements non consultables sans connexion.
 
-Risques acceptés : `script-src 'unsafe-inline'` (requis par Next.js sans nonce, incompatible avec les pages
-statiques) ; un candidat peut se placer lui-même « en évaluation » (étape automatique sans enjeu de sécurité).
+## Surface d'exposition minimale (migration 13 et front)
 
-Ces règles sont couvertes par 76 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`,
+- Notifications : aucun texte libre d'un candidat ou d'un partenaire ; `notify_event` vérifie l'auteur de
+  l'événement puis rédige les messages en base (une seule fois par événement).
+- Pipeline automatique recalculé en base (`refresh_auto_pipeline`, mêmes règles que `completion.ts`).
+- Journal applicatif : liste fermée d'actions.
+- Privilèges par liste blanche : aucune fonction exécutable sans connexion ; les visiteurs ne lisent que le
+  catalogue public (règles sans appel de fonction) ; fonctions internes inaccessibles aux comptes connectés ;
+  droits par défaut retirés pour les objets futurs.
+- Stockage : compte actif exigé, 40 fichiers au plus par compte.
+- Front : CSP avec nonce par requête et `'strict-dynamic'` (aucun script en ligne injecté ne s'exécute, testé) ;
+  aucune origine externe sur les pages publiques ; cookies de session `httpOnly` (le navigateur n'utilise jamais
+  Supabase ; la clé publique n'est pas dans le code envoyé au navigateur) ; COOP/CORP ; `X-Robots-Tag: noindex`
+  sur les espaces connectés ; pas de cartes de sources (source maps) en production.
+
+Point connu hors production : une alerte `braces` dans l'outil de vérification du code (`eslint-config-next`,
+dépendance de développement, jamais déployée) ; aucune version corrigée n'existe à ce jour.
+
+Ces règles sont couvertes par 80 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`,
 `tests/db/server-functions.test.ts`, `tests/db/security-audit.test.ts`).
+
 
 ## Documents
 

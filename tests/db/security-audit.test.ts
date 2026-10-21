@@ -173,6 +173,24 @@ d("Audit de sécurité : non-régression", () => {
     expect((await db.query("select actor_id from public.audit_logs where entity_id = 'y'")).rows).toEqual([{ actor_id: U.alice }]);
   });
 
+  it("stockage : 40 fichiers au plus par compte, et plus aucun accès aux fichiers une fois désactivé", async () => {
+    const put = (i: number) => db.query("insert into storage.objects (bucket_id, name) values ('candidate-documents', $1)", [`${U.alice}/f${i}.pdf`]);
+    await asUser(db, U.alice, async () => {
+      for (let i = 0; i < 40; i++) await put(i);
+      await expect(put(40)).rejects.toThrow();
+    });
+    await asUser(db, U.alice, () => put(100), { commit: true });
+    await db.query("update public.profiles set is_active = false where id = $1", [U.alice]);
+    try {
+      const seen = await as(U.alice, "select name from storage.objects where name = $1", [`${U.alice}/f100.pdf`]);
+      expect(seen).toHaveLength(0);
+      const del = await asUser(db, U.alice, () => db.query("delete from storage.objects where name = $1", [`${U.alice}/f100.pdf`]));
+      expect(del.rowCount).toBe(0);
+    } finally {
+      await db.query("update public.profiles set is_active = true where id = $1", [U.alice]);
+    }
+  });
+
   it("les consentements ne sont pas consultables sans connexion", async () => {
     await expect(as(null, "select public.has_consent($1, 'partage_partenaires')", [alice])).rejects.toThrow(/permission/);
   });
