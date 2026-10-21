@@ -8,6 +8,8 @@ const chromium = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
  * - « parcours » : parcours complet candidat → YEN → partenaire, nécessite une
  *   pile Supabase (E2E_STACK=1, voir tests/e2e-stack/start.sh) avec un
  *   administrateur et les données de démonstration.
+ * - « google » : connexion avec Google jusqu'à la page de Google (simulée), sur téléphone ;
+ *   pile Supabase avec le fournisseur Google activé (valeurs factices, aucun accès à Google).
  */
 export default defineConfig({
   testDir: "tests/e2e",
@@ -27,5 +29,6 @@ export default defineConfig({
     { name: "public", testMatch: /public\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", testMatch: /public\.spec\.ts/, use: { ...devices["Pixel 7"] } },
     { name: "parcours", testMatch: /journey\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
+    { name: "google", testMatch: /google\.spec\.ts/, use: { ...devices["Pixel 7"] } },
   ],
 });

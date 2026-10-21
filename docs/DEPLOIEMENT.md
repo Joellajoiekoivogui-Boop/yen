@@ -42,6 +42,29 @@ npm ci && npm run build && npm start   # port 3000 ; placer derrière un proxy H
 
 Le proxy Next.js (`src/proxy.ts`) s'exécute dans le runtime Node.js. Prévoir HTTPS (HSTS est envoyé).
 
+## Connexion avec Google (facultative)
+
+Le bouton « Continuer avec Google » apparaît automatiquement sur la connexion et l'inscription
+candidat dès que le fournisseur Google est activé dans Supabase (sinon il reste masqué).
+Aucune variable d'environnement à ajouter dans Vercel : l'identifiant et le secret Google restent dans Supabase.
+
+1. Google Cloud Console : créer (ou choisir) un projet, configurer l'écran de consentement OAuth
+   (type « Externe », nom de l'application, e-mail d'assistance, domaine du site).
+2. *API et services › Identifiants › Créer des identifiants › ID client OAuth*, type **Application Web**.
+   - Origines JavaScript autorisées : `http://localhost:3000` (développement) et le domaine de production.
+   - URI de redirection autorisés : l'URL **Callback URL** affichée par Supabase
+     (*Authentication › Sign In / Providers › Google*), copiée telle quelle.
+3. Supabase › *Authentication › Sign In / Providers › Google* : activer, coller l'ID client et le secret client, enregistrer.
+4. Supabase › *Authentication › URL Configuration* : Site URL = domaine de production ; Redirect URLs :
+   `https://<domaine>/auth/callback**` et `http://localhost:3000/auth/callback**`.
+5. `NEXT_PUBLIC_SITE_URL` (Vercel) doit être le domaine de production : c'est l'adresse de retour envoyée à Supabase.
+
+Fonctionnement : `/auth/google` démarre la connexion côté serveur (vérificateur PKCE en cookie httpOnly),
+`/auth/callback` échange le code contre une session, refuse un compte désactivé, reprend le prénom et le nom
+du compte Google et enregistre l'acceptation des conditions. Un nouveau compte Google devient un compte
+candidat ; le téléphone, obligatoire, est demandé ensuite. Un compte existant avec la même adresse e-mail
+(confirmée) est relié automatiquement par Supabase et garde ses rôles (administrateur compris).
+
 ## Check-list de mise en production
 
 - [ ] Migrations appliquées, catalogue chargé, bucket `candidate-documents` privé

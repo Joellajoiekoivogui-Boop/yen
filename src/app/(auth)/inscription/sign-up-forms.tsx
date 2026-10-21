@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { MailCheck } from "lucide-react";
+import { AuthDivider, GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { GoogleTermsNote } from "@/components/auth/google-terms-note";
 import { EntityForm } from "@/components/forms/entity-form";
 import { signUpCandidateAction, signUpPartnerAction } from "@/features/auth/actions";
 import { MIN_PASSWORD_LENGTH } from "@/features/auth/password-rules";
@@ -19,7 +21,7 @@ const terms = (
 );
 
 /** Inscription en une étape : quelques champs seulement, le reste se complète ensuite dans le profil. */
-export function SignUpForms({ initialType }: { initialType: "candidat" | "partenaire" }) {
+export function SignUpForms({ initialType, google = false }: { initialType: "candidat" | "partenaire"; google?: boolean }) {
   const [type, setType] = useState(initialType);
   const [done, setDone] = useState<{ message: string; email: string } | null>(null);
   // adresse saisie, pour le renvoi de l'e-mail de confirmation (référence : lue après l'envoi)
@@ -68,6 +70,13 @@ export function SignUpForms({ initialType }: { initialType: "candidat" | "parten
         ))}
       </div>
 
+      {type === "candidat" && google && (
+        <div className="mb-6 space-y-4">
+          <GoogleSignInButton acceptTerms label="S'inscrire avec Google" />
+          <GoogleTermsNote />
+          <AuthDivider />
+        </div>
+      )}
       {type === "candidat" ? (
         <EntityForm
           key="candidat"
