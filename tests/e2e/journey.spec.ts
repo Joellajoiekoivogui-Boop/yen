@@ -166,6 +166,30 @@ test("le candidat téléverse un CV PDF et refuse un faux PDF", async ({ page })
   expect(generated.headers()["content-type"]).toBe("application/pdf");
 });
 
+test("le dépôt du CV marche après une arrivée par l'accueil, et même si le stockage est bloqué", async ({ page }) => {
+  await login(page, candidate.email, candidate.password);
+  // arrivée par une page publique puis navigation interne : la politique de sécurité du premier chargement reste en vigueur
+  await page.goto("/");
+  await page.getByRole("link", { name: "Mon espace" }).first().click();
+  await page.waitForURL(/\/candidat$/);
+  await page.getByRole("link", { name: "Mon CV" }).first().click();
+  await page.waitForURL(/\/candidat\/cv$/);
+  const direct = page.waitForResponse((r) => r.url().includes("/object/upload/sign/") && r.request().method() === "PUT");
+  await page.locator("#cv-file").setInputFiles({ name: "cv-accueil.pdf", mimeType: "application/pdf", buffer: await cvPdf() });
+  await page.getByRole("button", { name: "Téléverser mon CV" }).click();
+  expect((await direct).status()).toBe(200);
+  await expect(page.getByText(/^CV téléversé et texte extrait/)).toBeVisible({ timeout: 20_000 });
+
+  // adresse du stockage injoignable depuis le navigateur : envoi de secours par le serveur
+  await page.route("**/storage/v1/object/upload/sign/**", (route) => route.abort());
+  await page.locator("#cv-file").setInputFiles({ name: "cv-secours.pdf", mimeType: "application/pdf", buffer: await cvPdf() });
+  await page.getByRole("button", { name: "Téléverser mon CV" }).click();
+  await expect(page.getByText(/^CV téléversé et texte extrait/)).toBeVisible({ timeout: 20_000 });
+  await page.unroute("**/storage/v1/object/upload/sign/**");
+  await page.reload();
+  await expect(page.getByText("cv-secours.pdf").first()).toBeVisible();
+});
+
 test("le candidat ajoute un certificat (photo ou PDF) en un seul formulaire", async ({ page }) => {
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/certifications");
@@ -247,7 +271,7 @@ test("le responsable YEN consulte le candidat, le classement et transmet au part
   // Dossier complet : coordonnées, CV, formations, certificats et compétences sur une seule page
   await expect(page.getByRole("link", { name: "Appeler" })).toHaveAttribute("href", "tel:+224620112233");
   await expect(page.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", "https://wa.me/224620112233");
-  await expect(page.getByText("mon-cv.pdf")).toBeVisible();
+  await expect(page.getByText("cv-secours.pdf")).toBeVisible();
   await expect(page.getByText("Formations suivies")).toBeVisible();
   const thumb = page.getByRole("img", { name: "Justificatif : certificat.png" });
   await expect(thumb).toBeVisible();

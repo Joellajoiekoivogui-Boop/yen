@@ -135,31 +135,37 @@ function CertificateForm({ item, maxBytes, onDone, onCancel }: { item?: Certific
     if (preview) URL.revokeObjectURL(preview);
   }, [preview]);
 
+  /** Contrôles du fichier ; renvoie un message d'erreur ou null. */
+  const fileError = (f: File) => (!isAccepted(f) ? "Format non accepté : PDF ou photo (JPEG, PNG, WebP)." : f.size > maxBytes ? `Le fichier dépasse ${maxMb} Mo.` : null);
   const choose = (f: File | undefined) => {
     if (!f) return;
-    if (!isAccepted(f)) return setErrors((e) => ({ ...e, file: "Format non accepté : PDF ou photo (JPEG, PNG, WebP)." }));
-    if (f.size > maxBytes) return setErrors((e) => ({ ...e, file: `Le fichier dépasse ${maxMb} Mo.` }));
-    setErrors((e) => ({ ...e, file: undefined }));
+    const err = fileError(f);
+    setErrors((e) => ({ ...e, file: err ?? undefined }));
+    if (err) return;
     setFile(f);
     setPreview(f.type.startsWith("image/") ? URL.createObjectURL(f) : null);
   };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    // fichier choisi avant le chargement complet de la page (connexion lente) : lu directement dans le champ
+    const pickedEarly = file ? null : fileInput.current?.files?.[0];
+    const selected = file ?? (pickedEarly && !fileError(pickedEarly) ? pickedEarly : null);
     const next: Partial<Record<Field, string>> = {};
+    if (pickedEarly && fileError(pickedEarly)) next.file = fileError(pickedEarly)!;
     if (!values.name.trim()) next.name = "Indiquez la formation suivie.";
     if (!values.issuer.trim()) next.issuer = "Indiquez l'organisation.";
     if (!values.training_period.trim()) next.training_period = "Indiquez quand vous avez suivi la formation.";
-    if (!item && !file) next.file = "Ajoutez le certificat (PDF ou photo).";
+    if (!item && !selected && !next.file) next.file = "Ajoutez le certificat (PDF ou photo).";
     setErrors(next);
     setFormError(null);
     if (Object.keys(next).length) return;
 
     start(async () => {
       let upload_path: string | undefined;
-      if (file) {
+      if (selected) {
         setProgress(0);
-        const up = await uploadDirect(file, "certificate", setProgress);
+        const up = await uploadDirect(selected, "certificate", setProgress);
         if (!up.ok) {
           setProgress(null);
           return setFormError(up.error);
@@ -169,7 +175,7 @@ function CertificateForm({ item, maxBytes, onDone, onCancel }: { item?: Certific
       }
       let r;
       try {
-        r = await saveCertificateAction({ ...values, id: item?.id, upload_path, filename: file?.name });
+        r = await saveCertificateAction({ ...values, id: item?.id, upload_path, filename: selected?.name });
       } catch {
         r = { ok: false as const, error: "L'enregistrement a été interrompu. Vérifiez votre connexion puis réessayez." };
       }
@@ -223,10 +229,7 @@ function CertificateForm({ item, maxBytes, onDone, onCancel }: { item?: Certific
           accept={ACCEPT}
           className="sr-only"
           aria-labelledby={`${formId}-file-label`}
-          onChange={(e) => {
-            choose(e.target.files?.[0]);
-            e.target.value = "";
-          }}
+          onChange={(e) => choose(e.target.files?.[0])}
         />
         <button
           type="button"

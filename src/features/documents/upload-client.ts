@@ -1,8 +1,10 @@
-import { prepareUploadAction, type UploadPurpose } from "./actions";
+import { prepareUploadAction, stageUploadAction, type UploadPurpose } from "./actions";
 
 export type DirectUploadResult = { ok: true; path: string } | { ok: false; error: string };
 
 const NETWORK_ERROR = "La connexion a été interrompue pendant l'envoi. Vérifiez votre connexion internet puis réessayez.";
+/** Envoi de secours par le serveur : limite de l'hébergeur (4,5 Mo par requête), marge comprise. */
+const SERVER_FALLBACK_MAX_BYTES = 4 * 1024 * 1024;
 
 function storageError(status: number, body: string): string {
   let message = "";
@@ -37,7 +39,7 @@ export async function uploadDirect(file: File, purpose: UploadPurpose, onProgres
   body.append("cacheControl", "0");
   body.append("", new File([file], file.name, { type: contentType }));
 
-  return new Promise((resolve) => {
+  const direct = await new Promise<DirectUploadResult | "network">((resolve) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", signedUrl);
     xhr.setRequestHeader("x-upsert", "false");
@@ -46,8 +48,23 @@ export async function uploadDirect(file: File, purpose: UploadPurpose, onProgres
       if (e.lengthComputable) onProgress?.(Math.min(99, Math.round((e.loaded / e.total) * 100)));
     };
     xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300 ? { ok: true, path } : { ok: false, error: storageError(xhr.status, xhr.responseText) });
-    xhr.onerror = () => resolve({ ok: false, error: NETWORK_ERROR });
-    xhr.ontimeout = () => resolve({ ok: false, error: NETWORK_ERROR });
+    // échec réseau : adresse du stockage injoignable ou bloquée (pare-feu, politique de sécurité du navigateur)
+    xhr.onerror = () => resolve("network");
+    xhr.ontimeout = () => resolve("network");
     xhr.send(body);
   });
+  if (direct !== "network") return direct;
+
+  // Secours : envoi par le serveur de la plateforme (fichiers de 4 Mo au plus)
+  if (file.size > SERVER_FALLBACK_MAX_BYTES) return { ok: false, error: NETWORK_ERROR };
+  onProgress?.(50);
+  const fd = new FormData();
+  fd.set("path", path);
+  fd.set("file", new File([file], file.name, { type: contentType }));
+  try {
+    const staged = await stageUploadAction(fd);
+    return staged.ok ? { ok: true, path } : { ok: false, error: staged.error };
+  } catch {
+    return { ok: false, error: NETWORK_ERROR };
+  }
 }

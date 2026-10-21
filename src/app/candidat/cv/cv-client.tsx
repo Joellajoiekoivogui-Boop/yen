@@ -17,22 +17,34 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
-  const [file, setFile] = useState<File | null>(null);
+  const [chosen, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const choose = (f: File | undefined) => {
+  /** Contrôles avant l'envoi ; renvoie le fichier retenu ou null (message affiché). */
+  const check = (f: File | undefined | null): File | null => {
     setMsg(null);
-    if (!f) return;
-    if (!isPdf(f)) return setMsg({ ok: false, text: "Le CV doit être un fichier PDF. Depuis Word ou Google Docs : Fichier › Enregistrer sous (ou Télécharger) › PDF." });
-    if (f.size > maxMb * 1024 * 1024) return setMsg({ ok: false, text: `Le fichier dépasse ${maxMb} Mo. Réduisez sa taille (par exemple en l'exportant sans images haute définition).` });
-    setFile(f);
+    if (!f) return null;
+    if (!isPdf(f)) {
+      setMsg({ ok: false, text: "Le CV doit être un fichier PDF. Depuis Word ou Google Docs : Fichier › Enregistrer sous (ou Télécharger) › PDF." });
+      return null;
+    }
+    if (f.size > maxMb * 1024 * 1024) {
+      setMsg({ ok: false, text: `Le fichier dépasse ${maxMb} Mo. Réduisez sa taille (par exemple en l'exportant sans images haute définition).` });
+      return null;
+    }
+    return f;
   };
+  const choose = (f: File | undefined) => setFile(check(f));
 
   const send = () => {
-    if (!file) return setMsg({ ok: false, text: "Choisissez d'abord votre CV au format PDF." });
-    setMsg(null);
+    // fichier choisi avant le chargement complet de la page (connexion lente) : lu directement dans le champ
+    const file = check(chosen ?? input.current?.files?.[0]);
+    if (!file) {
+      if (!chosen && !input.current?.files?.length) setMsg({ ok: false, text: "Choisissez d'abord votre CV au format PDF." });
+      return;
+    }
     start(async () => {
       setProgress(0);
       const up = await uploadDirect(file, "cv", setProgress);
@@ -51,6 +63,7 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
       setMsg({ ok: r.ok, text: r.ok ? (r.message ?? "CV téléversé.") : r.error });
       if (r.ok) {
         setFile(null);
+        if (input.current) input.current.value = "";
         router.refresh();
       }
     });
@@ -64,10 +77,7 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
         type="file"
         accept="application/pdf,.pdf"
         className="sr-only"
-        onChange={(e) => {
-          choose(e.target.files?.[0]);
-          e.target.value = "";
-        }}
+        onChange={(e) => choose(e.target.files?.[0])}
       />
       <label
         htmlFor="cv-file"
@@ -86,10 +96,10 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
           dragging ? "scale-[1.01] border-gold-400 bg-gold-50" : "border-border bg-slate-50 hover:border-electric-300 hover:bg-white",
         )}
       >
-        {file ? <FileText className="size-7 text-red-600" aria-hidden /> : <UploadCloud className={cn("size-7 text-electric-600", dragging && "animate-bounce-soft")} aria-hidden />}
-        <span className="text-sm font-medium text-navy-900">{file ? file.name : dragging ? "Déposez votre CV ici" : "Choisir mon CV (PDF) ou le glisser ici"}</span>
+        {chosen ? <FileText className="size-7 text-red-600" aria-hidden /> : <UploadCloud className={cn("size-7 text-electric-600", dragging && "animate-bounce-soft")} aria-hidden />}
+        <span className="text-sm font-medium text-navy-900">{chosen ? chosen.name : dragging ? "Déposez votre CV ici" : "Choisir mon CV (PDF) ou le glisser ici"}</span>
         <span className="text-xs text-muted">
-          {file ? `${(file.size / 1024 / 1024).toFixed(2).replace(".", ",")} Mo · cliquez pour changer de fichier` : `PDF uniquement · ${maxMb} Mo maximum · stockage privé`}
+          {chosen ? `${(chosen.size / 1024 / 1024).toFixed(2).replace(".", ",")} Mo · cliquez pour changer de fichier` : `PDF uniquement · ${maxMb} Mo maximum · stockage privé`}
         </span>
       </label>
       {progress !== null && (
@@ -98,7 +108,7 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
         </div>
       )}
       {msg && <Alert tone={msg.ok ? "success" : "error"}>{msg.text}</Alert>}
-      <Button type="button" variant="secondary" disabled={pending || !file} onClick={send}>
+      <Button type="button" variant="secondary" disabled={pending} onClick={send}>
         {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <CheckCircle2 className="size-4" aria-hidden />}
         {pending ? (progress !== null && progress < 100 ? `Envoi… ${progress} %` : "Vérification…") : "Téléverser mon CV"}
       </Button>

@@ -16,7 +16,9 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProtected = PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
   const nonce = btoa(crypto.randomUUID());
-  const csp = contentSecurityPolicy(nonce, path);
+  // Cookie de session présent (vérifié plus bas) : droits d'aperçu et d'envoi de fichiers dès la première page
+  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+  const csp = contentSecurityPolicy(nonce, path, hasSession);
 
   // Next.js lit le nonce dans l'en-tête CSP de la requête et l'applique à ses scripts
   const forward = () => {
@@ -40,7 +42,6 @@ export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured()) return isProtected ? redirectTo("/connexion", { config: "manquante" }) : forward();
 
   // Visiteur sans cookie de session : rien à rafraîchir ni à vérifier
-  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
   if (!hasSession) return isProtected ? redirectTo("/connexion", { suivant: path }) : forward();
 
   let response = forward();
