@@ -1,5 +1,6 @@
 import { AppShell, type NavSection } from "@/components/layout/app-shell";
 import { requireUser } from "@/lib/auth/session";
+import { deferredCount } from "@/lib/supabase/count";
 import { createClient } from "@/lib/supabase/server";
 import { fullName } from "@/lib/utils";
 
@@ -11,7 +12,8 @@ export default async function PartnerLayout({ children }: { children: React.Reac
   const ctx = await requireUser();
   const active = ctx.partnerOrganizationIds.length > 0;
   const supabase = await createClient();
-  const { count: unread } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null);
+  // compteur de la pastille : chargé en parallèle de la page, sans la retarder
+  const unread = deferredCount(supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null));
   const sections: NavSection[] = active
     ? [
         { items: [{ href: "/partenaire", label: "Tableau de bord", short: "Accueil", icon: "LayoutDashboard", exact: true }] },
@@ -27,7 +29,7 @@ export default async function PartnerLayout({ children }: { children: React.Reac
           title: "Compte",
           items: [
             { href: "/partenaire/organisation", label: "Mon organisation", icon: "Building2" },
-            { href: "/partenaire/notifications", label: "Notifications", icon: "Bell", badge: unread ?? 0 },
+            { href: "/partenaire/notifications", label: "Notifications", icon: "Bell", badge: unread },
           ],
         },
       ]

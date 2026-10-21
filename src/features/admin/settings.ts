@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { DEFAULT_WEIGHTS, normalizeWeights, type Weights } from "@/features/matching/engine";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,14 +9,19 @@ import { createClient } from "@/lib/supabase/server";
  */
 const PUBLIC_KEYS = new Set(["documents.max_cv_size_mb"]);
 
-async function readSetting(key: string): Promise<unknown> {
+/** Tous les paramètres lisibles, en une seule requête par affichage de page (partagée par tous les appels). */
+const loadSettings = cache(async (): Promise<Map<string, unknown>> => {
   try {
     const supabase = await createClient();
-    const { data } = await supabase.from("platform_settings").select("value").eq("key", key).maybeSingle();
-    return data?.value ?? null;
+    const { data } = await supabase.from("platform_settings").select("key, value");
+    return new Map((data ?? []).map((r) => [r.key as string, r.value]));
   } catch {
-    return null;
+    return new Map();
   }
+});
+
+async function readSetting(key: string): Promise<unknown> {
+  return (await loadSettings()).get(key) ?? null;
 }
 
 export async function getPublicSetting(key: string): Promise<unknown> {

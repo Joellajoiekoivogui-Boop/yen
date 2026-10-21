@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { Suspense, use, useState, type ReactNode } from "react";
 import {
   Bell, BookOpenCheck, Bot, Briefcase, Building2, ClipboardCheck, ClipboardList, FileSearch, FileText, FolderKanban, GraduationCap,
   Handshake, LayoutDashboard, Layers, LineChart, ListChecks, LogOut, Menu, Route, ScrollText, Send, Settings, ShieldCheck, Sparkles,
@@ -22,7 +22,8 @@ export interface NavItem {
   href: string;
   label: string;
   icon: NavIcon;
-  badge?: number;
+  /** Pastille : nombre, ou promesse transmise par le serveur (affichée dès qu'elle est résolue). */
+  badge?: number | Promise<number>;
   exact?: boolean;
   /** Libellé court pour la barre de navigation mobile. */
   short?: string;
@@ -36,6 +37,20 @@ export interface NavSection {
 function Icon({ name, className }: { name: NavIcon; className?: string }) {
   const C = ICONS[name];
   return <C className={className} aria-hidden />;
+}
+
+/** Pastille de compteur : la navigation s'affiche sans attendre le nombre. */
+function Badge({ value, className }: { value: NavItem["badge"]; className: string }) {
+  if (value === undefined || value === 0) return null;
+  return (
+    <Suspense fallback={null}>
+      <BadgeValue value={value} className={className} />
+    </Suspense>
+  );
+}
+function BadgeValue({ value, className }: { value: number | Promise<number>; className: string }) {
+  const n = typeof value === "number" ? value : use(value);
+  return n ? <span className={className}>{n}</span> : null;
 }
 
 /** Coque applicative avec navigation latérale responsive (candidat, administration, partenaire). */
@@ -100,9 +115,7 @@ export function AppShell({
                       className={cn("size-4 shrink-0 transition-transform duration-300 ease-spring group-hover:translate-x-0.5 group-hover:scale-110", active && !dark && "text-navy-700", active && dark && "text-gold-300")}
                     />
                     <span className="truncate">{item.label}</span>
-                    {item.badge ? (
-                      <span className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")}>{item.badge}</span>
-                    ) : null}
+                    <Badge value={item.badge} className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")} />
                   </IntentLink>
                 </li>
               );
@@ -214,6 +227,7 @@ export function AppShell({
                 <li key={item.href}>
                   <IntentLink
                     href={item.href}
+                    eager={!active}
                     aria-current={active ? "page" : undefined}
                     className={cn("group flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors", dark ? (active ? "text-white" : "text-navy-200") : active ? "text-navy-900" : "text-slate-500")}
                   >
@@ -224,7 +238,7 @@ export function AppShell({
                       )}
                     >
                       <Icon name={item.icon} className="size-[18px]" />
-                      {item.badge ? <span className="absolute -top-1 right-1.5 grid min-w-4 animate-pop-in place-items-center rounded-full bg-red-500 px-1 text-[10px] leading-4 font-bold text-white">{item.badge}</span> : null}
+                      <Badge value={item.badge} className="absolute -top-1 right-1.5 grid min-w-4 animate-pop-in place-items-center rounded-full bg-red-500 px-1 text-[10px] leading-4 font-bold text-white" />
                     </span>
                     <span className="max-w-[4.75rem] truncate">{item.short ?? item.label}</span>
                   </IntentLink>

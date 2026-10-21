@@ -2,18 +2,18 @@ import { AppShell, type NavItem, type NavSection } from "@/components/layout/app
 import { requireStaff } from "@/lib/auth/session";
 import type { Permission } from "@/lib/auth/permissions";
 import { roleLabel } from "@/lib/labels";
+import { deferredCount } from "@/lib/supabase/count";
 import { createClient } from "@/lib/supabase/server";
 import { fullName } from "@/lib/utils";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireStaff();
   const supabase = await createClient();
-  const [{ count: unread }, { count: toReview }] = await Promise.all([
-    supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null),
-    ctx.permissions.has("assessments.review")
-      ? supabase.from("assessment_attempts").select("id", { count: "exact", head: true }).eq("status", "en_correction")
-      : Promise.resolve({ count: 0 }),
-  ]);
+  // compteurs des pastilles : chargés en parallèle de la page, sans la retarder
+  const unread = deferredCount(supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null));
+  const toReview = ctx.permissions.has("assessments.review")
+    ? deferredCount(supabase.from("assessment_attempts").select("id", { count: "exact", head: true }).eq("status", "en_correction"))
+    : 0;
   const can = (p: Permission) => ctx.permissions.has(p);
   const items = (list: (NavItem & { perm?: Permission })[]) => list.filter((i) => !i.perm || can(i.perm));
 
@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       title: "Talents",
       items: items([
         { href: "/admin/talents", label: "Répertoire des talents", short: "Talents", icon: "Users", perm: "candidates.read" },
-        { href: "/admin/corrections", label: "Corrections et validations", icon: "ClipboardCheck", perm: "assessments.review", badge: toReview ?? 0 },
+        { href: "/admin/corrections", label: "Corrections et validations", icon: "ClipboardCheck", perm: "assessments.review", badge: toReview },
         { href: "/admin/evaluations", label: "Évaluations", icon: "ListChecks", perm: "assessments.manage" },
         { href: "/admin/catalogue", label: "Catalogue des métiers", icon: "Layers", perm: "catalog.manage" },
       ]),
@@ -44,7 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: "/admin/utilisateurs", label: "Utilisateurs et rôles", icon: "ShieldCheck", perm: "users.manage" },
         { href: "/admin/audit", label: "Journal d'audit", icon: "ScrollText", perm: "audit.read" },
         { href: "/admin/parametres", label: "Paramètres", icon: "Settings", perm: "settings.manage" },
-        { href: "/admin/notifications", label: "Notifications", icon: "Bell", badge: unread ?? 0 },
+        { href: "/admin/notifications", label: "Notifications", icon: "Bell", badge: unread },
       ]),
     },
   ].filter((s) => s.items.length > 0);

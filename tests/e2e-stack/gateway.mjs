@@ -204,8 +204,20 @@ function proxy(req, res, port, stripPrefix) {
   req.pipe(upstream);
 }
 
-http.createServer((req, res) => {
+// Mesure des performances : latence réseau simulée (GATEWAY_DELAY_MS) et compteur d'appels (GET /__stats)
+const DELAY = Number(process.env.GATEWAY_DELAY_MS ?? 0);
+const stats = { auth: 0, rest: 0, storage: 0 };
+
+http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
+  if (url.pathname === "/__stats") {
+    const out = { ...stats };
+    if (url.searchParams.has("reset")) Object.keys(stats).forEach((k) => (stats[k] = 0));
+    return send(res, 200, out);
+  }
+  const kind = url.pathname.startsWith("/auth/v1") ? "auth" : url.pathname.startsWith("/rest/v1") ? "rest" : url.pathname.startsWith("/storage/v1") ? "storage" : null;
+  if (kind) stats[kind]++;
+  if (DELAY && kind) await new Promise((r) => setTimeout(r, DELAY));
   if (url.pathname.startsWith("/auth/v1")) return proxy(req, res, 9999, /^\/auth\/v1/);
   if (url.pathname.startsWith("/rest/v1")) return proxy(req, res, 3001, /^\/rest\/v1/);
   if (url.pathname.startsWith("/storage/v1")) return storage(req, res, url);

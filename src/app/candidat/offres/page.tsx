@@ -41,9 +41,11 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
     supabase.from("candidate_profiles").select("primary_domain_id").eq("id", ctx.candidateId).single(),
   ]);
   const applied = new Set((myApps.data ?? []).map((a) => a.offer_id));
-  const evidence = await loadEvidence(supabase, ctx.candidateId, cand.data?.primary_domain_id ?? null);
-  const targets = await loadOfferTargets(supabase, (offers ?? []).map((o) => o.id));
-  const orgs = await loadOfferOrganizations(supabase, (offers ?? []).map((o) => o.organization_id));
+  const [evidence, targets, orgs] = await Promise.all([
+    loadEvidence(supabase, ctx.candidateId, cand.data?.primary_domain_id ?? null),
+    loadOfferTargets(supabase, (offers ?? []).map((o) => o.id)),
+    loadOfferOrganizations(supabase, (offers ?? []).map((o) => o.organization_id)),
+  ]);
   const scores = new Map(targets.map((t) => [t.id, evidence ? computeMatch(t, evidence) : null]));
   const qs = (p: number) => `?${new URLSearchParams({ ...(type ? { type } : {}), ...(domain ? { domaine: domain } : {}), ...(qText ? { q: qText } : {}), page: String(p) })}`;
 

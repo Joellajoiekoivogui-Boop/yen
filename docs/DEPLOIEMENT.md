@@ -17,6 +17,20 @@
 5. Vérifier : inscription + e-mail de confirmation, téléversement d'un CV, page *Paramètres → intégrations*.
 
 Région : choisir une région Supabase et Vercel proches des utilisateurs (ex. Europe de l'Ouest pour la Guinée).
+
+**Rapidité — réglage indispensable** : les fonctions Vercel doivent tourner dans la même région que la base Supabase,
+sinon chaque page traverse l'océan plusieurs fois (Vercel place les fonctions à Washington par défaut).
+Région Supabase : *Project Settings › General › Region*. Région Vercel : *Settings › Functions › Function Region*.
+
+| Région Supabase | Région Vercel |
+| --- | --- |
+| West EU (Paris) — eu-west-3 | Paris, France (cdg1) |
+| West EU (Ireland) — eu-west-1 | Dublin, Ireland (dub1) |
+| West EU (London) — eu-west-2 | London, England (lhr1) |
+| Central EU (Frankfurt) — eu-central-1 | Frankfurt, Germany (fra1) |
+| East US (North Virginia) — us-east-1 | Washington, D.C., USA (iad1) |
+
+Garder aussi **Fluid Compute** activé (*Settings › Functions*) : moins de démarrages à froid après une période sans visite.
 Durée d'exécution : les analyses IA peuvent prendre jusqu'à `AI_TIMEOUT_MS` ; sur Vercel, prévoir une durée maximale
 des fonctions suffisante (plan adapté).
 

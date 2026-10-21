@@ -59,16 +59,18 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // getClaims() rafraîchit la session si besoin puis vérifie le jeton localement
-  // (clés publiques en cache) : pas d'appel réseau à Supabase Auth à chaque clic.
-  let userId: string | null = null;
+  // getSession() lit la session dans les cookies et ne contacte Supabase Auth que pour
+  // rafraîchir un jeton sur le point d'expirer : aucun aller-retour réseau à chaque clic.
+  // Elle ne vérifie pas la signature : cette redirection n'est qu'un confort, l'identité est
+  // vérifiée dans chaque page et action (getClaims) et par la base (RLS) à chaque requête.
+  let signedIn = false;
   try {
-    const { data } = await supabase.auth.getClaims();
-    userId = data?.claims?.sub ?? null;
+    const { data } = await supabase.auth.getSession();
+    signedIn = Boolean(data?.session?.access_token);
   } catch {
-    userId = null;
+    signedIn = false;
   }
 
-  if (!userId && isProtected) return redirectTo("/connexion", { suivant: path });
+  if (!signedIn && isProtected) return redirectTo("/connexion", { suivant: path });
   return response;
 }

@@ -588,8 +588,10 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
   }
 
   async function OccupationsTab() {
-    const evidence = await loadEvidence(supabase, id, c.primary_domain_id);
-    const targets = await loadOccupationTargets(supabase, c.primary_domain_id && param(sp.tous) !== "1" ? { domainIds: [c.primary_domain_id] } : {});
+    const [evidence, targets] = await Promise.all([
+      loadEvidence(supabase, id, c.primary_domain_id),
+      loadOccupationTargets(supabase, c.primary_domain_id && param(sp.tous) !== "1" ? { domainIds: [c.primary_domain_id] } : {}),
+    ]);
     const ranked = evidence ? rankMatches(targets.map((t) => ({ target: t, match: computeMatch(t, evidence) }))).slice(0, 10) : [];
     return (
       <div className="space-y-4">

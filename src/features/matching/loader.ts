@@ -67,8 +67,7 @@ export async function loadOccupationTargets(supabase: SupabaseClient, opts: { do
     .eq("is_active", true);
   if (opts.domainIds?.length) q = q.in("domain_id", opts.domainIds);
   if (opts.occupationIds?.length) q = q.in("id", opts.occupationIds);
-  const { data } = await q;
-  const platform = await getDefaultWeights();
+  const [{ data }, platform] = await Promise.all([q, getDefaultWeights()]);
   return (data ?? []).map((o) => ({
     kind: "occupation" as const,
     id: o.id,
@@ -94,8 +93,7 @@ export async function loadOfferTarget(supabase: SupabaseClient, offerId: string)
 
 export async function loadOfferTargets(supabase: SupabaseClient, offerIds: string[]): Promise<MatchTarget[]> {
   if (!offerIds.length) return [];
-  const { data } = await supabase.from("job_offers").select(OFFER_SELECT).in("id", offerIds);
-  const platform = await getDefaultWeights();
+  const [{ data }, platform] = await Promise.all([supabase.from("job_offers").select(OFFER_SELECT).in("id", offerIds), getDefaultWeights()]);
   return (data ?? []).map((o) => offerToTarget(o, platform));
 }
 
