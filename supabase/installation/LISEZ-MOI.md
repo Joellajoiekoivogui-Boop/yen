@@ -10,8 +10,11 @@ Dans Supabase → **SQL Editor** → *New query*, coller puis **Run**, dans cet 
    - téléphone obligatoire pour les candidats ;
    - **toutes les fonctionnalités sans clé secrète** (évaluations, CV, notifications, vue partenaire…) ;
    - durcissement de sécurité issu de l'audit (comptes désactivés, liens, offres publiées…) ;
-   - surface d'exposition minimale (aucune fonction ni donnée accessible sans connexion hors catalogue).
+   - surface d'exposition minimale (aucune fonction ni donnée accessible sans connexion hors catalogue) ;
+   - certificats simplifiés : formation suivie, organisme, période de la formation et justificatif.
 
-   Ce fichier peut être exécuté plusieurs fois sans risque. Il remplace les anciens fichiers 4 et 5.
+   Ce fichier peut être exécuté plusieurs fois sans risque, même si une version précédente a déjà été
+   exécutée : **ré-exécutez-le après chaque mise à jour du site**. Tant qu'il manque, un bandeau rouge
+   « Base de données à mettre à jour » s'affiche dans la vue générale de l'administration.
 
 Ces fichiers sont générés à partir de `supabase/migrations/` et `supabase/seed.sql`.

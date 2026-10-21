@@ -17,7 +17,7 @@ export interface CandidateBundle {
   education: { id: string; institution: string; degree: string; field_of_study: string | null; start_year: number | null; end_year: number | null; is_yen_program: boolean; description: string | null; source: string }[];
   experiences: { id: string; title: string; organization: string; experience_type: string; city: string | null; start_date: string; end_date: string | null; is_current: boolean; description: string | null; achievements: string | null; domain_id: string | null; source: string }[];
   projects: { id: string; title: string; description: string; role: string | null; technologies: string[]; outcomes: string | null; project_url: string | null; repository_url: string | null; start_date: string | null; end_date: string | null; domain_id: string | null; verification_status: string; verification_note: string | null; project_skills: { skill_id: string; skills: { name: string } | null }[] }[];
-  certifications: { id: string; name: string; issuer: string; issue_date: string | null; expiry_date: string | null; credential_id: string | null; credential_url: string | null; verification_status: string; document_id: string | null }[];
+  certifications: { id: string; name: string; issuer: string; training_period: string | null; issue_date: string | null; expiry_date: string | null; credential_id: string | null; credential_url: string | null; verification_status: "verifie" | "rejete" | "non_verifie"; document_id: string | null }[];
   declaredSkills: { id: string; skill_id: string; self_level: SkillLevel; years_experience: number | null; evidence_note: string | null; source: string; skills: { name: string; domain_id: string | null; slug: string } | null }[];
   languages: { id: string; language: string; proficiency: string }[];
   consents: Record<string, boolean>;
@@ -37,7 +37,7 @@ export async function loadCandidateBundle(supabase: SupabaseClient, candidateId:
     supabase.from("candidate_education").select("*").eq("candidate_id", candidateId).order("end_year", { ascending: false, nullsFirst: true }),
     supabase.from("candidate_experiences").select("*").eq("candidate_id", candidateId).order("start_date", { ascending: false }),
     supabase.from("candidate_projects").select("*, project_skills(skill_id, skills(name))").eq("candidate_id", candidateId).order("created_at", { ascending: false }),
-    supabase.from("candidate_certifications").select("*").eq("candidate_id", candidateId).order("issue_date", { ascending: false, nullsFirst: false }),
+    supabase.from("candidate_certifications").select("*").eq("candidate_id", candidateId).order("created_at", { ascending: false }),
     supabase.from("candidate_skills").select("*, skills(name, domain_id, slug)").eq("candidate_id", candidateId).order("created_at"),
     supabase.from("candidate_languages").select("*").eq("candidate_id", candidateId),
     supabase.from("candidate_consents").select("consent_type, granted").eq("candidate_id", candidateId),

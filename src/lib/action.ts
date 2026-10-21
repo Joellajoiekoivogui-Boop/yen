@@ -35,8 +35,17 @@ export function parseInput<S extends z.ZodType>(schema: S, input: unknown): z.in
 }
 
 /** Traduit les erreurs Postgres/Supabase sans exposer de détails internes. */
+/** Message affiché quand la base de production n'a pas reçu la dernière mise à jour SQL. */
+export const DB_OUTDATED_MESSAGE =
+  "La base de données de la plateforme n'est pas à jour : l'administrateur doit exécuter le script supabase/installation/4-MISE-A-JOUR.sql dans Supabase (SQL Editor).";
+
 export function dbErrorMessage(err: { code?: string; message?: string } | null | undefined, fallback = "L'opération n'a pas pu être enregistrée."): string {
   if (!err) return fallback;
+  // fonction, table ou colonne absente : mise à jour SQL non appliquée
+  if (["PGRST202", "PGRST204", "PGRST205", "42883", "42703", "42P01"].includes(err.code ?? "")) {
+    console.error("[base] schéma non à jour", err.code, err.message);
+    return DB_OUTDATED_MESSAGE;
+  }
   if (err.code === "42501") {
     // Les messages des triggers de protection sont rédigés pour l'utilisateur
     return err.message && /[éèàç]|autoris|réserv|consent|valid/i.test(err.message) ? err.message : "Action non autorisée.";

@@ -300,7 +300,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
               )}
               <div className="min-w-0 flex-1 text-sm">
                 <p className="font-medium text-navy-900">{ce.name} <Badge tone={st.tone}>{st.label}</Badge></p>
-                <p className="text-muted">{[ce.issuer, ce.issue_date && `obtenue le ${formatDate(ce.issue_date)}`, ce.expiry_date && `expire le ${formatDate(ce.expiry_date)}`].filter(Boolean).join(" · ")}</p>
+                <p className="text-muted">{[ce.issuer, ce.training_period ?? (ce.issue_date && `obtenue le ${formatDate(ce.issue_date)}`), ce.expiry_date && `expire le ${formatDate(ce.expiry_date)}`].filter(Boolean).join(" · ")}</p>
                 {ce.credential_id && <p className="text-xs text-muted">Identifiant : <span className="font-mono">{ce.credential_id}</span></p>}
                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                   {href && <a className="font-medium text-electric-700 hover:underline" href={href} target="_blank" rel="noopener">Voir le justificatif</a>}

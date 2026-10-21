@@ -53,8 +53,14 @@ async function asRole(claims, fn) {
     c.release();
   }
 }
+// Comme Supabase Storage : requêtes depuis le navigateur autorisées (téléversement direct par URL signée)
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type, x-upsert, cache-control",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+};
 const send = (res, status, body, headers = {}) => {
-  res.writeHead(status, { "content-type": "application/json", ...headers });
+  res.writeHead(status, { "content-type": "application/json", ...CORS, ...headers });
   res.end(typeof body === "string" ? body : JSON.stringify(body));
 };
 const readBody = (req) => new Promise((ok) => { const chunks = []; req.on("data", (d) => chunks.push(d)); req.on("end", () => ok(Buffer.concat(chunks))); });
@@ -63,6 +69,39 @@ const fileOf = (bucket, name) => path.join(DATA, bucket, ...name.split("/").map(
 async function storage(req, res, url) {
   const rest = url.pathname.replace(/^\/storage\/v1\//, "");
   const auth = req.headers.authorization?.replace(/^Bearer /, "") ?? req.headers.apikey;
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, CORS);
+    return res.end();
+  }
+  // Téléversement via URL signée (navigateur, sans session) : propriétaire et chemin portés par le jeton
+  if (req.method === "PUT" && rest.startsWith("object/upload/sign/")) {
+    const claims = verify(url.searchParams.get("token"));
+    const [, , , bucket, ...p] = rest.split("/");
+    const name = decodeURIComponent(p.join("/"));
+    if (!claims || claims.url !== `${bucket}/${name}` || claims.kind !== "upload") return send(res, 400, { statusCode: "400", error: "InvalidSignature", message: "Invalid signature" });
+    const raw = await readBody(req);
+    let body = raw;
+    let mime = req.headers["content-type"] ?? "application/octet-stream";
+    if (/^multipart\/form-data/i.test(mime)) {
+      const form = await new Response(raw, { headers: { "content-type": mime } }).formData();
+      const file = [...form.values()].find((v) => typeof v === "object");
+      if (!file) return send(res, 400, { statusCode: "400", error: "InvalidRequest", message: "No file" });
+      body = Buffer.from(await file.arrayBuffer());
+      mime = file.type || "application/octet-stream";
+    }
+    const { rows: [b] } = await pool.query("select file_size_limit, allowed_mime_types from storage.buckets where id = $1", [bucket]);
+    if (!b) return send(res, 400, { statusCode: "404", error: "Bucket not found", message: "Bucket not found" });
+    if (b.allowed_mime_types?.length && !b.allowed_mime_types.includes(mime.split(";")[0])) return send(res, 400, { statusCode: "415", error: "invalid_mime_type", message: `mime type ${mime} is not supported` });
+    if (b.file_size_limit && body.length > Number(b.file_size_limit)) return send(res, 400, { statusCode: "413", error: "Payload too large", message: "The object exceeded the maximum allowed size" });
+    try {
+      await pool.query("insert into storage.objects (bucket_id, name, owner, metadata) values ($1, $2, $3, $4)", [bucket, name, claims.owner ?? null, { mimetype: mime, size: body.length }]);
+    } catch {
+      return send(res, 400, { statusCode: "409", error: "Duplicate", message: "The resource already exists" });
+    }
+    mkdirSync(path.dirname(fileOf(bucket, name)), { recursive: true });
+    writeFileSync(fileOf(bucket, name), body);
+    return send(res, 200, { Key: `${bucket}/${name}` });
+  }
   // Téléchargement via URL signée
   if (req.method === "GET" && rest.startsWith("object/sign/")) {
     const claims = verify(url.searchParams.get("token"));
@@ -78,12 +117,34 @@ async function storage(req, res, url) {
   const claims = verify(auth);
   if (!claims) return send(res, 401, { statusCode: "401", error: "Unauthorized", message: "Invalid JWT" });
   try {
+    // Création d'une URL de téléversement signée : droit d'insertion vérifié (RLS) sans rien écrire
+    if (req.method === "POST" && rest.startsWith("object/upload/sign/")) {
+      const [, , , bucket, ...p] = rest.split("/");
+      const name = decodeURIComponent(p.join("/"));
+      await asRole(claims, async (c) => {
+        await c.query("savepoint probe");
+        await c.query("insert into storage.objects (bucket_id, name, owner) values ($1, $2, $3)", [bucket, name, claims.sub ?? null]);
+        await c.query("rollback to savepoint probe");
+      });
+      const token = sign({ url: `${bucket}/${name}`, kind: "upload", owner: claims.sub ?? null, exp: Math.floor(Date.now() / 1000) + 7200 });
+      return send(res, 200, { url: `/object/upload/sign/${bucket}/${p.join("/")}?token=${token}` });
+    }
+    // Liste d'un dossier
+    if (req.method === "POST" && rest.startsWith("object/list/")) {
+      const [, , bucket] = rest.split("/");
+      const { prefix = "", search = "", limit = 100 } = JSON.parse((await readBody(req)).toString() || "{}");
+      const dir = prefix ? `${prefix.replace(/\/$/, "")}/` : "";
+      const r = await asRole(claims, (c) =>
+        c.query("select id, name, created_at, metadata from storage.objects where bucket_id = $1 and name like $2 order by name limit $3", [bucket, `${dir}${search}%`, limit]),
+      );
+      return send(res, 200, r.rows.filter((o) => !o.name.slice(dir.length).includes("/")).map((o) => ({ id: o.id, name: o.name.slice(dir.length), created_at: o.created_at, updated_at: o.created_at, metadata: o.metadata })));
+    }
     // Téléversement
     if (req.method === "POST" && rest.startsWith("object/") && !rest.startsWith("object/sign/")) {
       const [, bucket, ...p] = rest.split("/");
       const name = decodeURIComponent(p.join("/"));
       const body = await readBody(req);
-      await asRole(claims, (c) => c.query("insert into storage.objects (bucket_id, name, owner) values ($1, $2, $3)", [bucket, name, claims.sub ?? null]));
+      await asRole(claims, (c) => c.query("insert into storage.objects (bucket_id, name, owner, metadata) values ($1, $2, $3, $4)", [bucket, name, claims.sub ?? null, { mimetype: req.headers["content-type"], size: body.length }]));
       mkdirSync(path.dirname(fileOf(bucket, name)), { recursive: true });
       writeFileSync(fileOf(bucket, name), body);
       return send(res, 200, { Key: `${bucket}/${name}`, Id: name });
@@ -105,6 +166,15 @@ async function storage(req, res, url) {
       const rows = await asRole(claims, (c) => c.query("select 1 from storage.objects where bucket_id = $1 and name = $2", [bucket, name]));
       if (!rows.rowCount || !existsSync(fileOf(bucket, name))) return send(res, 400, { statusCode: "404", error: "not_found", message: "Object not found" });
       res.writeHead(200, { "content-type": "application/pdf" });
+      return res.end(readFileSync(fileOf(bucket, name)));
+    }
+    // Téléchargement par le client Supabase (GET /object/<bucket>/<chemin>, droits de l'appelant)
+    if (req.method === "GET" && rest.startsWith("object/")) {
+      const [, bucket, ...p] = rest.split("/");
+      const name = decodeURIComponent(p.join("/"));
+      const rows = await asRole(claims, (c) => c.query("select metadata from storage.objects where bucket_id = $1 and name = $2", [bucket, name]));
+      if (!rows.rowCount || !existsSync(fileOf(bucket, name))) return send(res, 400, { statusCode: "404", error: "not_found", message: "Object not found" });
+      res.writeHead(200, { "content-type": rows.rows[0].metadata?.mimetype ?? "application/octet-stream", ...CORS });
       return res.end(readFileSync(fileOf(bucket, name)));
     }
     // Suppression

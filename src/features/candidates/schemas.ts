@@ -81,13 +81,11 @@ export const projectSchema = z.object({
   skill_ids: z.array(z.guid()).max(20).default([]),
 });
 
+/** Certificat : formation suivie, organisme et période (le justificatif est joint à part). */
 export const certificationSchema = z.object({
-  name: reqText("Nom de la certification", 200),
-  issuer: reqText("Organisme", 200),
-  issue_date: optDate,
-  expiry_date: optDate,
-  credential_id: optText(200),
-  credential_url: optUrl,
+  name: reqText("Formation suivie", 200),
+  issuer: reqText("Organisation", 200),
+  training_period: reqText("Période de la formation", 100),
 });
 
 export const declaredSkillSchema = z.object({

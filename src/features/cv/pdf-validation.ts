@@ -48,12 +48,11 @@ export function checkPdf(bytes: Uint8Array, maxBytes: number): PdfCheckResult {
   if (bytes.byteLength > maxBytes) {
     return fail(`Le fichier dépasse la taille maximale autorisée (${Math.round(maxBytes / 1024 / 1024)} Mo).`);
   }
-  // Signature réelle : %PDF- au tout début du fichier (type déclaré ignoré)
-  const head = Buffer.from(bytes.subarray(0, 8)).toString("latin1");
-  if (!head.startsWith("%PDF-")) return fail("Le fichier n'est pas un PDF valide (signature absente).");
+  // Signature réelle (type déclaré ignoré) : %PDF- dans les 1 024 premiers octets, comme l'admettent les lecteurs PDF
+  if (!hasPdfHeader(bytes)) return fail("Le fichier n'est pas un PDF valide (signature absente).");
 
-  // Fin de fichier attendue dans les derniers octets
-  const tail = Buffer.from(bytes.subarray(Math.max(0, bytes.byteLength - 2048))).toString("latin1");
+  // Fin de fichier attendue dans les derniers octets (certains logiciels ajoutent un remplissage après %%EOF)
+  const tail = Buffer.from(bytes.subarray(Math.max(0, bytes.byteLength - 65_536))).toString("latin1");
   if (!tail.includes("%%EOF")) return fail("Le PDF semble incomplet ou corrompu.");
 
   const text = Buffer.from(bytes).toString("latin1");
@@ -61,8 +60,12 @@ export function checkPdf(bytes: Uint8Array, maxBytes: number): PdfCheckResult {
   if (markers.length > 0) {
     return fail(`Ce PDF contient du contenu actif non autorisé (${markers.join(", ")}). Exportez votre CV en PDF standard puis réessayez.`, markers);
   }
-  if (/\/Encrypt\b/.test(text)) {
-    return fail("Ce PDF est protégé par mot de passe ou chiffré. Téléversez une version non protégée.");
-  }
+  // Les PDF protégés contre la modification mais lisibles sans mot de passe (fréquents avec les
+  // générateurs de CV) sont acceptés ; ceux qui exigent un mot de passe sont refusés à la lecture (inspect-pdf.ts).
   return { ok: true, sha256, suspiciousMarkers: [] };
+}
+
+/** Signature %PDF- au début du fichier ou dans ses 1 024 premiers octets. */
+export function hasPdfHeader(bytes: Uint8Array): boolean {
+  return Buffer.from(bytes.subarray(0, 1024)).toString("latin1").includes("%PDF-");
 }

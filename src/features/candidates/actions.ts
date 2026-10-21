@@ -6,7 +6,7 @@ import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResul
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 import {
-  certificationSchema, consentsSchema, declaredSkillSchema, educationSchema, experienceSchema, infoResponseSchema, languageSchema, profileSchema, projectSchema,
+  consentsSchema, declaredSkillSchema, educationSchema, experienceSchema, infoResponseSchema, languageSchema, profileSchema, projectSchema,
 } from "./schemas";
 import { refreshPipelineStatus } from "./pipeline";
 
@@ -36,8 +36,8 @@ export async function updateProfileAction(values: Record<string, unknown>): Prom
   });
 }
 
-type Table = "candidate_education" | "candidate_experiences" | "candidate_certifications" | "candidate_languages";
-const SCHEMAS = { candidate_education: educationSchema, candidate_experiences: experienceSchema, candidate_certifications: certificationSchema, candidate_languages: languageSchema } as const;
+type Table = "candidate_education" | "candidate_experiences" | "candidate_languages";
+const SCHEMAS = { candidate_education: educationSchema, candidate_experiences: experienceSchema, candidate_languages: languageSchema } as const;
 
 async function upsertChild(table: Table, values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ requireCandidate: true }, async (ctx) => {
@@ -73,8 +73,6 @@ export async function saveEducationAction(v: Record<string, unknown>) { return u
 export async function deleteEducationAction(id: string) { return deleteChild("candidate_education", id); }
 export async function saveExperienceAction(v: Record<string, unknown>) { return upsertChild("candidate_experiences", v); }
 export async function deleteExperienceAction(id: string) { return deleteChild("candidate_experiences", id); }
-export async function saveCertificationAction(v: Record<string, unknown>) { return upsertChild("candidate_certifications", v); }
-export async function deleteCertificationAction(id: string) { return deleteChild("candidate_certifications", id); }
 export async function saveLanguageAction(v: Record<string, unknown>) { return upsertChild("candidate_languages", v); }
 export async function deleteLanguageAction(id: string) { return deleteChild("candidate_languages", id); }
 export async function deleteProjectAction(id: string) { return deleteChild("candidate_projects", id); }

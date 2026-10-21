@@ -3,6 +3,7 @@
  * avec un administrateur (scripts/create-admin.ts) et les données de démo.
  * Variables : E2E_STACK=1, E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_DEMO_PASSWORD.
  */
+import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
@@ -27,9 +28,11 @@ async function logout(page: Page) {
   await page.context().clearCookies();
 }
 
-async function cvPdf(): Promise<Buffer> {
+/** CV de test ; `padBytes` : données inertes ajoutées pour simuler un PDF lourd (images haute définition). */
+async function cvPdf(padBytes = 0): Promise<Buffer> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
+  if (padBytes) doc.context.register(doc.context.stream(new TextEncoder().encode(randomBytes(Math.ceil(padBytes / 2)).toString("hex"))));
   const page = doc.addPage();
   const lines = [
     "Test E2E - CV fictif", "Développeur web junior", "Compétences : JavaScript, HTML, CSS, SQL, Git",
@@ -42,23 +45,24 @@ async function cvPdf(): Promise<Buffer> {
 
 test("un candidat crée son compte et se connecte", async ({ page }) => {
   await page.goto("/inscription");
-  const f = (label: string, v: string) => page.getByRole(label.startsWith("Année") ? "spinbutton" : "textbox", { name: label, exact: true }).fill(v);
+  const f = (label: string, v: string) => page.getByRole("textbox", { name: label, exact: true }).fill(v);
   await f("Prénom", "Test");
   await f("Nom", candidate.lastName);
   await f("Adresse e-mail", candidate.email);
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page.getByText("Numéro de téléphone requis.")).toBeVisible();
   await f("Téléphone", "+224 620 11 22 33");
-  await f("Ville", "Conakry");
-  await f("Établissement de formation", "Université fictive");
-  await f("Formation suivie chez YEN", "Développement web full-stack");
-  await f("Niveau d'études", "Licence");
-  await f("Année de formation ou de diplomation", "2025");
-  await page.getByRole("combobox", { name: "Domaine d'intérêt principal" }).selectOption({ label: "Génie informatique et développement logiciel" });
-  await page.getByLabel("Stage").check();
-  await page.getByRole("textbox", { name: "Mot de passe", exact: true }).fill(candidate.password);
-  await page.getByRole("textbox", { name: "Confirmer le mot de passe", exact: true }).fill(candidate.password);
+  // mot de passe trop courant refusé, puis mots de passe différents signalés
+  await f("Mot de passe", "12345678");
+  await f("Retapez le mot de passe", "12345678");
   await page.getByRole("checkbox", { name: /J'accepte/ }).check();
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await expect(page.getByText(/trop courant/).first()).toBeVisible();
+  await f("Mot de passe", candidate.password);
+  await f("Retapez le mot de passe", `${candidate.password}x`);
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await expect(page.getByText("Les deux mots de passe ne sont pas identiques.")).toBeVisible();
+  await f("Retapez le mot de passe", candidate.password);
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   // Selon la configuration Supabase : message de confirmation par e-mail, ou session ouverte directement
   await expect(page.getByText("Vérifiez votre boîte de réception").or(page.getByRole("heading", { name: "Tableau de bord" }))).toBeVisible({ timeout: 20_000 });
@@ -73,6 +77,14 @@ test("un candidat crée son compte et se connecte", async ({ page }) => {
 test("le candidat complète son profil, ses consentements et ses compétences", async ({ page }) => {
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/profil");
+  // informations retirées de l'inscription : complétées dans le profil
+  await page.getByRole("textbox", { name: "Ville", exact: true }).first().fill("Conakry");
+  await page.getByRole("textbox", { name: "Établissement de formation" }).fill("Université fictive");
+  await page.getByRole("textbox", { name: "Formation suivie chez YEN" }).fill("Développement web full-stack");
+  await page.getByRole("textbox", { name: "Niveau d'études" }).fill("Licence");
+  await page.getByRole("spinbutton", { name: "Année de formation ou de diplomation" }).fill("2025");
+  await page.getByRole("combobox", { name: "Domaine principal" }).selectOption({ label: "Génie informatique et développement logiciel" });
+  await page.getByLabel("Stage").first().check();
   await page.getByRole("textbox", { name: "Titre professionnel" }).fill("Développeur web junior");
   await page.getByRole("textbox", { name: "Résumé professionnel" }).fill("Développeur web formé chez YEN, à l'aise avec JavaScript, React et SQL. Je recherche un stage pour consolider mes compétences sur des projets réels.");
   await page.getByRole("button", { name: "Enregistrer" }).first().click();
@@ -128,11 +140,16 @@ test("le candidat téléverse un CV PDF et refuse un faux PDF", async ({ page })
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/cv");
   await page.locator("#cv-file").setInputFiles({ name: "faux.pdf", mimeType: "application/pdf", buffer: Buffer.from("<html>pas un pdf</html>") });
-  await page.getByRole("button", { name: "Téléverser" }).click();
-  await expect(page.getByText(/signature absente/)).toBeVisible();
+  await page.getByRole("button", { name: "Téléverser mon CV" }).click();
+  await expect(page.getByText(/signature absente/)).toBeVisible({ timeout: 20_000 });
+
+  // envoi direct vers le stockage : un CV lourd (plus de 4,5 Mo) passe aussi
+  await page.locator("#cv-file").setInputFiles({ name: "cv-lourd.pdf", mimeType: "application/pdf", buffer: await cvPdf(4.6 * 1024 * 1024) });
+  await page.getByRole("button", { name: "Téléverser mon CV" }).click();
+  await expect(page.getByText(/^CV téléversé et texte extrait/)).toBeVisible({ timeout: 60_000 });
 
   await page.locator("#cv-file").setInputFiles({ name: "mon-cv.pdf", mimeType: "application/pdf", buffer: await cvPdf() });
-  await page.getByRole("button", { name: "Téléverser" }).click();
+  await page.getByRole("button", { name: "Téléverser mon CV" }).click();
   await expect(page.getByText(/^CV téléversé et texte extrait/)).toBeVisible({ timeout: 20_000 });
   await page.reload();
   await expect(page.getByText("mon-cv.pdf").first()).toBeVisible();
@@ -149,28 +166,47 @@ test("le candidat téléverse un CV PDF et refuse un faux PDF", async ({ page })
   expect(generated.headers()["content-type"]).toBe("application/pdf");
 });
 
-test("le candidat joint un certificat en image et voit son aperçu", async ({ page }) => {
+test("le candidat ajoute un certificat (photo ou PDF) en un seul formulaire", async ({ page }) => {
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/certifications");
-  await page.getByRole("button", { name: "Ajouter une certification" }).click();
-  await page.getByRole("textbox", { name: /^Certification/ }).fill("Certificat E2E");
-  await page.getByRole("textbox", { name: /^Organisme/ }).fill("Organisme fictif");
-  await page.locator("main form").getByRole("button", { name: "Ajouter une certification" }).click();
-  await expect(page.getByText("Certificat E2E")).toBeVisible();
+  // aucun certificat : le formulaire est ouvert d'office
+  await page.getByRole("textbox", { name: "Formation suivie" }).fill("Certificat E2E");
+  await page.getByRole("textbox", { name: "Organisation" }).fill("Organisme fictif");
+  await page.getByRole("textbox", { name: "Quand avez-vous suivi la formation ?" }).fill("Mars à juin 2025");
+  await page.getByRole("button", { name: "Enregistrer le certificat" }).click();
+  await expect(page.getByText("Ajoutez le certificat (PDF ou photo).")).toBeVisible();
 
-  const input = page.locator('input[type="file"][accept*="image/png"]').first();
+  const input = page.locator('main input[type="file"]').first();
   await input.setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("pas un certificat") });
   await expect(page.getByText(/Format non accepté/)).toBeVisible();
 
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
   await input.setInputFiles({ name: "certificat.png", mimeType: "image/png", buffer: png });
-  await expect(page.getByText("Justificatif ajouté à la certification.")).toBeVisible({ timeout: 20_000 });
-  const thumb = page.getByRole("img", { name: "Justificatif : certificat.png" });
+  await page.getByRole("button", { name: "Enregistrer le certificat" }).click();
+  await expect(page.getByText("Certificat ajouté.")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Mars à juin 2025")).toBeVisible();
+  const thumb = page.getByRole("img", { name: "Certificat : certificat.png" });
   await expect(thumb).toBeVisible();
   await expect.poll(() => thumb.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
-
   const file = await page.request.get((await thumb.getAttribute("src"))!);
   expect(file.headers()["content-type"]).toBe("image/png");
+
+  // second certificat, en PDF
+  await page.getByRole("button", { name: "Ajouter un certificat" }).click();
+  await page.getByRole("textbox", { name: "Formation suivie" }).fill("Électricité du bâtiment");
+  await page.getByRole("textbox", { name: "Organisation" }).fill("YEN");
+  await page.getByRole("textbox", { name: "Quand avez-vous suivi la formation ?" }).fill("2024");
+  await page.locator('main input[type="file"]').first().setInputFiles({ name: "attestation.pdf", mimeType: "application/pdf", buffer: await cvPdf() });
+  await page.getByRole("button", { name: "Enregistrer le certificat" }).click();
+  await expect(page.getByText("Certificat ajouté.")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Électricité du bâtiment")).toBeVisible();
+
+  // modification de la période, sans changer le fichier
+  await page.locator("li", { hasText: "Électricité du bâtiment" }).getByRole("button", { name: "Modifier" }).click();
+  await page.getByRole("textbox", { name: "Quand avez-vous suivi la formation ?" }).fill("Janvier à mars 2024");
+  await page.getByRole("button", { name: "Enregistrer le certificat" }).click();
+  await expect(page.getByText("Certificat mis à jour.")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Janvier à mars 2024")).toBeVisible();
 });
 
 test("le candidat consulte les métiers et postule à une offre", async ({ page }) => {
@@ -216,7 +252,10 @@ test("le responsable YEN consulte le candidat, le classement et transmet au part
   const thumb = page.getByRole("img", { name: "Justificatif : certificat.png" });
   await expect(thumb).toBeVisible();
   await expect.poll(() => thumb.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
-  await page.getByRole("button", { name: "Vérifier", exact: true }).click();
+  // certificat simplifié : organisme et période de la formation visibles par l'équipe YEN
+  const certRow = page.locator("li", { hasText: "Certificat E2E" });
+  await expect(certRow.getByText("Organisme fictif · Mars à juin 2025")).toBeVisible();
+  await certRow.getByRole("button", { name: "Vérifier", exact: true }).click();
   await expect(page.getByText("Certification vérifiée.")).toBeVisible();
   await expect(page.getByText("Vérifiée", { exact: true })).toBeVisible();
   await expect(page.getByText("Notes internes")).toBeVisible();

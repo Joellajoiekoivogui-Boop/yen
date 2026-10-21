@@ -150,7 +150,7 @@ export function buildSources(b: CandidateBundle, cvText: string | null, opts: { 
     sources.push({ id: `form:${e.id}`, type: "formation", label: `Formation : ${e.degree}`, content: [e.institution, e.field_of_study, [e.start_year, e.end_year].filter(Boolean).join("–")].filter(Boolean).join(" · ") });
   }
   for (const ce of b.certifications) {
-    sources.push({ id: `cert:${ce.id}`, type: "certification", label: `Certification : ${ce.name}`, content: `${ce.name} — ${ce.issuer}${ce.issue_date ? ` (${ce.issue_date})` : ""} — statut : ${ce.verification_status}` });
+    sources.push({ id: `cert:${ce.id}`, type: "certification", label: `Certification : ${ce.name}`, content: `${ce.name} — ${ce.issuer}${ce.training_period ?? ce.issue_date ? ` (${ce.training_period ?? ce.issue_date})` : ""} — statut : ${ce.verification_status}` });
   }
   return sources;
 }

@@ -158,7 +158,10 @@ export async function generateCvPdf(b: CandidateBundle, opts: { includeContact: 
 
   if (b.certifications.length) {
     w.section("Certifications");
-    for (const c of b.certifications) w.text(`${c.name} — ${c.issuer}${c.issue_date ? ` (${c.issue_date.slice(0, 7)})` : ""}`);
+    for (const c of b.certifications) {
+      const when = c.training_period ?? c.issue_date?.slice(0, 7);
+      w.text(`${c.name} — ${c.issuer}${when ? ` (${when})` : ""}`);
+    }
   }
 
   if (b.languages.length) {

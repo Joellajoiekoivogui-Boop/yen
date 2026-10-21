@@ -10,7 +10,7 @@ export function ResetForm() {
       schema={newPasswordSchema}
       submitLabel="Enregistrer le nouveau mot de passe"
       fields={[
-        { name: "password", label: "Nouveau mot de passe", type: "password", required: true, autoComplete: "new-password", colSpan: 2, help: "10 caractères minimum, avec majuscule, minuscule et chiffre." },
+        { name: "password", label: "Nouveau mot de passe", type: "password", required: true, autoComplete: "new-password", colSpan: 2, help: "8 caractères minimum." },
         { name: "password_confirm", label: "Confirmer", type: "password", required: true, autoComplete: "new-password", colSpan: 2 },
       ]}
       action={updatePasswordAction}

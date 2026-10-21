@@ -4,6 +4,14 @@ import { Card, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
+const STATUS: Record<string, string> = {
+  en_attente: "en attente de validation",
+  actif: "validée",
+  suspendu: "suspendue",
+  inactif: "inactive",
+  revoque: "retiré",
+};
+
 export default async function PendingPartnerPage() {
   const ctx = await requireUser();
   if (ctx.partnerOrganizationIds.length > 0) redirect("/partenaire");
@@ -19,7 +27,7 @@ export default async function PendingPartnerPage() {
         <ul className="mt-6 space-y-2 text-left text-sm">
           {(data ?? []).map((m, i) => {
             const o = m.organizations as unknown as { name: string; status: string; portal_enabled: boolean } | null;
-            return <li key={i} className="rounded-md bg-slate-50 p-3"><strong>{o?.name}</strong> — organisation : {o?.status} · espace : {o?.portal_enabled ? "activé" : "non activé"} · votre accès : {m.status}</li>;
+            return <li key={i} className="rounded-md bg-slate-50 p-3"><strong>{o?.name}</strong> — organisation : {STATUS[o?.status ?? ""] ?? o?.status} · espace : {o?.portal_enabled ? "activé" : "pas encore activé"} · votre accès : {m.status === "actif" ? "actif" : STATUS[m.status] ?? m.status}</li>;
           })}
           {(data ?? []).length === 0 && <li className="text-muted">Aucune demande d&apos;organisation associée à ce compte. Contactez l&apos;équipe YEN.</li>}
         </ul>

@@ -3,10 +3,9 @@ import { Trophy } from "lucide-react";
 import { Card, CardBody, CardHeader, PageHeader } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate } from "@/lib/utils";
 import { loadCandidateBundle } from "@/features/candidates/queries";
 import { getMaxCvBytes } from "@/features/admin/settings";
-import { CertificationsList } from "./certs-client";
+import { CertificatesManager, type CertificateItem } from "./certificates-manager";
 
 export const metadata: Metadata = { title: "Mes certifications" };
 
@@ -20,30 +19,26 @@ export default async function CertificationsPage() {
   const { data: docs } = docIds.length
     ? await supabase.from("candidate_documents").select("id, original_filename, mime_type, size_bytes").in("id", docIds).is("deleted_at", null)
     : { data: [] };
-  const files = Object.fromEntries(
-    b.certifications.flatMap((c) => {
-      const d = docs?.find((x) => x.id === c.document_id);
-      return d ? [[c.id, { id: d.id, filename: d.original_filename, mime: d.mime_type, size: d.size_bytes }]] : [];
-    }),
-  );
+  const items: CertificateItem[] = b.certifications.map((c) => {
+    const d = docs?.find((x) => x.id === c.document_id);
+    return {
+      id: c.id,
+      name: c.name,
+      issuer: c.issuer,
+      // anciens certificats : l'année d'obtention tient lieu de période
+      period: c.training_period ?? (c.issue_date ? c.issue_date.slice(0, 4) : null),
+      status: c.verification_status,
+      doc: d ? { id: d.id, filename: d.original_filename, mime: d.mime_type, size: d.size_bytes } : undefined,
+    };
+  });
   const maxBytes = await getMaxCvBytes();
   return (
     <div className="space-y-6">
-      <PageHeader title="Mes certifications" description="Joignez chaque certificat en PDF ou en photo (JPEG, PNG, WebP) et ajoutez un lien de vérification lorsque l'organisme le permet : YEN pourra confirmer la certification." />
+      <PageHeader title="Mes certifications" description="Pour chaque formation suivie : son nom, l'organisation, la période et le certificat en PDF ou en photo. L'équipe YEN vérifie ensuite le certificat." />
       <Card>
-        <CardHeader icon={Trophy} title="Certifications" />
+        <CardHeader icon={Trophy} title="Certificats" />
         <CardBody>
-          <CertificationsList
-            files={files}
-            maxBytes={maxBytes}
-            items={b.certifications.map((c) => ({
-              id: c.id,
-              title: c.name,
-              subtitle: `${c.issuer}${c.issue_date ? ` · obtenue le ${formatDate(c.issue_date)}` : ""}${c.expiry_date ? ` · expire le ${formatDate(c.expiry_date)}` : ""}`,
-              badges: [c.verification_status === "verifie" ? { label: "Vérifiée", tone: "green" as const } : c.verification_status === "rejete" ? { label: "Non validée", tone: "red" as const } : { label: "Non vérifiée", tone: "neutral" as const }],
-              values: { name: c.name, issuer: c.issuer, issue_date: c.issue_date ?? "", expiry_date: c.expiry_date ?? "", credential_id: c.credential_id ?? "", credential_url: c.credential_url ?? "" },
-            }))}
-          />
+          <CertificatesManager items={items} maxBytes={maxBytes} />
         </CardBody>
       </Card>
     </div>

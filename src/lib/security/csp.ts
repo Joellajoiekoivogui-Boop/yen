@@ -15,19 +15,21 @@ const isHttps = publicEnv.siteUrl.startsWith("https://");
  *  - scripts : uniquement ceux de l'application, porteurs du nonce de la page
  *    ('strict-dynamic' autorise les modules qu'ils chargent) ; aucun script en ligne injecté ne s'exécute ;
  *  - aucune ressource externe, sauf les aperçus de documents des espaces connectés
- *    (URL signée du stockage privé, valable 60 secondes) ;
+ *    (URL signée du stockage privé, valable 60 secondes) et, dans l'espace candidat,
+ *    l'envoi direct des fichiers vers ce stockage (URL signée à usage unique) ;
  *  - ni cadre, ni plugin, ni envoi de formulaire vers un autre site.
  */
 export function contentSecurityPolicy(nonce: string, pathname: string): string {
   const appSpace = /^\/(candidat|admin|partenaire)(\/|$)/.test(pathname);
   const documents = appSpace && storageOrigin ? ` ${storageOrigin}` : "";
+  const uploads = /^\/candidat(\/|$)/.test(pathname) && storageOrigin ? ` ${storageOrigin}` : "";
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob:${documents}`,
     "font-src 'self' data:",
-    `connect-src 'self'${isDev ? " ws:" : ""}`,
+    `connect-src 'self'${uploads}${isDev ? " ws:" : ""}`,
     "media-src 'self'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",

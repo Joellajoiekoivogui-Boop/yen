@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MailCheck } from "lucide-react";
 import { EntityForm } from "@/components/forms/entity-form";
 import { signUpCandidateAction, signUpPartnerAction } from "@/features/auth/actions";
+import { MIN_PASSWORD_LENGTH } from "@/features/auth/password-rules";
 import { candidateSignUpSchema, partnerSignUpSchema } from "@/features/auth/schemas";
-import { availabilityLabel, candidateStatusLabel, opportunityLabel } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { ResendConfirmation } from "../resend-confirmation";
 
-const opts = (rec: Record<string, string>) => Object.entries(rec).map(([value, label]) => ({ value, label }));
-const PASSWORD_HELP = "10 caractères minimum, avec majuscule, minuscule et chiffre.";
+const PASSWORD_HELP = `${MIN_PASSWORD_LENGTH} caractères minimum. Notez-le bien : c'est lui qui vous servira à vous connecter.`;
 const terms = (
   <>
     J&apos;accepte les <Link href="/conditions" target="_blank" className="underline">conditions d&apos;utilisation</Link> et la{" "}
@@ -18,9 +18,12 @@ const terms = (
   </>
 );
 
-export function SignUpForms({ domains, initialType }: { domains: { id: string; name: string }[]; initialType: "candidat" | "partenaire" }) {
+/** Inscription en une étape : quelques champs seulement, le reste se complète ensuite dans le profil. */
+export function SignUpForms({ initialType }: { initialType: "candidat" | "partenaire" }) {
   const [type, setType] = useState(initialType);
-  const [done, setDone] = useState<string | null>(null);
+  const [done, setDone] = useState<{ message: string; email: string } | null>(null);
+  // adresse saisie, pour le renvoi de l'e-mail de confirmation (référence : lue après l'envoi)
+  const email = useRef("");
 
   if (done)
     return (
@@ -32,7 +35,12 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
           </span>
         </span>
         <p className="mt-5 font-heading text-lg font-semibold text-navy-900">Vérifiez votre boîte de réception</p>
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{done}</p>
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{done.message}</p>
+        {done.email && <p className="mt-2 text-sm font-medium text-navy-900">{done.email}</p>}
+        {done.email && <ResendConfirmation email={done.email} />}
+        <Link href="/connexion" className="mt-4 text-sm font-medium text-electric-700 hover:underline">
+          J&apos;ai confirmé mon adresse : me connecter
+        </Link>
       </div>
     );
 
@@ -65,31 +73,23 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
           key="candidat"
           schema={candidateSignUpSchema}
           submitLabel="Créer mon compte"
-          defaultValues={{ country: "Guinée", opportunity_types: [], status: "etudiant", availability: "immediate" }}
-          action={signUpCandidateAction}
+          stacked
+          action={(v) => {
+            email.current = String(v.email ?? "");
+            return signUpCandidateAction(v);
+          }}
           onSuccess={(r) => {
             const to = r.ok ? (r.data as { redirectTo?: string } | undefined)?.redirectTo : undefined;
             if (to) window.location.assign(to);
-            else if (r.ok) setDone(r.message ?? "Compte créé.");
+            else if (r.ok) setDone({ message: r.message ?? "Compte créé.", email: email.current });
           }}
           fields={[
-            { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name", section: "Identité et contact" },
+            { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name" },
             { name: "last_name", label: "Nom", required: true, autoComplete: "family-name" },
+            { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "L'équipe YEN vous appelle pour les opportunités." },
             { name: "email", label: "Adresse e-mail", type: "email", required: true, autoComplete: "email" },
-            { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "Obligatoire : l'équipe YEN vous appelle pour les opportunités." },
-            { name: "city", label: "Ville", required: true, autoComplete: "address-level2" },
-            { name: "country", label: "Pays", required: true, autoComplete: "country-name" },
-            { name: "institution", label: "Établissement de formation", required: true, section: "Formation" },
-            { name: "yen_program", label: "Formation suivie chez YEN", required: true },
-            { name: "education_level", label: "Niveau d'études", required: true, placeholder: "Ex. Licence 3, BTS, Master…" },
-            { name: "graduation_year", label: "Année de formation ou de diplomation", type: "number", required: true, min: 1970, max: 2100 },
-            { name: "status", label: "Statut", type: "select", required: true, options: opts(candidateStatusLabel), section: "Projet professionnel" },
-            { name: "availability", label: "Disponibilité", type: "select", required: true, options: opts(availabilityLabel) },
-            { name: "primary_domain_id", label: "Domaine d'intérêt principal", type: "select", options: domains.map((d) => ({ value: d.id, label: d.name })) },
-            { name: "interest_area", label: "Précisions sur votre projet professionnel", placeholder: "Ex. développement web, maintenance minière…" },
-            { name: "opportunity_types", label: "Type d'opportunité recherchée", type: "checkboxes", required: true, options: opts(opportunityLabel) },
-            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP, section: "Sécurité du compte" },
-            { name: "password_confirm", label: "Confirmer le mot de passe", type: "password", required: true, autoComplete: "new-password" },
+            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP },
+            { name: "password_confirm", label: "Retapez le mot de passe", type: "password", required: true, autoComplete: "new-password" },
             { name: "accepted_terms", label: terms, type: "checkbox", required: true, colSpan: 2 },
           ]}
         />
@@ -98,20 +98,24 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
           key="partenaire"
           schema={partnerSignUpSchema}
           submitLabel="Demander un espace partenaire"
-          defaultValues={{ country: "Guinée" }}
-          action={signUpPartnerAction}
-          onSuccess={(r) => r.ok && setDone(r.message ?? "Demande enregistrée.")}
+          stacked
+          action={(v) => {
+            email.current = String(v.email ?? "");
+            return signUpPartnerAction(v);
+          }}
+          onSuccess={(r) => {
+            const to = r.ok ? (r.data as { redirectTo?: string } | undefined)?.redirectTo : undefined;
+            if (to) window.location.assign(to);
+            else if (r.ok) setDone({ message: r.message ?? "Demande enregistrée.", email: email.current });
+          }}
           fields={[
-            { name: "organization_name", label: "Nom de l'organisation", required: true, autoComplete: "organization", section: "Organisation" },
-            { name: "organization_sector", label: "Secteur d'activité", required: true },
-            { name: "first_name", label: "Prénom du contact", required: true, autoComplete: "given-name", section: "Personne à contacter" },
+            { name: "organization_name", label: "Nom de l'organisation", required: true, autoComplete: "organization", colSpan: 2 },
+            { name: "first_name", label: "Prénom du contact", required: true, autoComplete: "given-name" },
             { name: "last_name", label: "Nom du contact", required: true, autoComplete: "family-name" },
             { name: "email", label: "E-mail professionnel", type: "email", required: true, autoComplete: "email" },
-            { name: "phone", label: "Téléphone professionnel", type: "tel", autoComplete: "tel" },
-            { name: "city", label: "Ville", required: true, autoComplete: "address-level2" },
-            { name: "country", label: "Pays", required: true, autoComplete: "country-name" },
-            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP, section: "Sécurité du compte" },
-            { name: "password_confirm", label: "Confirmer le mot de passe", type: "password", required: true, autoComplete: "new-password" },
+            { name: "phone", label: "Téléphone", type: "tel", autoComplete: "tel" },
+            { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP },
+            { name: "password_confirm", label: "Retapez le mot de passe", type: "password", required: true, autoComplete: "new-password" },
             { name: "accepted_terms", label: terms, type: "checkbox", required: true, colSpan: 2 },
           ]}
         />
@@ -119,4 +123,3 @@ export function SignUpForms({ domains, initialType }: { domains: { id: string; n
     </div>
   );
 }
-

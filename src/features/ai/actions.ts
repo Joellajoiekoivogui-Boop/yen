@@ -103,7 +103,7 @@ export async function applyCvExtractionAction(values: Record<string, unknown>): 
     if (exps.length < v.experiences.length) errors.push("expériences sans date de début (à saisir manuellement)");
     if (exps.length && (await supabase.from("candidate_experiences").insert(exps.map((e) => ({ ...e, end_date: e.end_date && e.end_date < e.start_date! ? null : e.end_date })))).error) errors.push("expériences");
 
-    const certs = pick(out.certifications, v.certifications).map((c) => ({ candidate_id: cid, name: c.name.slice(0, 200), issuer: (c.issuer ?? "Non précisé").slice(0, 200), issue_date: ym(c.issue_date), source: src }));
+    const certs = pick(out.certifications, v.certifications).map((c) => ({ candidate_id: cid, name: c.name.slice(0, 200), issuer: (c.issuer ?? "Non précisé").slice(0, 200), issue_date: ym(c.issue_date), training_period: ym(c.issue_date)?.slice(0, 4) ?? null, source: src }));
     if (certs.length && (await supabase.from("candidate_certifications").insert(certs)).error) errors.push("certifications");
 
     const projs = pick(out.projects, v.projects).map((p) => ({ candidate_id: cid, title: p.title.slice(0, 200), description: p.description.slice(0, 5000), technologies: p.technologies.slice(0, 30).map((t) => t.slice(0, 60)), source: src }));

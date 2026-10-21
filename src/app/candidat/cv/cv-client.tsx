@@ -2,50 +2,107 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Upload } from "lucide-react";
+import { CheckCircle2, FileText, Loader2, UploadCloud } from "lucide-react";
 import { Alert, Badge, Button } from "@/components/ui";
 import { uploadCvAction } from "@/features/cv/actions";
+import { uploadDirect } from "@/features/documents/upload-client";
 import { applyCvExtractionAction } from "@/features/ai/actions";
 import type { CvExtraction } from "@/features/ai/schemas";
+import { cn } from "@/lib/utils";
 
+const isPdf = (f: File) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
+
+/** Dépôt du CV : sélection ou glisser-déposer, envoi direct au stockage avec progression, puis vérification par le serveur. */
 export function CvUploadForm({ maxMb }: { maxMb: number }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const choose = (f: File | undefined) => {
+    setMsg(null);
+    if (!f) return;
+    if (!isPdf(f)) return setMsg({ ok: false, text: "Le CV doit être un fichier PDF. Depuis Word ou Google Docs : Fichier › Enregistrer sous (ou Télécharger) › PDF." });
+    if (f.size > maxMb * 1024 * 1024) return setMsg({ ok: false, text: `Le fichier dépasse ${maxMb} Mo. Réduisez sa taille (par exemple en l'exportant sans images haute définition).` });
+    setFile(f);
+  };
+
+  const send = () => {
+    if (!file) return setMsg({ ok: false, text: "Choisissez d'abord votre CV au format PDF." });
+    setMsg(null);
+    start(async () => {
+      setProgress(0);
+      const up = await uploadDirect(file, "cv", setProgress);
+      if (!up.ok) {
+        setProgress(null);
+        return setMsg({ ok: false, text: up.error });
+      }
+      setProgress(100);
+      let r;
+      try {
+        r = await uploadCvAction({ path: up.path, filename: file.name });
+      } catch {
+        r = { ok: false as const, error: "La vérification du fichier a été interrompue. Réessayez." };
+      }
+      setProgress(null);
+      setMsg({ ok: r.ok, text: r.ok ? (r.message ?? "CV téléversé.") : r.error });
+      if (r.ok) {
+        setFile(null);
+        router.refresh();
+      }
+    });
+  };
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const file = input.current?.files?.[0];
-        if (!file) return setMsg({ ok: false, text: "Choisissez un fichier PDF." });
-        if (file.size > maxMb * 1024 * 1024) return setMsg({ ok: false, text: `Le fichier dépasse ${maxMb} Mo.` });
-        const fd = new FormData();
-        fd.append("file", file);
-        setMsg(null);
-        start(async () => {
-          const r = await uploadCvAction(fd);
-          setMsg({ ok: r.ok, text: r.ok ? (r.message ?? "CV téléversé.") : r.error });
-          if (r.ok) {
-            if (input.current) input.current.value = "";
-            router.refresh();
-          }
-        });
-      }}
-      className="space-y-3"
-    >
-      <label htmlFor="cv-file" className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-slate-50 px-4 py-8 text-center hover:border-electric-300">
-        <Upload className="size-6 text-electric-600" aria-hidden />
-        <span className="text-sm font-medium text-navy-900">Sélectionner un CV au format PDF</span>
-        <span className="text-xs text-muted">{maxMb} Mo maximum · le type réel du fichier est vérifié · stockage privé</span>
-        <input id="cv-file" ref={input} type="file" accept="application/pdf,.pdf" className="text-xs" />
+    <div className="space-y-3">
+      <input
+        id="cv-file"
+        ref={input}
+        type="file"
+        accept="application/pdf,.pdf"
+        className="sr-only"
+        onChange={(e) => {
+          choose(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+      <label
+        htmlFor="cv-file"
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          choose(e.dataTransfer.files?.[0]);
+        }}
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition duration-300",
+          dragging ? "scale-[1.01] border-gold-400 bg-gold-50" : "border-border bg-slate-50 hover:border-electric-300 hover:bg-white",
+        )}
+      >
+        {file ? <FileText className="size-7 text-red-600" aria-hidden /> : <UploadCloud className={cn("size-7 text-electric-600", dragging && "animate-bounce-soft")} aria-hidden />}
+        <span className="text-sm font-medium text-navy-900">{file ? file.name : dragging ? "Déposez votre CV ici" : "Choisir mon CV (PDF) ou le glisser ici"}</span>
+        <span className="text-xs text-muted">
+          {file ? `${(file.size / 1024 / 1024).toFixed(2).replace(".", ",")} Mo · cliquez pour changer de fichier` : `PDF uniquement · ${maxMb} Mo maximum · stockage privé`}
+        </span>
       </label>
+      {progress !== null && (
+        <div role="progressbar" aria-label="Envoi du CV" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} className="h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full bg-gradient-to-r from-electric-500 to-gold-400 transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        </div>
+      )}
       {msg && <Alert tone={msg.ok ? "success" : "error"}>{msg.text}</Alert>}
-      <Button type="submit" variant="secondary" disabled={pending}>
-        {pending && <Loader2 className="size-4 animate-spin" aria-hidden />} Téléverser
+      <Button type="button" variant="secondary" disabled={pending || !file} onClick={send}>
+        {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <CheckCircle2 className="size-4" aria-hidden />}
+        {pending ? (progress !== null && progress < 100 ? `Envoi… ${progress} %` : "Vérification…") : "Téléverser mon CV"}
       </Button>
-    </form>
+    </div>
   );
 }
 

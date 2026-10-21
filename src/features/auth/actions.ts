@@ -5,7 +5,7 @@ import { safeInternalPath } from "@/lib/utils";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
-import { signUpErrorMessage } from "./errors";
+import { EMAIL_NOT_CONFIRMED_MESSAGE, signUpErrorMessage } from "./errors";
 import { candidateSignUpSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
@@ -19,7 +19,7 @@ export async function signInAction(values: Record<string, unknown>): Promise<Act
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
     if (error) {
-      if (error.code === "email_not_confirmed") return fail("Veuillez confirmer votre adresse e-mail à l'aide du lien reçu avant de vous connecter.");
+      if (error.code === "email_not_confirmed") return fail(EMAIL_NOT_CONFIRMED_MESSAGE);
       return fail("Adresse e-mail ou mot de passe incorrect.");
     }
     const ctx = await getSession();
@@ -44,7 +44,7 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
       password,
       options: {
         emailRedirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/candidat`,
-        data: { ...meta, account_type: "candidate", accepted_terms: "true", graduation_year: String(meta.graduation_year) },
+        data: { ...meta, account_type: "candidate", accepted_terms: "true" },
       },
     });
     if (error) {
@@ -55,18 +55,18 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
       if (message) return fail(message);
     }
     // Si la confirmation d'e-mail est désactivée côté Supabase, une session est ouverte immédiatement
-    if (data?.session) return { ok: true, message: "Compte créé.", data: { redirectTo: "/candidat" } };
-    return { ok: true, message: "Compte créé. Un e-mail de confirmation vous a été envoyé : cliquez sur le lien pour activer votre compte." };
+    if (data?.session) return { ok: true, message: "Compte créé : bienvenue !", data: { redirectTo: "/candidat" } };
+    return { ok: true, message: "Votre compte est créé. Ouvrez l'e-mail que nous venons de vous envoyer et cliquez sur le lien : vous pourrez ensuite vous connecter avec votre adresse e-mail et le mot de passe choisi." };
   });
 }
 
-export async function signUpPartnerAction(values: Record<string, unknown>): Promise<ActionResult> {
-  return runAction({ allowAnonymous: true }, async () => {
+export async function signUpPartnerAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo?: string }>> {
+  return runAction<{ redirectTo?: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(partnerSignUpSchema, values);
     const supabase = await createClient();
     const { password, password_confirm: _c, email, ...meta } = input;
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -79,10 +79,25 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
       const message = signUpErrorMessage(error.code);
       if (message) return fail(message);
     }
+    // Sans confirmation d'e-mail côté Supabase, la session est ouverte immédiatement
+    if (data?.session) return { ok: true, message: "Demande enregistrée.", data: { redirectTo: "/partenaire/en-attente" } };
     return {
       ok: true,
-      message: "Demande enregistrée. Confirmez votre adresse e-mail ; l'équipe YEN validera ensuite votre organisation avant d'activer votre espace partenaire.",
+      message: "Demande enregistrée. Confirmez votre adresse e-mail grâce au lien reçu ; l'équipe YEN validera ensuite votre organisation avant d'activer votre espace partenaire.",
     };
+  });
+}
+
+/** Renvoie l'e-mail de confirmation d'inscription (réponse identique que le compte existe ou non). */
+export async function resendConfirmationAction(values: Record<string, unknown>): Promise<ActionResult> {
+  return runAction({ allowAnonymous: true }, async () => {
+    if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
+    const input = parseInput(resetRequestSchema, values);
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resend({ type: "signup", email: input.email, options: { emailRedirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/candidat` } });
+    if (error?.code === "over_email_send_rate_limit" || error?.code === "over_request_rate_limit") return fail("Un e-mail vient déjà d'être envoyé. Patientez quelques minutes avant de réessayer.");
+    if (error) console.error("[inscription] renvoi de l'e-mail refusé", error.code, error.status);
+    return { ok: true, message: "Si un compte en attente correspond à cette adresse, un nouvel e-mail de confirmation vient d'être envoyé. Pensez à vérifier les courriers indésirables (spams)." };
   });
 }
 

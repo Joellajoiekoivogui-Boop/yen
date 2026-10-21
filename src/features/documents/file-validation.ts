@@ -5,7 +5,7 @@
  * peuvent contenir du script, ne sont pas acceptées.
  */
 import { createHash } from "node:crypto";
-import { checkPdf } from "@/features/cv/pdf-validation";
+import { checkPdf, hasPdfHeader } from "@/features/cv/pdf-validation";
 
 export type AllowedFileType = "pdf" | "jpeg" | "png" | "webp";
 
@@ -19,10 +19,10 @@ export const FILE_TYPES: Record<AllowedFileType, { mime: string; ext: string; la
 const startsWith = (bytes: Uint8Array, sig: number[], offset = 0) => sig.every((b, i) => bytes[offset + i] === b);
 
 export function detectFileType(bytes: Uint8Array): AllowedFileType | null {
-  if (startsWith(bytes, [0x25, 0x50, 0x44, 0x46, 0x2d])) return "pdf"; // %PDF-
   if (startsWith(bytes, [0xff, 0xd8, 0xff])) return "jpeg";
   if (startsWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "png";
   if (startsWith(bytes, [0x52, 0x49, 0x46, 0x46]) && startsWith(bytes, [0x57, 0x45, 0x42, 0x50], 8)) return "webp"; // RIFF....WEBP
+  if (hasPdfHeader(bytes)) return "pdf"; // %PDF- (éventuellement précédé de quelques octets)
   return null;
 }
 

@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { pipelineLabel, type PipelineStatus } from "@/lib/labels";
 import { formatPercent, param } from "@/lib/utils";
 import { getInsertionWindowMonths } from "@/features/admin/settings";
+import { SchemaOutdatedAlert } from "./schema-alert";
 
 export const metadata: Metadata = { title: "Vue générale" };
 
@@ -19,6 +20,7 @@ export default async function AdminHome(props: PageProps<"/admin">) {
     return (
       <div>
         <PageHeader title="Administration YEN" description="Utilisez le menu pour accéder aux modules autorisés pour votre rôle." />
+        <SchemaOutdatedAlert />
       </div>
     );
   }
@@ -34,7 +36,13 @@ export default async function AdminHome(props: PageProps<"/admin">) {
     statsReq,
     ctx.permissions.has("reports.view") ? supabase.rpc("insertion_report", { p_start: iso(start), p_end: iso(end), p_include_demo: includeDemo }) : Promise.resolve({ data: null }),
   ]);
-  if (error || !stats) return <Alert tone="error">Les statistiques n&apos;ont pas pu être chargées.</Alert>;
+  if (error || !stats)
+    return (
+      <div className="space-y-4">
+        <SchemaOutdatedAlert />
+        <Alert tone="error">Les statistiques n&apos;ont pas pu être chargées.</Alert>
+      </div>
+    );
   const s = stats as Record<string, number | boolean | unknown[] | Record<string, number>>;
   const r = report.data as { insertion_rate: number | null; denominator: number; placed_confirmed: number; denominator_definition: string } | null;
   const skills = (s.skills_by_domain as { domain: string; demonstrated: number; candidates: number }[]).slice(0, 10);
@@ -47,6 +55,7 @@ export default async function AdminHome(props: PageProps<"/admin">) {
         description="Données réelles de la plateforme."
         actions={<Link href={includeDemo ? "/admin" : "/admin?demo=1"} className="text-sm text-electric-700 hover:underline">{includeDemo ? "Exclure les données de démonstration" : "Inclure les données de démonstration"}</Link>}
       />
+      <SchemaOutdatedAlert />
       {includeDemo && <Alert tone="warning" title="Données de démonstration incluses">Les chiffres ci-dessous incluent {String(s.demo_candidates)} candidat(s) fictif(s) de démonstration.</Alert>}
       {!includeDemo && Number(s.demo_candidates) > 0 && <Alert tone="info">{String(s.demo_candidates)} candidat(s) de démonstration sont exclus de ces statistiques.</Alert>}
 

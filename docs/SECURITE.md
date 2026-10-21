@@ -90,6 +90,14 @@ Bucket privé `candidate-documents`, chemin `<user_id>/<uuid>.pdf` imposé par p
 en place (nouvelle version à chaque dépôt), téléchargement via URL signée de 60 s après contrôle d'accès, accès du
 personnel et des partenaires journalisés. Contrôle du type réel, de la taille, du contenu actif ; antivirus optionnel.
 
+Envoi des fichiers (CV, certificats) : le navigateur dépose le fichier directement dans le stockage, à un emplacement
+temporaire `<user_id>/upload-<uuid>.<ext>`, grâce à une URL signée à usage unique créée par le serveur avec les droits
+du candidat (politique d'insertion, quota). Aucune limite de taille de l'hébergeur ne s'applique. Le serveur récupère
+ensuite le fichier, le supprime de l'emplacement temporaire, vérifie son type réel (signature), l'ouvre réellement
+(PDF illisible ou protégé par mot de passe refusé), puis enregistre lui-même la version définitive avec le type
+contrôlé. Les envois abandonnés de plus d'une heure sont effacés. La CSP n'autorise l'origine du stockage en
+`connect-src` que dans l'espace candidat.
+
 ## Application
 
 - Autorisation revérifiée dans chaque page (`requireCandidate/requireStaff/requirePartner`) et chaque action (`runAction`).

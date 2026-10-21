@@ -230,6 +230,25 @@ d("Sécurité base de données (RLS)", () => {
         db.query("insert into storage.objects (bucket_id, name) values ('candidate-documents', $1)", [`${U.alice}/page.html`]))).rejects.toThrow();
     });
 
+    it("certificat simplifié : modifier la période annule la vérification ; période limitée à 100 caractères", async () => {
+      const cert = await db.query(
+        "insert into public.candidate_certifications (candidate_id, name, issuer, training_period, verification_status) values ($1, 'Électricité', 'YEN', '2024', 'verifie') returning id",
+        [alice],
+      );
+      const r = await asUser(db, U.alice, async () => {
+        await db.query("update public.candidate_certifications set training_period = 'mars à juin 2024' where id = $1", [cert.rows[0].id]);
+        return db.query("select training_period, verification_status from public.candidate_certifications where id = $1", [cert.rows[0].id]);
+      });
+      expect(r.rows[0]).toEqual({ training_period: "mars à juin 2024", verification_status: "non_verifie" });
+      await expect(db.query("update public.candidate_certifications set training_period = repeat('x', 101) where id = $1", [cert.rows[0].id])).rejects.toThrow(/training_period/);
+    });
+
+    it("version du schéma lisible par un utilisateur connecté, pas par un visiteur anonyme", async () => {
+      const v = await asUser(db, U.alice, () => db.query("select public.app_schema_version() v"));
+      expect(v.rows[0].v).toBeGreaterThanOrEqual(14);
+      await expect(asUser(db, null, () => db.query("select public.app_schema_version()"))).rejects.toThrow(/permission/);
+    });
+
     it("un évaluateur YEN peut vérifier une certification, pas le candidat", async () => {
       const cert = await db.query("insert into public.candidate_certifications (candidate_id, name, issuer) values ($1, 'AWS CCP', 'Amazon') returning id", [alice]);
       const r = await asUser(db, U.evaluator, async () => {

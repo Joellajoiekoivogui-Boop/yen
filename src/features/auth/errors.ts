@@ -1,3 +1,7 @@
+/** Connexion refusée tant que l'adresse e-mail n'est pas confirmée (affiché avec un bouton de renvoi). */
+export const EMAIL_NOT_CONFIRMED_MESSAGE =
+  "Votre adresse e-mail n'est pas encore confirmée : ouvrez l'e-mail reçu lors de l'inscription et cliquez sur le lien, puis reconnectez-vous avec le même mot de passe.";
+
 /**
  * Messages d'erreur d'inscription à partir des codes de Supabase Auth.
  * Un compte déjà existant n'est jamais signalé (pas d'énumération des comptes).
