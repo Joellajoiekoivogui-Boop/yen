@@ -435,6 +435,14 @@
   animation-play-state: paused;
 }
 
+/* Animations continues mises en pause par le visiteur (bouton du héros ou du parcours) */
+[data-motion-paused] :is(.animate-marquee, .animate-blob, .animate-spin-slow, .animate-spin-reverse, .animate-float, .animate-float-slow, .animate-ping-slow, .animate-gradient-pan, .animate-glow-pulse, .hero-particle, .text-shine, .scroll-cue-dot) {
+  animation-play-state: paused;
+}
+[data-motion-paused] .word-rotator > span {
+  animation: none;
+}
+
 /* En-tête public : ombre au défilement et barre de progression de lecture */
 .site-header {
   transition: box-shadow 0.3s ease, background-color 0.3s ease;

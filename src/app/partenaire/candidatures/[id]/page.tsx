@@ -27,7 +27,7 @@ export default async function PartnerApplicationPage(props: PageProps<"/partenai
     <div className="space-y-6">
       <PageHeader eyebrow={offer.title} title={`Candidature ${view.public_code}`} description={`${a.origin === "yen" ? "Profil proposé par YEN" : "Candidature spontanée"} · ${formatDateTime(a.submitted_at)}`} actions={<ApplicationStatusBadge status={a.status} />} />
       {a.status === "retiree" && <Alert tone="warning">Le candidat a retiré sa candidature.</Alert>}
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-2">
           {a.motivation && <Card><CardHeader title="Message du candidat" /><CardBody><p className="text-sm whitespace-pre-line text-slate-700">{a.motivation}</p></CardBody></Card>}
           <PartnerCandidateCard v={view} />

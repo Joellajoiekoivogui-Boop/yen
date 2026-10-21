@@ -6,8 +6,9 @@ import { DomainIcon } from "@/components/domain-icon";
 import { HowItWorksStepper } from "@/components/how-it-works-stepper";
 import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
+import { MotionToggle } from "@/components/motion/motion-toggle";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
-
+import { cn } from "@/lib/utils";
 
 const HERO_CARDS = [
   { icon: FileText, t: "Un profil professionnel complet", d: "CV, formations, projets, certifications et expériences au même endroit." },
@@ -16,10 +17,28 @@ const HERO_CARDS = [
 ];
 
 const SPACES = [
-  { icon: UserCheck, t: "Étudiants et diplômés", items: ["Profil et CV sécurisés", "Évaluations par domaine", "Recommandations de métiers et plan de progression", "Candidatures et suivi"] },
-  { icon: Search, t: "Équipe YEN", items: ["Répertoire des talents filtrable", "Preuves de compétences et analyses explicables", "Présélection et suivi des placements", "Rapports d'insertion"] },
-  { icon: Handshake, t: "Partenaires", items: ["Publication d'offres validées par YEN", "Accès limité aux profils partagés", "Suivi des recrutements", "Retours sur les compétences"] },
+  {
+    icon: UserCheck,
+    t: "Étudiants et diplômés",
+    items: ["Profil et CV sécurisés", "Évaluations par domaine", "Recommandations de métiers et plan de progression", "Candidatures et suivi"],
+    cta: { href: "/inscription", label: "Créer mon profil" },
+  },
+  {
+    icon: Search,
+    t: "Équipe YEN",
+    items: ["Répertoire des talents filtrable", "Preuves de compétences et analyses explicables", "Présélection et suivi des placements", "Rapports d'insertion"],
+    cta: { href: "/connexion", label: "Accéder à mon espace" },
+  },
+  {
+    icon: Handshake,
+    t: "Partenaires",
+    items: ["Publication d'offres validées par YEN", "Accès limité aux profils partagés", "Suivi des recrutements", "Retours sur les compétences"],
+    cta: { href: "/inscription?type=partenaire", label: "Demander un espace partenaire" },
+  },
 ];
+
+/** Domaines affichés sur l'accueil mobile (la liste complète est sur /domaines). */
+const MOBILE_DOMAINS = 6;
 
 const COMMITMENTS = [
   { icon: Lock, t: "Données protégées", d: "Documents privés, accès contrôlés par rôle, consentement explicite avant tout partage avec un partenaire." },
@@ -28,7 +47,7 @@ const COMMITMENTS = [
 ];
 
 /** Mots qui défilent dans le titre (le dernier répète le premier pour une boucle sans saut). */
-const ROTATING_WORDS = ["au stage", "à l’emploi", "à l’alternance", "aux missions"];
+const ROTATING_WORDS = ["au stage", "à l'emploi", "à l'alternance", "aux missions"];
 
 /** Particules du héros : positions fixes pour un rendu identique serveur / navigateur. */
 const PARTICLES = [
@@ -118,11 +137,11 @@ export default async function HomePage() {
               YEN Career Bridge réunit les profils, les preuves de compétences et les opportunités professionnelles des étudiants et diplômés accompagnés par YEN,
               pour des mises en relation fondées sur ce que chacun sait réellement faire.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group shadow-lg shadow-gold-500/30">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
                 Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
               </ButtonLink>
-              <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="bg-white/10 text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/20">
+              <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/20 sm:w-auto">
                 Comment ça marche
               </ButtonLink>
             </div>
@@ -133,11 +152,11 @@ export default async function HomePage() {
                   { value: totalOccupations, label: "métiers décrits" },
                   { value: totalSkills, label: "compétences référencées" },
                 ].map((s) => (
-                  <div key={s.label}>
-                    <dt className="sr-only">{s.label}</dt>
+                  // libellé avant le nombre dans le code (lu une seule fois), affiché sous le nombre
+                  <div key={s.label} className="flex flex-col-reverse justify-end">
+                    <dt className="mt-1 text-xs text-navy-200 sm:text-sm">{s.label}</dt>
                     <dd>
                       <CountUp value={s.value} className="block font-heading text-3xl font-bold text-gold-300 tabular-nums sm:text-4xl" />
-                      <span className="mt-1 block text-xs text-navy-200 sm:text-sm">{s.label}</span>
                     </dd>
                   </div>
                 ))}
@@ -178,6 +197,11 @@ export default async function HomePage() {
             <span className="scroll-cue-dot size-1.5 rounded-full bg-white/80" />
           </div>
         </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-6">
+          <div className="mx-auto flex max-w-7xl justify-end px-4 sm:px-6 lg:px-8">
+            <MotionToggle className="pointer-events-auto motion-reduce:hidden" />
+          </div>
+        </div>
       </section>
 
       {/* Bandeau des domaines */}
@@ -203,12 +227,12 @@ export default async function HomePage() {
       {/* Pour qui */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
         <SectionTitle eyebrow="Pour qui ?" title="Une plateforme, trois espaces" description="Chaque utilisateur accède uniquement aux informations qui le concernent." />
-        <div data-reveal-children className="mt-10 grid gap-5 md:grid-cols-3">
-          {SPACES.map(({ icon: Icon, t, items }) => (
+        <div data-reveal-children className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {SPACES.map(({ icon: Icon, t, items, cta }) => (
             <div
               key={t}
               data-spotlight
-              className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
+              className="group flex flex-col rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
               <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 ring-1 ring-navy-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
                 <Icon className="size-5" aria-hidden />
@@ -222,6 +246,13 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
+              <Link
+                href={cta.href}
+                className="group/cta mt-auto inline-flex items-center gap-1.5 self-start pt-5 text-sm font-semibold text-electric-700 transition-colors hover:text-navy-900"
+              >
+                {cta.label}
+                <ArrowRight className="size-4 transition-transform duration-300 group-hover/cta:translate-x-1" aria-hidden />
+              </Link>
             </div>
           ))}
         </div>
@@ -249,7 +280,7 @@ export default async function HomePage() {
         <div aria-hidden className="pointer-events-none absolute inset-0 animate-gradient-pan bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))] bg-[length:200%_200%]" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos engagements" title="Une plateforme digne de confiance" inverted />
-          <div data-reveal-children className="mt-10 grid gap-6 md:grid-cols-3">
+          <div data-reveal-children className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
             {COMMITMENTS.map(({ icon: Icon, t, d }, i) => (
               <div
                 key={t}
@@ -279,13 +310,13 @@ export default async function HomePage() {
             title={`${domains.length} domaines d'ingénierie`}
             description="Chaque domaine décrit ses métiers, ses compétences avec des critères observables et ses évaluations."
           />
-          <div data-reveal="up">
+          <div data-reveal="up" className="hidden sm:block">
             <ButtonLink href="/domaines" variant="outline" className="group">
               Voir tous les domaines <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
             </ButtonLink>
           </div>
         </div>
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {domains.map((d, i) => (
             <Link
               key={d.slug}
@@ -293,7 +324,10 @@ export default async function HomePage() {
               data-reveal="zoom"
               data-spotlight
               style={revealDelay((i % 3) * 80 + Math.floor(i / 3) * 50)}
-              className="group flex items-start gap-3 overflow-hidden rounded-xl border border-border bg-white p-4 transition duration-300 ease-out-expo hover:-translate-y-1 hover:border-electric-300 hover:shadow-lg hover:shadow-electric-500/10"
+              className={cn(
+                "group items-start gap-3 overflow-hidden rounded-xl border border-border bg-white p-4 transition duration-300 ease-out-expo hover:-translate-y-1 hover:border-electric-300 hover:shadow-lg hover:shadow-electric-500/10",
+                i < MOBILE_DOMAINS ? "flex" : "hidden sm:flex",
+              )}
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-50 text-navy-700 transition-colors duration-300 group-hover:bg-electric-100 group-hover:text-electric-700">
                 <span className="group-hover:animate-bounce-soft">
@@ -308,6 +342,9 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
+        <ButtonLink href="/domaines" variant="outline" className="group mt-4 w-full sm:hidden">
+          Voir les {domains.length} domaines <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+        </ButtonLink>
       </section>
 
       {/* Appel à l'action */}
@@ -316,7 +353,7 @@ export default async function HomePage() {
           <div className="relative animate-gradient-pan overflow-hidden rounded-3xl bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] bg-[length:300%_300%] p-8 text-white sm:p-12">
             <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
             <span aria-hidden className="absolute -bottom-20 left-1/3 size-44 animate-float rounded-full bg-white/10 [animation-delay:-3s]" />
-            <span aria-hidden className="absolute top-8 left-8 size-3 animate-ping-slow rounded-full bg-gold-300" />
+            <span aria-hidden className="absolute top-8 left-8 hidden size-3 animate-ping-slow rounded-full bg-gold-300 sm:block" />
             <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
               <div>
                 <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN ?</h2>

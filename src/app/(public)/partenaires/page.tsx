@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Building2 } from "lucide-react";
-import { EmptyState } from "@/components/ui";
+import { ArrowRight, Building2, Handshake } from "lucide-react";
+import { ButtonLink, EmptyState } from "@/components/ui";
 import { listPublicPartners } from "@/features/catalog/queries";
 
 export const metadata: Metadata = { title: "Partenaires" };
@@ -30,9 +30,20 @@ export default async function PartnersPage() {
           </div>
         )}
       </div>
-      <p className="mt-10 text-sm text-slate-600">
-        Votre organisation souhaite recruter des talents accompagnés par YEN ? <a className="font-medium text-electric-700 underline" href="/inscription?type=partenaire">Demandez un espace partenaire</a>.
-      </p>
+      <div className="mt-10 flex flex-col gap-5 rounded-2xl border border-gold-200 bg-gold-50/60 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gold-400/20 text-gold-700">
+            <Handshake className="size-5" aria-hidden />
+          </span>
+          <div>
+            <h2 className="font-semibold text-navy-900">Votre organisation souhaite recruter des talents accompagnés par YEN ?</h2>
+            <p className="mt-1 text-sm text-slate-600">Publiez vos offres (validées par YEN) et recevez des profils présélectionnés, partagés avec le consentement des candidats.</p>
+          </div>
+        </div>
+        <ButtonLink href="/inscription?type=partenaire" className="group w-full shrink-0 sm:w-auto">
+          Demander un espace partenaire <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+        </ButtonLink>
+      </div>
     </div>
   );
 }

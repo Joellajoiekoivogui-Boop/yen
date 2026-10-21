@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,14 @@ import { PUBLIC_NAV } from "./public-nav-links";
 export function PublicNav({ variant }: { variant: "desktop" | "mobile" }) {
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const mobileRef = useRef<HTMLElement>(null);
+
+  // mobile : la rangée défile horizontalement, la page courante est ramenée au centre (sinon « Partenaires » est coupé)
+  useEffect(() => {
+    const nav = mobileRef.current;
+    const current = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (nav && current) nav.scrollLeft = current.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+  }, [pathname]);
 
   if (variant === "desktop") {
     return (
@@ -27,7 +36,7 @@ export function PublicNav({ variant }: { variant: "desktop" | "mobile" }) {
     );
   }
   return (
-    <nav className="scroll-fade-x flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-1.5 md:hidden" aria-label="Navigation publique (mobile)">
+    <nav ref={mobileRef} className="scroll-fade-x flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-1.5 md:hidden" aria-label="Navigation publique (mobile)">
       {PUBLIC_NAV.map((n) => (
         <Link
           key={n.href}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Pause, Play } from "lucide-react";
+import { setMotionPaused, useMotionPaused } from "@/components/motion/motion-toggle";
 import { HOW_IT_WORKS_STEPS } from "@/lib/content/how-it-works";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
@@ -10,18 +12,33 @@ const STEP_MS = 5500;
 /**
  * Parcours candidat en étapes : défilement automatique façon « stories »,
  * clic ou flèches du clavier pour choisir une étape, pause au survol.
+ * Le défilement s'arrête dès que le visiteur choisit une étape, et un bouton
+ * pause / lecture le contrôle (aussi sur mobile, sans survol).
  */
 export function HowItWorksStepper() {
   const baseId = useId();
   const reduceMotion = useReducedMotion();
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [manual, setManual] = useState(false);
+  const motionPaused = useMotionPaused();
   const steps = HOW_IT_WORKS_STEPS;
   const current = steps[active];
   const CurrentIcon = current.icon;
-  const auto = !reduceMotion;
+  const auto = !reduceMotion && !manual && !motionPaused;
 
   const select = (i: number) => setActive((i + steps.length) % steps.length);
+  const choose = (i: number) => {
+    setManual(true);
+    select(i);
+  };
+  const toggleAuto = () => {
+    if (auto) setMotionPaused(true);
+    else {
+      setManual(false);
+      setMotionPaused(false);
+    }
+  };
 
   return (
     <div
@@ -43,15 +60,15 @@ export function HowItWorksStepper() {
               aria-selected={selected}
               aria-controls={`${baseId}-panel`}
               tabIndex={selected ? 0 : -1}
-              onClick={() => select(i)}
+              onClick={() => choose(i)}
               onKeyDown={(e) => {
                 if (e.key === "ArrowDown" || e.key === "ArrowRight") {
                   e.preventDefault();
-                  select(i + 1);
+                  choose(i + 1);
                   document.getElementById(`${baseId}-tab-${(i + 1) % steps.length}`)?.focus();
                 } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
                   e.preventDefault();
-                  select(i - 1);
+                  choose(i - 1);
                   document.getElementById(`${baseId}-tab-${(i - 1 + steps.length) % steps.length}`)?.focus();
                 }
               }}
@@ -78,7 +95,7 @@ export function HowItWorksStepper() {
                     className={cn("block h-full origin-left bg-gradient-to-r from-navy-700 to-gold-400", auto ? "step-progress" : "w-full")}
                     style={auto ? { animationDuration: `${STEP_MS}ms`, animationPlayState: paused ? "paused" : "running" } : undefined}
                     onAnimationEnd={() => {
-                      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) select(active + 1);
+                      if (auto) select(active + 1);
                     }}
                   />
                 )}
@@ -111,6 +128,18 @@ export function HowItWorksStepper() {
             ))}
           </div>
         </div>
+        {!reduceMotion && (
+          <button
+            type="button"
+            onClick={toggleAuto}
+            aria-pressed={!auto}
+            aria-label="Mettre le défilement des étapes en pause"
+            title={auto ? "Mettre le défilement en pause" : "Reprendre le défilement"}
+            className="absolute right-6 bottom-6 grid size-10 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition hover:bg-white/20 focus-visible:ring-4 focus-visible:ring-gold-300/50 focus-visible:outline-none sm:right-8 sm:bottom-8"
+          >
+            {auto ? <Pause className="size-4" aria-hidden /> : <Play className="size-4" aria-hidden />}
+          </button>
+        )}
       </div>
     </div>
   );

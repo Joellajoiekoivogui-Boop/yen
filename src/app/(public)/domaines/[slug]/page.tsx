@@ -30,7 +30,7 @@ export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader icon={Briefcase} title="Métiers associés" />

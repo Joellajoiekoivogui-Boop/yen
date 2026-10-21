@@ -338,12 +338,12 @@ export function PageSkeleton() {
       <div className="skeleton h-3 w-24 rounded" />
       <div className="skeleton mt-3 h-7 w-72 max-w-full rounded-lg" />
       <div className="skeleton mt-3 h-4 w-96 max-w-full rounded" />
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="skeleton h-24 rounded-[var(--radius-card)]" style={{ animationDelay: `${i * 120}ms` }} />
         ))}
       </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="skeleton h-64 rounded-[var(--radius-card)] lg:col-span-2" />
         <div className="skeleton h-64 rounded-[var(--radius-card)] [animation-delay:200ms]" />
       </div>

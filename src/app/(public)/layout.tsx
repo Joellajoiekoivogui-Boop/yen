@@ -32,8 +32,8 @@ export default async function PublicLayout({ children }: { children: React.React
       <main id="contenu" className="flex-1">{children}</main>
       <BackToTop />
       <footer className="bg-navy-950 text-navy-100">
-        <div data-reveal-children className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
-          <div>
+        <div data-reveal-children className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
+          <div className="col-span-2">
             <Logo inverted />
             <p className="mt-3 max-w-sm text-sm text-navy-200">
               Plateforme de gestion des talents et d&apos;insertion professionnelle du Youth Engineers Network (YEN). Lancement en Guinée.
@@ -52,6 +52,12 @@ export default async function PublicLayout({ children }: { children: React.React
             <ul className="mt-3 space-y-2 text-sm">
               <li><Link href="/confidentialite" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Politique de confidentialité</Link></li>
               <li><Link href="/conditions" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Conditions d&apos;utilisation</Link></li>
+            </ul>
+            <p className="mt-6 text-sm font-semibold text-white">Espaces</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li><Link href="/connexion" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Connexion</Link></li>
+              <li><Link href="/inscription" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Créer un compte</Link></li>
+              <li><Link href="/inscription?type=partenaire" className="inline-block transition duration-300 hover:translate-x-1 hover:text-white">Espace partenaire</Link></li>
             </ul>
           </div>
         </div>
