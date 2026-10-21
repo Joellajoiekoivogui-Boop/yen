@@ -17,24 +17,26 @@ export function ProfileForm({ defaults, domains }: { defaults: Record<string, un
       schema={profileSchema}
       defaultValues={defaults}
       action={updateProfileAction}
+      submitLabel="Enregistrer mon profil"
+      stickySubmit
       fields={[
-        { name: "first_name", label: "Prénom", required: true },
+        { name: "first_name", label: "Prénom", required: true, section: "Identité et contact" },
         { name: "last_name", label: "Nom", required: true },
         { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "Obligatoire : l'équipe YEN vous appelle pour les opportunités. Il n'est jamais transmis aux partenaires." },
         { name: "city", label: "Ville", required: true, autoComplete: "address-level2" },
         { name: "country", label: "Pays", required: true, autoComplete: "country-name" },
         { name: "status", label: "Statut", type: "select", required: true, options: opts(candidateStatusLabel) },
-        { name: "institution", label: "Établissement de formation" },
+        { name: "institution", label: "Établissement de formation", section: "Formation" },
         { name: "yen_program", label: "Formation suivie chez YEN" },
         { name: "education_level", label: "Niveau d'études", placeholder: "Licence, BTS, Master…" },
         { name: "graduation_year", label: "Année de formation ou de diplomation", type: "number", min: 1970, max: 2100 },
-        { name: "primary_domain_id", label: "Domaine principal", type: "select", options: domains.map((d) => ({ value: d.id, label: d.name })) },
+        { name: "primary_domain_id", label: "Domaine principal", type: "select", options: domains.map((d) => ({ value: d.id, label: d.name })), section: "Projet professionnel" },
         { name: "availability", label: "Disponibilité", type: "select", required: true, options: opts(availabilityLabel) },
         { name: "interest_area", label: "Domaine d'intérêt professionnel", colSpan: 2 },
         { name: "opportunity_types", label: "Opportunités recherchées", type: "checkboxes", options: opts(opportunityLabel) },
-        { name: "headline", label: "Titre professionnel", placeholder: "Ex. Technicienne réseaux junior", colSpan: 2 },
+        { name: "headline", label: "Titre professionnel", placeholder: "Ex. Technicienne réseaux junior", colSpan: 2, section: "Présentation" },
         { name: "summary", label: "Résumé professionnel", type: "textarea", rows: 5, help: "Présentez vos compétences et votre projet, en restant factuel (80 caractères minimum pour compléter le profil)." },
-        { name: "linkedin_url", label: "Profil LinkedIn", type: "url" },
+        { name: "linkedin_url", label: "Profil LinkedIn", type: "url", section: "Liens (facultatifs)" },
         { name: "github_url", label: "GitHub / dépôt de code", type: "url" },
         { name: "portfolio_url", label: "Portfolio", type: "url", colSpan: 2 },
       ]}

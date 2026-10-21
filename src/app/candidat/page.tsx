@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Briefcase, CalendarClock, CheckCircle2, ClipboardCheck, Circle, MessageSquareWarning, Sparkles, Target } from "lucide-react";
 import { SingleLineChart } from "@/components/charts";
-import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, EmptyState, ProgressRing, ScorePill, StatCard } from "@/components/ui";
+import { Alert, ApplicationStatusBadge, Badge, ButtonLink, Card, CardBody, CardHeader, EmptyState, ProgressRing, ScorePill, StatCard } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { applicationStatusLabel, ACTIVE_APPLICATION_STATUSES, type ApplicationStatus } from "@/lib/labels";
+import { ACTIVE_APPLICATION_STATUSES } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 import { completionOf, loadCandidateBundle } from "@/features/candidates/queries";
 import { aggregateDemonstrated } from "@/features/candidates/skills";
@@ -63,7 +63,7 @@ export default async function CandidateDashboard() {
         </Alert>
       ))}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card data-spotlight className="group flex items-center gap-4 p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg hover:shadow-navy-900/10">
           <ProgressRing value={completion.percent} label="Complétion du profil" />
           <div className="min-w-0">
@@ -77,7 +77,7 @@ export default async function CandidateDashboard() {
         <StatCard label="Dernière analyse" value={lastAnalysis.data ? formatDate(lastAnalysis.data.created_at) : "—"} hint={lastAnalysis.data ? "Analyse IA du profil" : "Aucune analyse réalisée"} icon={CalendarClock} tone="navy" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader icon={Briefcase} title="Offres correspondant à votre profil" description="Compatibilité estimée — ce n'est pas une probabilité d'embauche." action={<Link href="/candidat/offres" className="text-sm text-electric-700 hover:underline">Toutes les offres</Link>} />
           <CardBody className="space-y-3">
@@ -112,7 +112,7 @@ export default async function CandidateDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader icon={Sparkles} title="Principales recommandations" action={<Link href="/candidat/progression" className="text-sm text-electric-700 hover:underline">Plan</Link>} />
           <CardBody className="space-y-3">
@@ -146,7 +146,7 @@ export default async function CandidateDashboard() {
                       <p className="truncate text-sm font-medium text-navy-900">{o.title}</p>
                       <p className="text-xs text-muted">{orgs.get(o.organization_id)?.name}</p>
                     </div>
-                    <Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge>
+                    <ApplicationStatusBadge status={a.status} />
                   </div>
                 );
               })

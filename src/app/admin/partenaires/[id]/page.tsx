@@ -26,7 +26,7 @@ export default async function PartnerAdminPage(props: PageProps<"/admin/partenai
   return (
     <div className="space-y-6">
       <PageHeader title={o.name} description={[o.sector, o.city, o.country].filter(Boolean).join(" · ")} actions={<Badge tone={o.status === "actif" ? "green" : "amber"}>{o.status}</Badge>} />
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card><CardHeader title="Informations" /><CardBody><OrganizationForm domains={(domains.data ?? []).map((d) => ({ value: d.id, label: d.name }))} defaults={{ ...o, domain_ids: (o.organization_domains as { domain_id: string }[]).map((d) => d.domain_id) }} /></CardBody></Card>
           <Card>

@@ -418,6 +418,15 @@
   display: none;
 }
 
+/* Rangée d'onglets défilante : seul le bord droit s'estompe (la suite est à droite) */
+.scroll-fade-end {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  scrollbar-width: none;
+}
+.scroll-fade-end::-webkit-scrollbar {
+  display: none;
+}
+
 /* Bandeau défilant */
 .marquee {
   mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);

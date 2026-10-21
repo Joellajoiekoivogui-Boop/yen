@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Building2, CalendarDays, MapPin, Users } from "lucide-react";
 import { MatchDetails } from "@/components/match-details";
-import { Alert, Badge, Card, CardBody, CardHeader, PageHeader } from "@/components/ui";
+import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, PageHeader } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { applicationStatusLabel, levelLabel, opportunityLabel, type ApplicationStatus, type OpportunityType, type SkillLevel } from "@/lib/labels";
@@ -36,7 +36,7 @@ export default async function OfferDetailPage(props: PageProps<"/candidat/offres
     <div className="space-y-6">
       <PageHeader eyebrow={opportunityLabel[o.offer_type as OpportunityType]} title={o.title} description={org.name} />
       {o.is_demo && <Alert tone="warning">Offre de démonstration fictive.</Alert>}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardBody className="space-y-4">
@@ -55,7 +55,7 @@ export default async function OfferDetailPage(props: PageProps<"/candidat/offres
                 <p className="mb-2 text-sm font-semibold text-navy-900">Compétences</p>
                 <div className="flex flex-wrap gap-1.5">
                   {((o.job_required_skills ?? []) as unknown as { required_level: SkillLevel; is_mandatory: boolean; skills: { name: string } | null }[]).map((s, i) => (
-                    <Badge key={i} tone={s.is_mandatory ? "blue" : "neutral"}>{s.skills?.name} · {levelLabel[s.required_level]}{s.is_mandatory ? " · obligatoire" : " · souhaitée"}</Badge>
+                    <Badge key={i} tone={s.is_mandatory ? "blue" : "neutral"} className="whitespace-normal">{s.skills?.name} · {levelLabel[s.required_level]}{s.is_mandatory ? " · obligatoire" : " · souhaitée"}</Badge>
                   ))}
                 </div>
               </div>
@@ -80,6 +80,16 @@ export default async function OfferDetailPage(props: PageProps<"/candidat/offres
                 <Alert tone="success">Candidature envoyée — statut : {applicationStatusLabel[app.data.status as ApplicationStatus]}.</Alert>
               ) : expired ? (
                 <Alert tone="warning">La date limite est dépassée.</Alert>
+              ) : !ctx.profile.phone?.trim() ? (
+                // téléphone obligatoire pour postuler : expliqué avant la saisie, pas après l'envoi
+                <div className="space-y-3">
+                  <Alert tone="warning" title="Ajoutez d'abord votre numéro de téléphone">
+                    L&apos;équipe YEN doit pouvoir vous appeler au sujet de cette offre. Il n&apos;est jamais transmis à l&apos;organisation.
+                  </Alert>
+                  <ButtonLink href="/candidat/profil" variant="primary" className="w-full">
+                    Ajouter mon numéro
+                  </ButtonLink>
+                </div>
               ) : (
                 <>
                   <p className="mb-3 text-xs text-muted">En postulant, vous autorisez l&apos;organisation à consulter votre profil professionnel et votre CV pour cette offre (sans votre e-mail ni votre téléphone).</p>

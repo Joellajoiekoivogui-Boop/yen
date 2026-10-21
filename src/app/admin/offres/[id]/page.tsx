@@ -3,11 +3,11 @@ import Link from "next/link";
 import { ActionButton } from "@/components/forms/action-button";
 import { OfferForm } from "@/components/forms/offer-form";
 import { MatchDetails } from "@/components/match-details";
-import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, ScorePill, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
+import { Alert, ApplicationStatusBadge, Badge, Card, CardBody, CardHeader, PageHeader, ScorePill, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
-import { applicationStatusLabel, offerStatusLabel, type ApplicationStatus, type OfferStatus, type SkillLevel } from "@/lib/labels";
+import { offerStatusLabel, type ApplicationStatus, type OfferStatus, type SkillLevel } from "@/lib/labels";
 import { formatDate, isUuid, param } from "@/lib/utils";
 import { rankCandidatesFor } from "@/features/admin/talents";
 import { associateCandidateAction, updateApplicationStatusAction } from "@/features/applications/actions";
@@ -95,7 +95,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
                   <span className="flex flex-wrap items-center gap-1.5">
                     {!r.match.meetsMandatory && <Badge tone="amber">Obligatoire manquant</Badge>}
                     {r.applied && <Badge tone="gold">A postulé</Badge>}
-                    {r.applicationStatus && <Badge tone="blue">{applicationStatusLabel[r.applicationStatus as ApplicationStatus]}</Badge>}
+                    {r.applicationStatus && <ApplicationStatusBadge status={r.applicationStatus} />}
                     {!r.consentShare && <Badge>Partage non consenti</Badge>}
                   </span>
                 </summary>
@@ -140,7 +140,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
                     <Td><Link href={`/admin/talents/${c.id}?onglet=candidatures`} className="font-medium text-navy-900 hover:underline">{c.profiles.first_name} {c.profiles.last_name}</Link><div className="font-mono text-xs text-muted">{c.public_code}</div></Td>
                     <Td>{a.origin === "yen" ? "YEN" : `Candidature ${formatDate(a.submitted_at)}`}</Td>
                     <Td>{snap?.score != null ? <ScorePill score={snap.score} /> : "—"}</Td>
-                    <Td><Badge tone="blue">{applicationStatusLabel[st]}</Badge></Td>
+                    <Td><ApplicationStatusBadge status={st} /></Td>
                     <Td className="text-xs">{a.visible_to_partner ? "Visible" : "Non transmis"}{a.partner_shortlisted && <Badge tone="gold" className="ml-1">Retenu</Badge>}</Td>
                     <Td>
                       <div className="flex flex-wrap gap-1">

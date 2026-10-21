@@ -40,8 +40,8 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
         <button className="h-10 rounded-lg border border-border bg-white px-4 text-sm font-medium text-navy-800 hover:bg-navy-50">Filtrer</button>
       </form>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {(assessments.data ?? []).length === 0 && <div className="md:col-span-3"><EmptyState icon={ClipboardCheck} title="Aucune évaluation publiée pour ce domaine" /></div>}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {(assessments.data ?? []).length === 0 && <div className="md:col-span-3"><EmptyState icon={ClipboardCheck} title="Aucune évaluation publiée pour ce domaine" description="Choisissez un autre domaine dans la liste ci-dessus : l'équipe YEN publie régulièrement de nouvelles évaluations." /></div>}
         {(assessments.data ?? []).map((a) => (
           <Link key={a.id} href={`/candidat/evaluations/${a.id}`} className="block">
             <Card className="h-full p-5 transition hover:border-electric-300 hover:shadow-md">

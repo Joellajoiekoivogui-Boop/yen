@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Badge, Card, PageHeader, Pagination, ScorePill, Table, TableEmpty, Td, Th } from "@/components/ui";
+import { ApplicationStatusBadge, Card, PageHeader, Pagination, ScorePill, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
@@ -46,7 +46,7 @@ export default async function AdminApplicationsPage(props: PageProps<"/admin/can
                   <Td><Link className="hover:underline" href={`/admin/offres/${o.id}?onglet=candidatures`}>{o.title}</Link><div className="text-xs text-muted">{o.organizations?.name}</div></Td>
                   <Td>{a.origin === "yen" ? "YEN" : "Candidat"}</Td>
                   <Td>{snap?.score != null ? <ScorePill score={snap.score} /> : "—"}</Td>
-                  <Td><Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge></Td>
+                  <Td><ApplicationStatusBadge status={a.status} /></Td>
                   <Td>{formatDateTime(a.updated_at)}</Td>
                 </tr>
               );

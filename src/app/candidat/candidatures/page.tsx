@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CalendarClock, Send } from "lucide-react";
 import { ActionButton } from "@/components/forms/action-button";
-import { Badge, Card, CardBody, EmptyState, PageHeader } from "@/components/ui";
+import { ApplicationStatusBadge, Card, CardBody, EmptyState, PageHeader } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { applicationStatusLabel, opportunityLabel, type ApplicationStatus, type OpportunityType } from "@/lib/labels";
@@ -10,8 +10,6 @@ import { withdrawApplicationAction } from "@/features/applications/actions";
 import { loadOfferOrganizations } from "@/features/offers/organizations";
 
 export const metadata: Metadata = { title: "Mes candidatures" };
-
-const tone = (s: ApplicationStatus) => (s === "acceptee" ? "green" : s === "refusee" || s === "retiree" ? "neutral" : s === "entretien_programme" ? "gold" : "blue");
 
 export default async function ApplicationsPage() {
   const ctx = await requireCandidate();
@@ -41,9 +39,9 @@ export default async function ApplicationsPage() {
                   <p className="text-sm text-muted">{orgs.get(o.organization_id)?.name} · {opportunityLabel[o.offer_type]} · {a.origin === "yen" ? "Présélection YEN" : `Envoyée le ${formatDate(a.submitted_at)}`}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge tone={tone(status)}>{applicationStatusLabel[status]}</Badge>
+                  <ApplicationStatusBadge status={status} />
                   {!["acceptee", "refusee", "retiree"].includes(status) && (
-                    <ActionButton confirm="Retirer cette candidature ?" action={withdrawApplicationAction.bind(null, a.id)}>Retirer</ActionButton>
+                    <ActionButton variant="ghost" className="text-red-600 hover:bg-red-50" confirm="Retirer cette candidature ? L'organisation ne la verra plus." action={withdrawApplicationAction.bind(null, a.id)}>Retirer</ActionButton>
                   )}
                 </div>
               </div>

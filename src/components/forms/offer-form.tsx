@@ -68,7 +68,7 @@ export function OfferForm({
         }),
       )}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {!lockOrganization && field("organization_id", "Organisation", select("organization_id", organizations))}
         {field("title", "Intitulé du poste", <input id="o-title" className="field-input" {...register("title")} />, lockOrganization)}
         {field("offer_type", "Type", select("offer_type", Object.entries(opportunityLabel).map(([value, label]) => ({ value, label })), false))}
@@ -109,7 +109,7 @@ export function OfferForm({
         <fieldset className="rounded-lg border border-border p-4">
           <legend className="px-1 text-sm font-semibold text-navy-900">Pondération du score de compatibilité (facultatif)</legend>
           <p className="mb-3 text-xs text-muted">Laissez vide pour utiliser la pondération du métier ou de la plateforme. Sinon, renseignez les 5 valeurs (somme = 100).</p>
-          <div className="grid gap-3 sm:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
             {([["w_demonstrated_skills", "Compétences démontrées"], ["w_assessments", "Évaluations"], ["w_projects", "Projets"], ["w_education", "Formation"], ["w_experience", "Expérience"]] as const).map(([k, l]) => (
               <div key={k}>
                 <label htmlFor={`o-${k}`} className="mb-1 block text-xs font-medium text-muted">{l}</label>

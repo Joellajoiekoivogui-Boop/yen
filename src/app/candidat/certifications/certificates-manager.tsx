@@ -42,7 +42,7 @@ export function CertificatesManager({ items, maxBytes }: { items: CertificateIte
       )}
       {items.length === 0 && editing !== "new" && <EmptyState icon={Award} title="Aucun certificat pour l'instant" description="Ajoutez les certificats des formations que vous avez suivies." />}
       {items.length > 0 && (
-        <ul className="grid gap-3 lg:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {items.map((item) =>
             editing === item.id ? (
               <li key={item.id} className="lg:col-span-2">
@@ -213,7 +213,7 @@ function CertificateForm({ item, maxBytes, onDone, onCancel }: { item?: Certific
   return (
     <form onSubmit={submit} noValidate className="animate-slide-down space-y-4 rounded-xl border border-navy-100 bg-navy-50/40 p-4 sm:p-5">
       <p className="font-heading font-semibold text-navy-900">{item ? "Modifier le certificat" : "Nouveau certificat"}</p>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {field("name", "Formation suivie", "Ex. : Développement web, Électricité du bâtiment", !item)}
         {field("issuer", "Organisation", "Ex. : YEN, Orange Digital Center, Coursera")}
         <div className="sm:col-span-2 sm:max-w-sm">{field("training_period", "Quand avez-vous suivi la formation ?", "Ex. : 2024, ou janvier à mars 2024")}</div>

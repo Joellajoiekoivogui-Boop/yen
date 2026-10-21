@@ -3,6 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, Inbox, Info, XCircle, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CountUp } from "@/components/motion/count-up";
+import { applicationStatusLabel, type ApplicationStatus } from "@/lib/labels";
 
 /* ----------------------------------------------------------------------------
  * Boutons
@@ -87,7 +88,7 @@ export function PageHeader({ title, description, actions, eyebrow }: { title: Re
 /* ----------------------------------------------------------------------------
  * Badges
  * ------------------------------------------------------------------------- */
-type Tone = "neutral" | "blue" | "gold" | "green" | "amber" | "red" | "navy" | "purple";
+type Tone = "neutral" | "blue" | "gold" | "green" | "amber" | "red" | "navy" | "purple" | "teal";
 const toneClass: Record<Tone, string> = {
   neutral: "bg-slate-100 text-slate-700 ring-slate-200",
   blue: "bg-electric-50 text-electric-700 ring-electric-200",
@@ -97,9 +98,32 @@ const toneClass: Record<Tone, string> = {
   red: "bg-red-50 text-red-700 ring-red-200",
   navy: "bg-navy-800 text-white ring-navy-800",
   purple: "bg-violet-50 text-violet-700 ring-violet-200",
+  teal: "bg-teal-50 text-teal-800 ring-teal-200",
 };
 export function Badge({ tone = "neutral", className, ...props }: ComponentProps<"span"> & { tone?: Tone }) {
   return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset whitespace-nowrap", toneClass[tone], className)} {...props} />;
+}
+
+/** Une couleur par étape de candidature, identique dans les trois espaces (candidat, YEN, partenaire). */
+const APPLICATION_TONES: Record<ApplicationStatus, { tone: Tone; dot: string }> = {
+  soumise: { tone: "neutral", dot: "bg-slate-400" },
+  en_revue: { tone: "blue", dot: "bg-electric-500" },
+  preselectionnee: { tone: "purple", dot: "bg-violet-500" },
+  proposee_partenaire: { tone: "teal", dot: "bg-teal-500" },
+  entretien_programme: { tone: "gold", dot: "bg-gold-500" },
+  attente_decision: { tone: "amber", dot: "bg-amber-500" },
+  acceptee: { tone: "green", dot: "bg-emerald-500" },
+  refusee: { tone: "red", dot: "bg-red-500" },
+  retiree: { tone: "neutral", dot: "bg-slate-300" },
+};
+export function ApplicationStatusBadge({ status }: { status: ApplicationStatus | string }) {
+  const s = APPLICATION_TONES[status as ApplicationStatus] ?? APPLICATION_TONES.soumise;
+  return (
+    <Badge tone={s.tone}>
+      <span aria-hidden className={cn("size-1.5 rounded-full", s.dot)} />
+      {applicationStatusLabel[status as ApplicationStatus] ?? status}
+    </Badge>
+  );
 }
 
 export function DemoBadge() {
@@ -204,12 +228,16 @@ export function ProgressRing({ value, label, size = 76, stroke = 8 }: { value: n
   );
 }
 
-export function ScorePill({ score, confidence }: { score: number; confidence?: "faible" | "moyenne" | "elevee" }) {
+export function ScorePill({ score, confidence, caption }: { score: number; confidence?: "faible" | "moyenne" | "elevee"; caption?: boolean }) {
   // fond et texte choisis pour un contraste suffisant (texte bleu marine sur le jaune YEN)
   const tone = score >= 75 ? "bg-gold-400 text-navy-950" : score >= 50 ? "bg-electric-600 text-white" : score >= 30 ? "bg-amber-300 text-navy-950" : "bg-slate-500 text-white";
+  const meaning = `Compatibilité estimée : ${score} sur 100`;
   return (
-    <span className="inline-flex items-center gap-2">
-      <span className={cn("inline-flex h-7 min-w-11 animate-pop-in items-center justify-center rounded-md px-1.5 text-sm font-bold tabular-nums", tone)}>{score}</span>
+    <span className={cn("inline-flex items-center gap-2", caption && "flex-col gap-0.5")} title={meaning}>
+      <span className={cn("inline-flex h-7 min-w-11 animate-pop-in items-center justify-center rounded-md px-1.5 text-sm font-bold tabular-nums", tone)} aria-label={meaning}>
+        {score}
+      </span>
+      {caption && <span className="text-[11px] leading-none text-muted" aria-hidden>compatibilité</span>}
       {confidence && <span className="text-xs text-muted">confiance {confidence === "elevee" ? "élevée" : confidence}</span>}
     </span>
   );
@@ -253,7 +281,7 @@ export function TableEmpty({ colSpan, children }: { colSpan: number; children: R
  * ------------------------------------------------------------------------- */
 export function TabLinks({ tabs, active }: { tabs: { key: string; label: string; href: string }[]; active: string }) {
   return (
-    <nav className="-mx-1 mb-5 flex gap-1 overflow-x-auto border-b border-border" aria-label="Sections">
+    <nav className="scroll-fade-end -mx-1 mb-5 flex gap-1 overflow-x-auto border-b border-border" aria-label="Sections">
       {tabs.map((t) => (
         <Link
           key={t.key}

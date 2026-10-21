@@ -45,7 +45,7 @@ export function OccupationForm({ defaults, domains, skills }: { defaults?: Recor
       <div className="space-y-2 rounded-lg border border-border p-3">
         <p className="text-sm font-semibold">Compétences attendues</p>
         {rows.map((r, i) => (
-          <div key={i} className="grid gap-2 sm:grid-cols-[1fr_150px_150px_auto]">
+          <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_150px_150px_auto]">
             <select className="field-input" value={r.skill_id} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, skill_id: e.target.value } : x)))} aria-label="Compétence"><option value="">—</option>{skills.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select>
             <select className="field-input" value={r.required_level} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, required_level: e.target.value } : x)))} aria-label="Niveau">{Object.entries(levelLabel).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
             <select className="field-input" value={r.importance} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, importance: e.target.value } : x)))} aria-label="Importance"><option value="obligatoire">Obligatoire</option><option value="importante">Importante</option><option value="souhaitee">Souhaitée</option></select>

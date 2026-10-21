@@ -57,7 +57,7 @@ export function ProfileAnalysisView({ row }: { row: AnalysisRow }) {
       </div>
       {o.insufficient_data_notes.length > 0 && <p className="text-sm text-amber-800">{o.insufficient_data_notes.join(" ")}</p>}
       {row.correction_note && <p className="rounded-md bg-slate-50 p-2 text-sm"><strong>Note YEN :</strong> {row.correction_note}</p>}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {list("Points forts", o.strengths)}
         {list("Lacunes détectées", o.gaps)}
         {list("Compétences démontrées", o.demonstrated_skills.map((d) => ({ text: `${d.skill} (${levelLabel[d.level]})`, source_ids: d.source_ids })))}

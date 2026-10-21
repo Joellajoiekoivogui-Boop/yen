@@ -59,7 +59,7 @@ export default async function AdminHome(props: PageProps<"/admin">) {
       {includeDemo && <Alert tone="warning" title="Données de démonstration incluses">Les chiffres ci-dessous incluent {String(s.demo_candidates)} candidat(s) fictif(s) de démonstration.</Alert>}
       {!includeDemo && Number(s.demo_candidates) > 0 && <Alert tone="info">{String(s.demo_candidates)} candidat(s) de démonstration sont exclus de ces statistiques.</Alert>}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Candidats inscrits" value={Number(s.candidates_total)} icon={Users} />
         <StatCard label="Profils complétés" value={Number(s.profiles_completed)} hint="Titre, résumé, domaine, compétences et formation renseignés" icon={UserCheck} tone="gold" />
         <StatCard label="CV disponibles" value={Number(s.cv_available)} icon={FileText} tone="navy" />
@@ -81,7 +81,7 @@ export default async function AdminHome(props: PageProps<"/admin">) {
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader title="Compétences démontrées par domaine" />
           <CardBody>{skills.length ? <SimpleBarChart data={skills} xKey="domain" series={[{ key: "demonstrated", label: "Compétences démontrées" }]} label="Compétences démontrées par domaine" layout="vertical" height={Math.max(180, skills.length * 34)} /> : <p className="text-sm text-muted">Aucune compétence démontrée pour l&apos;instant.</p>}</CardBody>

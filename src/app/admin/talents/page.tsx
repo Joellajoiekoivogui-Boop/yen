@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { IntentLink } from "@/components/layout/intent-link";
-import { Download, Flag } from "lucide-react";
+import { ChevronDown, Download, Flag, Phone, SlidersHorizontal } from "lucide-react";
 import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -42,6 +42,9 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
   for (const [k, v] of Object.entries(sp)) { const val = param(v); if (val && k !== "page") params.set(k, val); }
   const hrefFor = (p: number) => `/admin/talents?${new URLSearchParams({ ...Object.fromEntries(params), page: String(p) })}`;
 
+  // filtres secondaires renseignés : leur volet s'ouvre et leur nombre est affiché
+  const advancedCount = [filters.skill, filters.minLevel, filters.program, filters.gradYear, filters.city, filters.availability, filters.opportunity, filters.minScore, filters.flagged || undefined, filters.includeDemo || undefined, filters.sort !== "activite" ? filters.sort : undefined].filter((v) => v !== undefined && v !== "").length;
+
   const sel = (name: string, label: string, options: { value: string; label: string }[], value?: string) => (
     <div>
       <label htmlFor={name} className="mb-1 block text-xs font-medium text-muted">{label}</label>
@@ -60,34 +63,76 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
         actions={ctx.permissions.has("reports.export") ? <ButtonLink href={`/api/admin/export/talents?${params}`} variant="outline" prefetch={false}><Download className="size-4" aria-hidden /> Export CSV</ButtonLink> : undefined}
       />
       <Card className="p-4">
-        <form method="get" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-          <div className="sm:col-span-2">
-            <label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Nom, téléphone ou identifiant YEN</label>
-            <input id="q" name="q" defaultValue={filters.q} className="field-input" placeholder="Nom, téléphone ou YEN-CB-000012" />
+        <form method="get" className="space-y-3">
+          {/* Filtres principaux toujours visibles ; les autres sont regroupés (page plus courte, surtout sur téléphone) */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto]">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Nom, téléphone ou identifiant YEN</label>
+              <input id="q" name="q" type="search" defaultValue={filters.q} className="field-input" placeholder="Nom, téléphone ou YEN-CB-000012" />
+            </div>
+            {sel("domaine", "Domaine", (domains.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.domain)}
+            {sel("statut", "Statut du profil", PIPELINE_STATUSES.map((l) => ({ value: l, label: pipelineLabel[l] })), filters.pipeline)}
+            <div className="flex items-end gap-2">
+              <button className="h-10 rounded-xl bg-navy-800 px-4 text-sm font-medium text-white transition hover:bg-navy-700">Filtrer</button>
+              <Link href="/admin/talents" className="h-10 px-2 text-sm leading-10 text-muted hover:text-navy-900">Réinitialiser</Link>
+            </div>
           </div>
-          {sel("domaine", "Domaine", (domains.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.domain)}
-          {sel("competence", "Compétence démontrée", (skills.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.skill)}
-          {sel("niveau", "Niveau minimal", SKILL_LEVELS.map((l) => ({ value: l, label: levelLabel[l] })), filters.minLevel)}
-          {sel("statut", "Statut du profil", PIPELINE_STATUSES.map((l) => ({ value: l, label: pipelineLabel[l] })), filters.pipeline)}
-          <div><label htmlFor="formation" className="mb-1 block text-xs font-medium text-muted">Formation YEN</label><input id="formation" name="formation" defaultValue={filters.program} className="field-input" /></div>
-          <div><label htmlFor="annee" className="mb-1 block text-xs font-medium text-muted">Année de diplomation</label><input id="annee" name="annee" type="number" defaultValue={filters.gradYear} className="field-input" /></div>
-          <div><label htmlFor="ville" className="mb-1 block text-xs font-medium text-muted">Ville</label><input id="ville" name="ville" defaultValue={filters.city} className="field-input" /></div>
-          {sel("disponibilite", "Disponibilité", Object.entries(availabilityLabel).map(([value, label]) => ({ value, label })), filters.availability)}
-          {sel("opportunite", "Opportunité recherchée", Object.entries(opportunityLabel).map(([value, label]) => ({ value, label })), filters.opportunity)}
-          <div><label htmlFor="score" className="mb-1 block text-xs font-medium text-muted">Résultat min. à une évaluation (%)</label><input id="score" name="score" type="number" min={0} max={100} defaultValue={filters.minScore} className="field-input" /></div>
-          {sel("tri", "Tri", [{ value: "activite", label: "Dernière activité" }, { value: "inscription", label: "Date d'inscription" }, { value: "identifiant", label: "Identifiant" }, { value: "diplomation", label: "Année de diplomation" }], filters.sort)}
-          <div className="flex items-end gap-4 text-sm">
-            <label className="flex items-center gap-1.5"><input type="checkbox" name="verifier" value="1" defaultChecked={filters.flagged} className="accent-electric-600" /> À vérifier</label>
-            <label className="flex items-center gap-1.5"><input type="checkbox" name="demo" value="1" defaultChecked={filters.includeDemo} className="accent-electric-600" /> Démo</label>
-          </div>
-          <div className="flex items-end gap-2">
-            <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white hover:bg-navy-700">Filtrer</button>
-            <Link href="/admin/talents" className="h-10 px-2 text-sm leading-10 text-muted hover:text-navy-900">Réinitialiser</Link>
-          </div>
+          <details open={advancedCount > 0} className="group rounded-xl border border-border bg-slate-50/60 [&_summary::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm font-medium text-navy-800 select-none">
+              <SlidersHorizontal className="size-4" aria-hidden />
+              Plus de filtres
+              {advancedCount > 0 && <Badge tone="blue">{advancedCount} actif{advancedCount > 1 ? "s" : ""}</Badge>}
+              <ChevronDown className="ml-auto size-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+            </summary>
+            <div className="grid gap-3 border-t border-border p-3 sm:grid-cols-2 lg:grid-cols-4">
+              {sel("competence", "Compétence démontrée", (skills.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.skill)}
+              {sel("niveau", "Niveau minimal", SKILL_LEVELS.map((l) => ({ value: l, label: levelLabel[l] })), filters.minLevel)}
+              <div><label htmlFor="formation" className="mb-1 block text-xs font-medium text-muted">Formation YEN</label><input id="formation" name="formation" defaultValue={filters.program} className="field-input" /></div>
+              <div><label htmlFor="annee" className="mb-1 block text-xs font-medium text-muted">Année de diplomation</label><input id="annee" name="annee" type="number" defaultValue={filters.gradYear} className="field-input" /></div>
+              <div><label htmlFor="ville" className="mb-1 block text-xs font-medium text-muted">Ville</label><input id="ville" name="ville" defaultValue={filters.city} className="field-input" /></div>
+              {sel("disponibilite", "Disponibilité", Object.entries(availabilityLabel).map(([value, label]) => ({ value, label })), filters.availability)}
+              {sel("opportunite", "Opportunité recherchée", Object.entries(opportunityLabel).map(([value, label]) => ({ value, label })), filters.opportunity)}
+              <div><label htmlFor="score" className="mb-1 block text-xs font-medium text-muted">Résultat min. à une évaluation (%)</label><input id="score" name="score" type="number" min={0} max={100} defaultValue={filters.minScore} className="field-input" /></div>
+              {sel("tri", "Tri", [{ value: "activite", label: "Dernière activité" }, { value: "inscription", label: "Date d'inscription" }, { value: "identifiant", label: "Identifiant" }, { value: "diplomation", label: "Année de diplomation" }], filters.sort)}
+              <div className="flex items-end gap-4 pb-2 text-sm">
+                <label className="flex items-center gap-1.5"><input type="checkbox" name="verifier" value="1" defaultChecked={filters.flagged} className="size-4 accent-electric-600" /> À vérifier</label>
+                <label className="flex items-center gap-1.5"><input type="checkbox" name="demo" value="1" defaultChecked={filters.includeDemo} className="size-4 accent-electric-600" /> Démo</label>
+              </div>
+            </div>
+          </details>
         </form>
       </Card>
 
-      <Card>
+      <p className="text-sm text-muted" role="status"><strong className="text-navy-900 tabular-nums">{total}</strong> candidat{total > 1 ? "s" : ""}</p>
+
+      {/* Téléphone : une fiche par candidat (le tableau de 12 colonnes ne tient pas à l'écran) */}
+      <ul className="space-y-3 md:hidden">
+        {rows.map((r) => (
+          <li key={r.id}>
+            <Card className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <IntentLink href={`/admin/talents/${r.id}`} className="font-semibold text-navy-900 hover:underline">{r.name}</IntentLink>
+                  <p className="font-mono text-xs text-electric-700">{r.public_code}</p>
+                </div>
+                <Badge tone="blue">{pipelineLabel[r.pipeline_status as PipelineStatus]}</Badge>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">{r.is_demo && <Badge tone="purple">Démo</Badge>}{r.review_flag && <Badge tone="amber"><Flag className="size-3" aria-hidden /> À vérifier</Badge>}</div>
+              <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                <div className="col-span-2"><dt className="sr-only">Téléphone</dt><dd>{r.phone ? <a href={`tel:${r.phone.replace(/[^+\d]/g, "")}`} className="inline-flex items-center gap-1.5 font-medium text-navy-800 tabular-nums"><Phone className="size-3.5" aria-hidden />{r.phone}</a> : <Badge tone="red">Téléphone manquant</Badge>}</dd></div>
+                <div className="col-span-2 min-w-0"><dt className="text-xs text-muted">Domaine</dt><dd className="truncate">{r.domain ?? "—"}</dd></div>
+                <div><dt className="text-xs text-muted">Compétences évaluées</dt><dd className="tabular-nums">{r.evaluatedSkills}</dd></div>
+                <div><dt className="text-xs text-muted">Complétion</dt><dd className="tabular-nums">{r.completion} %</dd></div>
+                <div><dt className="text-xs text-muted">Disponibilité</dt><dd>{availabilityLabel[r.availability as Availability]}</dd></div>
+                <div><dt className="text-xs text-muted">Dernière activité</dt><dd>{formatDate(r.last_activity_at)}</dd></div>
+              </dl>
+            </Card>
+          </li>
+        ))}
+        {rows.length === 0 && <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted">Aucun candidat ne correspond à ces critères.</li>}
+      </ul>
+
+      <Card className="hidden md:block">
         <Table className="min-w-[1100px]">
           <thead>
             <tr><Th>Identifiant</Th><Th>Candidat</Th><Th>Téléphone</Th><Th>Formation</Th><Th>Domaine</Th><Th>Compétences évaluées</Th><Th>Projets</Th><Th>Complétion</Th><Th>Dernière activité</Th><Th>Disponibilité</Th><Th>Métier recommandé</Th><Th>Statut</Th></tr>
@@ -102,8 +147,8 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
                   <span className="text-xs text-muted">{r.city}</span>
                 </Td>
                 <Td className="whitespace-nowrap">{r.phone ? <a href={`tel:${r.phone.replace(/[^+\d]/g, "")}`} className="font-medium text-navy-800 tabular-nums hover:underline">{r.phone}</a> : <Badge tone="red">Manquant</Badge>}</Td>
-                <Td className="max-w-[160px] truncate">{r.yen_program ?? "—"}<div className="text-xs text-muted">{r.graduation_year ?? ""}</div></Td>
-                <Td className="max-w-[160px] truncate">{r.domain ?? "—"}</Td>
+                <Td className="max-w-[160px] truncate" title={r.yen_program ?? undefined}>{r.yen_program ?? "—"}<div className="text-xs text-muted">{r.graduation_year ?? ""}</div></Td>
+                <Td className="max-w-[160px] truncate" title={r.domain ?? undefined}>{r.domain ?? "—"}</Td>
                 <Td className="text-center tabular-nums">{r.evaluatedSkills}</Td>
                 <Td className="text-center tabular-nums">{r.projects}</Td>
                 <Td className="tabular-nums">{r.completion} %</Td>

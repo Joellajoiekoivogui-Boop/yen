@@ -17,7 +17,7 @@ export default async function SharedProfilesPage() {
   return (
     <div className="space-y-5">
       <PageHeader title="Profils partagés par YEN" description="Accès temporaire, accordé avec le consentement du candidat et révocable à tout moment." />
-      {(data ?? []).length === 0 ? <EmptyState title="Aucun profil partagé actuellement" /> : (
+      {(data ?? []).length === 0 ? <EmptyState title="Aucun profil partagé actuellement" description="L'équipe YEN vous partagera ici des profils sélectionnés pour vos besoins, avec l'accord des candidats." /> : (
         <Card>
           <Table>
             <thead><tr><Th>Profil</Th><Th>Motif</Th><Th>Offre</Th><Th>Partagé le</Th><Th>Accès jusqu&apos;au</Th></tr></thead>

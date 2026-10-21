@@ -24,7 +24,7 @@ export default async function CorrectionsPage() {
       <Card>
         <CardHeader title="Tentatives en attente de correction humaine" />
         <CardBody>
-          {(attempts.data ?? []).length === 0 ? <EmptyState title="Aucune correction en attente" /> : (
+          {(attempts.data ?? []).length === 0 ? <EmptyState title="Aucune correction en attente" description="Les réponses libres des candidats (études de cas, exercices) apparaîtront ici dès leur envoi." /> : (
             <Table>
               <thead><tr><Th>Évaluation</Th><Th>Candidat</Th><Th>Soumise le</Th><Th /></tr></thead>
               <tbody>

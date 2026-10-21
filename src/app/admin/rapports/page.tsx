@@ -67,7 +67,7 @@ export default async function ReportsPage(props: PageProps<"/admin/rapports">) {
       {error || !r ? <Alert tone="error">Le rapport n&apos;a pas pu être calculé.</Alert> : (
         <>
           {r.demo_data_included && <Alert tone="warning">Ce rapport inclut des données de démonstration fictives.</Alert>}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard label="Taux d'insertion" value={r.insertion_rate == null ? "—" : formatPercent(r.insertion_rate, 1)} hint={`${r.placed_confirmed} / ${r.denominator} candidats`} />
             <StatCard label="Stages confirmés" value={r.internships_confirmed} tone="gold" />
             <StatCard label="Emplois confirmés" value={r.jobs_confirmed} tone="gold" />
@@ -76,7 +76,7 @@ export default async function ReportsPage(props: PageProps<"/admin/rapports">) {
           <Alert tone="info" title="Méthode de calcul">
             Numérateur : candidats du dénominateur ayant au moins un placement <strong>confirmé</strong> débutant dans la période. Dénominateur : {r.denominator_definition}. Les candidatures en cours ({r.applications_in_progress}) et les placements non confirmés ne sont pas comptés comme insertions.
           </Alert>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card><CardHeader title="Placements confirmés par mois" /><CardBody>{r.by_month.length ? <SimpleBarChart data={r.by_month} xKey="month" series={[{ key: "stages", label: "Stages" }, { key: "emplois", label: "Emplois" }]} label="Placements confirmés par mois" /> : <p className="text-sm text-muted">Aucun placement confirmé sur la période.</p>}</CardBody></Card>
             <Card><CardHeader title="Candidats placés par domaine" /><CardBody>{r.by_domain.length ? <SimpleBarChart data={r.by_domain} xKey="domain" series={[{ key: "placed", label: "Candidats placés" }]} label="Candidats placés par domaine" layout="vertical" height={Math.max(160, r.by_domain.length * 36)} /> : <p className="text-sm text-muted">—</p>}</CardBody></Card>
           </div>

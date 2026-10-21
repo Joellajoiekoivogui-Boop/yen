@@ -40,7 +40,7 @@ export function AssistantChat() {
     <div className="flex min-h-[60vh] flex-col rounded-[var(--radius-card)] border border-border bg-white">
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.length === 0 && (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {SUGGESTIONS.map((s) => (
               <button key={s} type="button" onClick={() => send(s)} className="rounded-lg border border-border p-3 text-left text-sm text-slate-700 hover:border-electric-300 hover:bg-electric-50/40">{s}</button>
             ))}

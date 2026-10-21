@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Briefcase, Send, Users } from "lucide-react";
-import { Badge, Card, CardBody, CardHeader, PageHeader, StatCard } from "@/components/ui";
+import { ApplicationStatusBadge, Card, CardBody, CardHeader, PageHeader, StatCard } from "@/components/ui";
 import { requirePartner } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { applicationStatusLabel, type ApplicationStatus } from "@/lib/labels";
+
 import { formatDateTime } from "@/lib/utils";
 
 export default async function PartnerDashboard() {
@@ -18,7 +18,7 @@ export default async function PartnerDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader title={org.data?.name ?? "Espace partenaire"} description="Vous voyez uniquement les candidatures reçues sur vos offres et les profils que YEN vous a partagés avec le consentement des candidats." />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Offres publiées" value={(offers.data ?? []).filter((o) => o.status === "publiee").length} hint={`${(offers.data ?? []).filter((o) => o.status === "en_validation").length} en validation`} icon={Briefcase} />
         <StatCard label="Candidatures visibles" value={(apps.data ?? []).length} icon={Send} tone="gold" />
         <StatCard label="Profils partagés actifs" value={shares.count ?? 0} icon={Users} tone="navy" />
@@ -30,7 +30,7 @@ export default async function PartnerDashboard() {
           {(apps.data ?? []).map((a) => (
             <Link key={a.id} href={`/partenaire/candidatures/${a.id}`} className="flex items-center justify-between rounded-md border border-border p-3 text-sm hover:bg-slate-50">
               <span>{(a.job_offers as unknown as { title: string }).title}<span className="block text-xs text-muted">{formatDateTime(a.updated_at)}</span></span>
-              <Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge>
+              <ApplicationStatusBadge status={a.status} />
             </Link>
           ))}
         </CardBody>

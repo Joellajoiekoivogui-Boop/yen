@@ -34,7 +34,7 @@ export default async function ProgressPage() {
         <CardHeader icon={Target} title="Compétences à renforcer" description={matches.length ? `Métiers visés : ${matches.map((m) => `${m.target.title} (${m.match.score}/100)`).join(" · ")}` : undefined} />
         <CardBody>
           {uniqueGaps.length === 0 ? <p className="text-sm text-muted">Aucun écart identifié pour l&apos;instant (ou domaine principal non renseigné).</p> : (
-            <ul className="grid gap-2 md:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {uniqueGaps.map((g) => (
                 <li key={g.skillId} className="rounded-lg border border-border p-3 text-sm">
                   <p className="font-medium text-navy-900">{g.skillName}</p>
@@ -73,7 +73,7 @@ export default async function ProgressPage() {
       <Card>
         <CardHeader title="Recommandations" />
         <CardBody className="space-y-2">
-          {(recs.data ?? []).length === 0 && <EmptyState title="Aucune recommandation" />}
+          {(recs.data ?? []).length === 0 && <EmptyState title="Aucune recommandation" description="Passez une évaluation : vos résultats proposeront ici les compétences à renforcer en priorité." />}
           {(recs.data ?? []).map((r) => (
             <div key={r.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border p-3">
               <div className="min-w-0 flex-1">

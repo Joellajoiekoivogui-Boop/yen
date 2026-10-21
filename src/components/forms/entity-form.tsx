@@ -45,6 +45,8 @@ interface EntityFormProps {
   footer?: ReactNode;
   /** Bouton d'envoi sur toute la largeur, pied de formulaire centré dessous (écrans de connexion). */
   stacked?: boolean;
+  /** Formulaire long : la barre d'enregistrement reste visible en bas de l'écran pendant le défilement. */
+  stickySubmit?: boolean;
   className?: string;
 }
 
@@ -52,7 +54,7 @@ interface EntityFormProps {
  * Formulaire générique : validation côté client (React Hook Form + Zod) puis
  * appel d'une action serveur qui revalide avec le MÊME schéma.
  */
-export function EntityForm({ schema, fields, defaultValues, action, submitLabel = "Enregistrer", resetOnSuccess, onSuccess, redirectTo, footer, stacked, className }: EntityFormProps) {
+export function EntityForm({ schema, fields, defaultValues, action, submitLabel = "Enregistrer", resetOnSuccess, onSuccess, redirectTo, footer, stacked, stickySubmit, className }: EntityFormProps) {
   const router = useRouter();
   const formId = useId();
   const [pending, startTransition] = useTransition();
@@ -74,6 +76,8 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
         const text = res.message ?? (onSuccess || redirectTo ? null : "Enregistré.");
         if (text) toast.success(text);
         if (resetOnSuccess) reset(defaultValues ?? {});
+        // valeurs enregistrées = nouvel état de référence (plus de « modifications non enregistrées »)
+        else if (stickySubmit) reset(values);
         onSuccess?.(res);
         // pas de router.refresh() : l'action appelle revalidatePath et sa réponse contient déjà la page à jour
         if (redirectTo) router.push(redirectTo);
@@ -90,7 +94,7 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
 
   return (
     <form onSubmit={onSubmit} noValidate className={cn("space-y-4", className)}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {fields.map((f) => {
           const id = `${formId}-${f.name}`;
           const err = formState.errors[f.name]?.message as string | undefined;
@@ -188,12 +192,22 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
         })}
       </div>
       {error && <Alert tone="error">{error}</Alert>}
-      <div className={cn("flex flex-wrap items-center gap-3", stacked && "flex-col items-stretch text-center")}>
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-3",
+          stacked && "flex-col items-stretch text-center",
+          // au-dessus du menu du bas sur téléphone, collée au bas de l'écran sur ordinateur
+          stickySubmit && "sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-10 -mx-5 border-t border-border bg-white/95 px-5 py-3 backdrop-blur lg:bottom-0",
+        )}
+      >
         <Button type="submit" variant="secondary" size={stacked ? "lg" : "md"} disabled={pending} aria-busy={pending || undefined}>
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
           {submitLabel}
         </Button>
         {footer}
+        {stickySubmit && formState.isDirty && !pending && (
+          <span className="animate-fade-in text-xs font-medium text-amber-700" role="status">Modifications non enregistrées</span>
+        )}
       </div>
     </form>
   );

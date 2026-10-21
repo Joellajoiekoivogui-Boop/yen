@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ActionButton } from "@/components/forms/action-button";
 import { OfferForm } from "@/components/forms/offer-form";
-import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
+import { Alert, ApplicationStatusBadge, Badge, Card, CardBody, CardHeader, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requirePartner } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { applicationStatusLabel, offerStatusLabel, type ApplicationStatus, type OfferStatus, type SkillLevel } from "@/lib/labels";
+import { offerStatusLabel, type OfferStatus, type SkillLevel } from "@/lib/labels";
 import { formatDate, isUuid } from "@/lib/utils";
 import { partnerSaveOfferAction, setOfferStatusAction } from "@/features/offers/actions";
 import { partnerOfferOptions } from "../options";
@@ -44,7 +44,7 @@ export default async function PartnerOfferPage(props: PageProps<"/partenaire/off
                 <tr key={a.id}>
                   <Td className="font-mono text-xs">{codes.get(a.candidate_id)} {a.partner_shortlisted && <Badge tone="gold">Présélectionné</Badge>}</Td>
                   <Td>{formatDate(a.submitted_at)}</Td>
-                  <Td><Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge></Td>
+                  <Td><ApplicationStatusBadge status={a.status} /></Td>
                   <Td className="text-right"><Link href={`/partenaire/candidatures/${a.id}`} className="text-sm text-electric-700 hover:underline">Ouvrir</Link></Td>
                 </tr>
               ))}

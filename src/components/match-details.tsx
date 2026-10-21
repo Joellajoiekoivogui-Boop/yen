@@ -19,7 +19,7 @@ export function MatchDetails({ match, compact = false }: { match: MatchResult; c
         {match.floorScore !== match.score && <span className="text-xs text-muted">Score plancher (données manquantes = 0) : {match.floorScore}</span>}
         {!match.meetsMandatory && <Badge tone="amber" className="max-w-full whitespace-normal">Exigence(s) obligatoire(s) non démontrée(s) : {match.unmetMandatory.join(", ")}</Badge>}
       </div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {match.components.map((c) => (
           <div key={c.key} className="rounded-md border border-border p-2.5">
             <div className="flex items-center justify-between text-xs">

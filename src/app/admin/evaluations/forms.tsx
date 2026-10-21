@@ -59,7 +59,7 @@ export function QuestionForm({ assessmentId, skills }: { assessmentId: string; s
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <label className="text-sm"><span className="mb-1 block font-medium">Type</span>
           <select className="field-input" value={type} onChange={(e) => setType(e.target.value as QuestionType)}>{Object.entries(questionTypeLabel).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
         </label>

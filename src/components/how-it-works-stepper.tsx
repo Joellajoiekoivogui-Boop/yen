@@ -25,7 +25,7 @@ export function HowItWorksStepper() {
 
   return (
     <div
-      className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:gap-10"
+      className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.1fr] lg:gap-10"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

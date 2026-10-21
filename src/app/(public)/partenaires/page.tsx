@@ -19,7 +19,7 @@ export default async function PartnersPage() {
         {orgs.length === 0 ? (
           <EmptyState icon={Building2} title="Aucun partenaire publié pour le moment" description="Les organisations partenaires apparaîtront ici après leur autorisation de publication." />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {orgs.map((o) => (
               <div key={o.id} className="rounded-2xl border border-border p-5">
                 <h2 className="font-semibold text-navy-900">{o.name}</h2>

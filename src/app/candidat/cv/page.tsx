@@ -50,7 +50,7 @@ export default async function CvPage() {
       {!aiReady && <Alert tone="info" title="Fonctions IA indisponibles">Le service d&apos;IA n&apos;est pas configuré sur la plateforme. Le téléversement, le stockage et le CV généré restent disponibles.</Alert>}
       {aiReady && !aiConsent && <Alert tone="warning" title="Analyse IA non autorisée">Pour extraire automatiquement les informations de votre CV, autorisez l&apos;analyse IA dans <a className="underline" href="/candidat/parametres">Paramètres et confidentialité</a>.</Alert>}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader icon={FileText} title="CV actuel" />
           <CardBody className="space-y-4">

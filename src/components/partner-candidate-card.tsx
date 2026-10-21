@@ -20,7 +20,7 @@ export function PartnerCandidateCard({ v }: { v: PartnerCandidateView }) {
           <p className="text-xs text-muted">Pour contacter le candidat, passez par l&apos;équipe YEN ou programmez un entretien depuis la candidature.</p>
         </CardBody>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title="Compétences démontrées" description="Validées par YEN (évaluations, projets vérifiés, évaluateurs)" />
           <CardBody className="space-y-1.5">

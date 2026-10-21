@@ -77,7 +77,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
       {(offers ?? []).length === 0 ? (
         <EmptyState icon={Briefcase} title="Aucune offre ne correspond" description="Les nouvelles offres pertinentes vous seront notifiées." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(offers ?? []).map((o) => {
             const m = scores.get(o.id);
             return (
@@ -89,7 +89,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
                       {applied.has(o.id) && <Badge tone="gold">Candidature envoyée</Badge>}
                       {o.is_demo && <Badge tone="purple">Démo · fictif</Badge>}
                     </div>
-                    {m && <ScorePill score={m.score} />}
+                    {m && <ScorePill score={m.score} caption />}
                   </div>
                   <h2 className="mt-3 font-semibold text-navy-900">{o.title}</h2>
                   <p className="text-sm text-slate-600">{orgs.get(o.organization_id)?.name}</p>

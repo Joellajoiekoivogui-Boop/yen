@@ -37,7 +37,7 @@ export default async function OccupationsPage(props: PageProps<"/candidat/metier
         actions={<a href={allDomains ? "/candidat/metiers" : "/candidat/metiers?tous=1"} className="text-sm text-electric-700 hover:underline">{allDomains ? "Mon domaine principal" : "Tous les domaines"}</a>}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {ranked.length === 0 && <div className="lg:col-span-2"><EmptyState title="Aucun métier à afficher" description="Renseignez votre domaine principal dans votre profil." /></div>}
         {ranked.map(({ target, match }) => (
           <Card key={target.id}>

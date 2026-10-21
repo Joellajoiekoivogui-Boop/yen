@@ -5,7 +5,7 @@ import { Award, Brain, Download, Eye, FileText, Flag, GraduationCap, Mail, MapPi
 import { ProfileAnalysisView, type AnalysisRow } from "@/components/ai-analysis-view";
 import { ActionButton } from "@/components/forms/action-button";
 import { MatchDetails } from "@/components/match-details";
-import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, DefinitionList, DemoBadge, EmptyState, PageHeader, ProgressBar, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
+import { Alert, ApplicationStatusBadge, Badge, ButtonLink, Card, CardBody, CardHeader, DefinitionList, DemoBadge, EmptyState, PageHeader, ProgressBar, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
@@ -84,7 +84,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
     return (
       <div className="space-y-6">
         <Contact />
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="min-w-0 space-y-6 lg:col-span-2">
             <Card>
               <CardHeader title="Profil" />
@@ -327,7 +327,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
     if (!b!.declaredSkills.length && !demonstratedOnly.length) return <EmptyState icon={Target} title="Aucune compétence renseignée" />;
     return (
       <div className="space-y-3">
-        <ul className="grid gap-2 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {b!.declaredSkills.map((d) => {
             const dem = demonstrated[d.skill_id];
             return (
@@ -388,7 +388,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
   async function EducationTab() {
     const files = await certificateFiles();
     return (
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader title="Formations suivies" />
           <CardBody><Education /></CardBody>
@@ -451,7 +451,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
   async function DemonstratedTab() {
     const { data: skills } = await supabase.from("skills").select("id, name").eq("is_active", true).order("name");
     return (
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Preuves de compétences" />
           <CardBody>
@@ -530,7 +530,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
         {b!.projects.map((p) => (
           <Card key={p.id}>
             <CardHeader title={p.title} description={[p.role, p.technologies.join(", ")].filter(Boolean).join(" · ")} action={<Badge tone={p.verification_status === "verifie" ? "green" : p.verification_status === "rejete" ? "red" : "amber"}>{p.verification_status}</Badge>} />
-            <CardBody className="grid gap-4 lg:grid-cols-2">
+            <CardBody className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="space-y-2 text-sm">
                 <p className="whitespace-pre-line text-slate-700">{p.description}</p>
                 {p.outcomes && <p className="text-slate-700">Résultats : {p.outcomes}</p>}
@@ -596,7 +596,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
     return (
       <div className="space-y-4">
         <p className="text-sm text-muted">{c.primary_domain_id && param(sp.tous) !== "1" ? <>Domaine principal uniquement. <Link className="text-electric-700 hover:underline" href={`/admin/talents/${id}?onglet=metiers&tous=1`}>Tous les domaines</Link></> : "Tous les domaines."}</p>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {ranked.map(({ target, match }) => (
             <Card key={target.id}><CardHeader title={target.title} /><CardBody><MatchDetails match={match} /></CardBody></Card>
           ))}
@@ -615,7 +615,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
     await fillMissingSnapshots(supabase, apps.data ?? [], can("applications.manage"));
     const offerOpts = (offers.data ?? []).map((o) => ({ value: o.id, label: `${o.title} — ${(o.organizations as unknown as { name: string } | null)?.name ?? ""}` }));
     return (
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           {(apps.data ?? []).length === 0 && <EmptyState title="Aucune candidature" />}
           {(apps.data ?? []).map((a) => {
@@ -626,9 +626,9 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                 <CardHeader
                   title={<Link href={`/admin/offres/${o.id}`} className="hover:underline">{o.title}</Link>}
                   description={`${o.organizations?.name ?? ""} · ${a.origin === "yen" ? "Présélection YEN" : `Candidature du ${formatDate(a.submitted_at)}`} · ${a.visible_to_partner ? "visible du partenaire" : "non transmise au partenaire"}${snap?.score != null ? ` · compatibilité ${snap.score}/100` : ""}`}
-                  action={<Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge>}
+                  action={<ApplicationStatusBadge status={a.status} />}
                 />
-                <CardBody className="grid gap-4 md:grid-cols-2">
+                <CardBody className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2 text-sm">
                     <ol className="space-y-1">
                       {((a.application_events ?? []) as { id: string; to_status: ApplicationStatus; note: string | null; created_at: string; visible_to_candidate: boolean }[]).sort((x, y) => x.created_at.localeCompare(y.created_at)).map((e) => (
@@ -679,7 +679,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
     ]);
     const managers = [...new Map((staff.data ?? []).map((s) => [s.user_id, { value: s.user_id, label: fullName(s.profiles as unknown as { first_name: string; last_name: string }) }])).values()];
     return (
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {can("candidates.manage") && (
           <Card>
             <CardHeader title="Suivi" />

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Badge, Card, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
+import { ApplicationStatusBadge, Badge, Card, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requirePartner } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { applicationStatusLabel, type ApplicationStatus } from "@/lib/labels";
+
 import { formatDate } from "@/lib/utils";
 import { publicCodesForVisibleApplications } from "@/features/partners/queries";
 
@@ -28,7 +28,7 @@ export default async function PartnerApplicationsPage() {
                 <Td>{(a.job_offers as unknown as { title: string }).title}</Td>
                 <Td>{a.origin === "yen" ? "Proposé par YEN" : "Candidature"}</Td>
                 <Td>{formatDate(a.submitted_at)}</Td>
-                <Td><Badge tone="blue">{applicationStatusLabel[a.status as ApplicationStatus]}</Badge></Td>
+                <Td><ApplicationStatusBadge status={a.status} /></Td>
               </tr>
             ))}
             {(data ?? []).length === 0 && <TableEmpty colSpan={5}>Aucune candidature.</TableEmpty>}
