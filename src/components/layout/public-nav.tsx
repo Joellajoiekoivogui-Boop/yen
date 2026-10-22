@@ -21,7 +21,7 @@ export function PublicNav({ variant }: { variant: "desktop" | "mobile" }) {
 
   if (variant === "desktop") {
     return (
-      <nav className="hidden items-center gap-6 md:flex" aria-label="Navigation publique">
+      <nav className="hidden items-center gap-6 lg:flex" aria-label="Navigation publique">
         {PUBLIC_NAV.map((n) => (
           <Link
             key={n.href}
@@ -36,7 +36,7 @@ export function PublicNav({ variant }: { variant: "desktop" | "mobile" }) {
     );
   }
   return (
-    <nav ref={mobileRef} className="scroll-fade-x flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-1.5 md:hidden" aria-label="Navigation publique (mobile)">
+    <nav ref={mobileRef} className="scroll-fade-x flex gap-1 overflow-x-auto border-t border-border/60 px-3 py-1.5 lg:hidden" aria-label="Navigation publique (mobile)">
       {PUBLIC_NAV.map((n) => (
         <Link
           key={n.href}

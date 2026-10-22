@@ -39,6 +39,17 @@ test.describe("Pages publiques", () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
   });
+
+  test("pas de défilement horizontal du téléphone à l'ordinateur (pages publiques)", async ({ page }) => {
+    for (const width of [360, 640, 768, 900, 1024]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const path of ["/", "/presentation", "/fonctionnement", "/domaines", "/partenaires", "/connexion", "/inscription"]) {
+        await page.goto(path);
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(overflow, `${path} à ${width} px`).toBeLessThanOrEqual(1);
+      }
+    }
+  });
 });
 
 test.describe("Protection des espaces", () => {

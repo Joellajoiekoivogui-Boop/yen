@@ -14,8 +14,8 @@ import heroPhoto from "@/assets/hero-ingenieurs.webp";
 
 /** Étiquettes posées sur la photo du héros, placées hors des visages (positions en % de la photo). */
 const HERO_TAGS = [
-  { icon: FileText, t: "Profil complet", d: "CV, projets, certifications", pos: "left-0 top-[46%] sm:-left-4 sm:top-[49%]" },
-  { icon: ClipboardCheck, t: "Compétences démontrées", d: "prouvées, pas seulement déclarées", pos: "right-0 top-[66%] sm:-right-3 sm:top-[63%] lg:right-[5%]" },
+  { icon: FileText, t: "Profil complet", d: "CV, projets, certifications", pos: "left-[9%] top-[46%] sm:-left-4 sm:top-[49%]" },
+  { icon: ClipboardCheck, t: "Compétences démontrées", d: "prouvées, pas seulement déclarées", pos: "right-[9%] top-[66%] sm:-right-3 sm:top-[63%] lg:right-[5%]" },
   // sur téléphone, deux étiquettes seulement : la troisième couvrirait les personnes
   { icon: Briefcase, t: "Opportunités adaptées", d: "stages, emplois, missions", pos: "left-[14%] bottom-[7%] max-sm:hidden" },
 ];
@@ -181,13 +181,13 @@ export default async function HomePage() {
               </div>
             </div>
             {/* photo affichée sans animation d'entrée : c'est l'élément principal du premier écran (LCP) */}
-            {/* sur ordinateur, la photo déborde un peu de sa colonne (plus grande, toujours centrée) */}
-            <div className="relative w-full max-w-md shrink-0 lg:w-[118%] lg:max-w-none xl:w-[122%]">
+            {/* plus large que sa colonne (toujours centrée) : d'un bord à l'autre sur téléphone, débordante sur ordinateur */}
+            <div className="relative w-[118%] max-w-none shrink-0 sm:w-full sm:max-w-lg lg:w-[118%] lg:max-w-none xl:w-[122%]">
               <Image
                 src={heroPhoto}
                 alt="Deux jeunes professionnels de l'ingénierie en tenue de sécurité : casques, lunettes de protection et vêtements haute visibilité"
                 preload
-                sizes="(min-width: 1280px) 44rem, (min-width: 1024px) 50vw, (min-width: 640px) 28rem, 92vw"
+                sizes="(min-width: 1280px) 44rem, (min-width: 1024px) 50vw, (min-width: 640px) 32rem, 110vw"
                 className="h-auto w-full select-none"
                 draggable={false}
               />
