@@ -41,8 +41,8 @@ const SPACES = [
   {
     icon: Search,
     t: "Équipe YEN",
-    photo: equipePhoto,
-    alt: "Intervenant en costume prenant la parole au micro devant une affiche Youth Engineers Network",
+    photo: communautePhoto,
+    alt: "Trois jeunes hommes souriants portant le t-shirt YEN de l'Africa Engineering Summit",
     items: ["Répertoire des talents filtrable", "Preuves de compétences et analyses explicables", "Présélection et suivi des placements", "Rapports d'insertion"],
     cta: { href: "/connexion", label: "Accéder à mon espace" },
   },
@@ -102,11 +102,11 @@ const GALLERY = [
     sizes: "(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw",
   },
   {
-    photo: communautePhoto,
-    caption: "La communauté YEN",
-    alt: "Trois jeunes hommes souriants portant le t-shirt YEN de l'Africa Engineering Summit",
+    photo: equipePhoto,
+    caption: "Intervenants",
+    alt: "Intervenant en costume prenant la parole au micro devant une affiche Youth Engineers Network",
     cell: "col-span-2 aspect-[16/10] md:col-span-1 md:aspect-[4/3]",
-    focus: "object-[50%_0%]",
+    focus: "object-[60%_0%]",
     sizes: "(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw",
   },
 ];

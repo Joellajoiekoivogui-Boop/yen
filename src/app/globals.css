@@ -414,15 +414,6 @@
   animation: scroll-dot 1.8s ease-in-out infinite;
 }
 
-/* Rangée défilante horizontalement : bords estompés pour signaler la suite */
-.scroll-fade-x {
-  mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 2rem), transparent);
-  scrollbar-width: none;
-}
-.scroll-fade-x::-webkit-scrollbar {
-  display: none;
-}
-
 /* Rangée d'onglets défilante : seul le bord droit s'estompe (la suite est à droite) */
 .scroll-fade-end {
   mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);

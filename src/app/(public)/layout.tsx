@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 import { BackToTop } from "@/components/feedback/back-to-top";
 import { cookies } from "next/headers";
-import { PublicNav } from "@/components/layout/public-nav";
+import { PublicMobileMenu, PublicNav } from "@/components/layout/public-nav";
 import { PUBLIC_NAV as NAV } from "@/components/layout/public-nav-links";
 import { ButtonLink } from "@/components/ui";
 
@@ -14,19 +14,20 @@ export default async function PublicLayout({ children }: { children: React.React
       <header className="site-header sticky top-0 z-30 animate-header-in border-b border-border/70 bg-white/95">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Logo compact />
-          <PublicNav variant="desktop" />
+          <PublicNav />
           <div className="flex items-center gap-2">
             {signedIn ? (
               <ButtonLink href="/connexion" variant="secondary" size="sm">Mon espace</ButtonLink>
             ) : (
               <>
-                <ButtonLink href="/connexion" variant="ghost" size="sm">Connexion</ButtonLink>
+                {/* sur téléphone, « Connexion » est dans le menu */}
+                <ButtonLink href="/connexion" variant="ghost" size="sm" className="max-sm:hidden">Connexion</ButtonLink>
                 <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic>Créer un compte</ButtonLink>
               </>
             )}
+            <PublicMobileMenu signedIn={signedIn} />
           </div>
         </div>
-        <PublicNav variant="mobile" />
         <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-navy-700 via-gold-400 to-navy-700" />
       </header>
       <main id="contenu" className="flex-1">{children}</main>

@@ -52,6 +52,31 @@ test.describe("Pages publiques", () => {
   });
 });
 
+test.describe("Menu du site public sur téléphone", () => {
+  test.skip(({ isMobile }) => !isMobile, "menu hamburger : téléphone uniquement");
+
+  test("le menu hamburger s'ouvre, mène aux pages et se referme", async ({ page }) => {
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Navigation publique (mobile)" });
+    await expect(nav).toBeHidden();
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+    await expect(page.getByRole("button", { name: "Fermer le menu" })).toHaveAttribute("aria-expanded", "true");
+    await expect(nav.getByRole("link", { name: "Connexion" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Créer un compte" })).toBeVisible();
+    // Échap referme et rend le focus au bouton
+    await page.keyboard.press("Escape");
+    await expect(nav).toBeHidden();
+    await expect(page.getByRole("button", { name: "Ouvrir le menu" })).toBeFocused();
+    // un lien mène à la page et referme le menu
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+    await nav.getByRole("link", { name: "Domaines" }).click();
+    await expect(page).toHaveURL(/\/domaines$/);
+    await expect(nav).toBeHidden();
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+    await expect(nav.getByRole("link", { name: "Domaines" })).toHaveAttribute("aria-current", "page");
+  });
+});
+
 test.describe("Protection des espaces", () => {
   for (const path of ["/candidat", "/candidat/cv", "/admin", "/admin/talents", "/partenaire", "/partenaire/candidatures"]) {
     test(`${path} redirige vers la connexion sans session`, async ({ page }) => {
