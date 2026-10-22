@@ -50,7 +50,14 @@ export const getSession = cache(async (): Promise<SessionContext | null> => {
     supabase.from("user_roles").select("role").eq("user_id", user.id),
     supabase.rpc("current_permissions"),
     supabase.from("candidate_profiles").select("id").eq("user_id", user.id).maybeSingle(),
-    supabase.from("partner_memberships").select("organization_id, status").eq("user_id", user.id).eq("status", "actif"),
+    // même règle que la base (is_partner_member) : adhésion validée ET organisation active ET espace activé
+    supabase
+      .from("partner_memberships")
+      .select("organization_id, organizations!inner(status, portal_enabled)")
+      .eq("user_id", user.id)
+      .eq("status", "actif")
+      .eq("organizations.status", "actif")
+      .eq("organizations.portal_enabled", true),
   ]);
 
   if (!profileRes.data) return null;

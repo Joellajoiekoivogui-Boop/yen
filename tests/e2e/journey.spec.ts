@@ -319,3 +319,54 @@ test("le partenaire voit la candidature transmise, sans coordonnées ni notes in
   await page.goto("/partenaire/profils/00000000-0000-4000-8000-000000000000");
   await expect(page.getByText(/introuvable|404|could not be found/i).first()).toBeVisible();
 });
+
+test("une organisation partenaire s'inscrit, YEN la valide, son espace s'ouvre", async ({ page }) => {
+  const partner = { org: `Organisation E2E ${stamp}`, email: `partenaire.${stamp}@example.test`, password: "Partenaire-E2e-2026" };
+  await page.goto("/inscription?type=partenaire");
+  const f = (label: string, v: string) => page.getByRole("textbox", { name: label, exact: true }).fill(v);
+  await f("Nom de l'organisation", partner.org);
+  await f("Prénom du contact", "Awa");
+  await f("Nom du contact", "Recrutement");
+  await f("E-mail professionnel", partner.email);
+  await f("Mot de passe", partner.password);
+  await f("Retapez le mot de passe", partner.password);
+  await page.getByRole("checkbox", { name: /J'accepte/ }).check();
+  await page.getByRole("button", { name: "Demander un espace partenaire" }).click();
+  await expect(page.getByText(/Demande enregistrée/).or(page.getByText("Demande en cours de validation"))).toBeVisible({ timeout: 20_000 });
+  await logout(page);
+
+  // avant toute validation : page d'attente, aucun accès aux candidatures
+  await login(page, partner.email, partner.password);
+  await expect(page).toHaveURL(/\/partenaire\/en-attente$/);
+  await page.goto("/partenaire/candidatures");
+  await expect(page).toHaveURL(/\/partenaire\/en-attente$/);
+  await logout(page);
+
+  // YEN valide d'abord le recruteur : l'espace reste fermé tant que l'organisation n'est pas activée
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.goto("/admin/partenaires");
+  await page.getByRole("link", { name: partner.org }).click();
+  await page.getByRole("button", { name: "Valider" }).click();
+  await expect(page.getByText(/Recruteur validé/)).toBeVisible();
+  await logout(page);
+  await login(page, partner.email, partner.password);
+  await expect(page).toHaveURL(/\/partenaire\/en-attente$/);
+  await expect(page.getByText(/votre accès : actif/)).toBeVisible();
+  await logout(page);
+
+  // puis active l'organisation et son espace
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.goto("/admin/partenaires");
+  await page.getByRole("link", { name: partner.org }).click();
+  await page.getByLabel("Statut du partenariat").selectOption("actif");
+  await page.getByLabel("Espace partenaire activé").check();
+  await page.getByRole("button", { name: "Mettre à jour" }).click();
+  await expect(page.getByText("Statut de l'organisation mis à jour.")).toBeVisible();
+  await logout(page);
+
+  await login(page, partner.email, partner.password);
+  await expect(page).toHaveURL(/\/partenaire$/);
+  await expect(page.getByRole("heading", { level: 1, name: partner.org })).toBeVisible();
+  await page.goto("/partenaire/offres");
+  await expect(page).toHaveURL(/\/partenaire\/offres$/);
+});
