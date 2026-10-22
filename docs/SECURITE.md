@@ -144,6 +144,44 @@ côté serveur uniquement, jamais préfixée par `NEXT_PUBLIC_`, absente du code
   pour le personnel) ; en cas de panne du compteur, les appels d'IA du candidat sont refusés plutôt
   qu'illimités ; historique de l'assistant borné à 12 messages et 16 000 caractères.
 
+## Audit de sécurité d'octobre 2026 (migration 16)
+
+Revue complète (base de données, actions serveur et routes, couche web, dépendances, secrets),
+chaque constat reproduit puis corrigé et couvert par un test (`tests/db/security-audit-16.test.ts`,
+`tests/unit/auth-security.test.ts`, `tests/unit/csv-export.test.ts`, `tests/e2e/auth.spec.ts`).
+
+- **Critique** : la vue `offer_organizations` était modifiable par tout compte connecté (droits par
+  défaut de Supabase sur une vue exécutée avec les droits de son propriétaire) : modification ou
+  suppression d'organisations, avec leurs offres et candidatures. Désormais lecture seule.
+- Redirection après connexion : un chemin comme `/.//site.example` devenait `//site.example` après
+  normalisation (autre site). `safeInternalPath` refuse tout chemin normalisé commençant par `//`.
+- Mot de passe : le mot de passe actuel est exigé dans les paramètres ; seul un lien « Mot de passe
+  oublié » de moins de 15 minutes (session `amr` = `otp`) permet de s'en passer. La page de
+  réinitialisation affiche le compte concerné (lien reçu d'un tiers).
+- Projets et certifications : toute modification du contenu ou des compétences liées annule la
+  vérification YEN (auparavant seuls le titre et la description).
+- Candidatures côté partenaire : pas de retour sur une décision prise ni sur une candidature retirée ;
+  auteur, date et motif de décision jamais fournis par le partenaire ; la présélection ne change plus
+  le statut. Pipeline : mise à jour par un candidat ou un partenaire seulement juste après son action.
+- Retours de compétences des partenaires : candidature non retirée, candidat actif, 20 par heure ;
+  seules les preuves validées par YEN sont montrées aux partenaires.
+- Lectures resserrées : la gestion des partenaires ne lit plus les profils des candidats ; un
+  partenaire ne voit plus les candidatures d'un compte désactivé. Journal : les actions du personnel
+  ne peuvent plus être écrites par un candidat ou un partenaire.
+- Export CSV : chaque cellule entre guillemets (un tableur qui découpe sur la virgule ne crée plus de
+  cellule commençant par `=`). Politique de sécurité du contenu appliquée aussi aux adresses terminées
+  par une extension d'image ; cookie `Secure` toujours actif sur Vercel.
+
+Risques résiduels connus (faibles) :
+- Un candidat qui appelle directement l'API Supabase avec son propre jeton peut enregistrer un fichier
+  sans passer par les contrôles du serveur (signature PDF, contenu actif). Les fichiers restent servis
+  par des liens signés de 60 secondes sur le domaine de Supabase, en PDF ou image uniquement.
+  Correction complète : enregistrement des documents par une fonction serveur disposant d'une clé
+  de service (ou d'une Edge Function), non mise en place pour garder le fonctionnement sans clé secrète.
+- Un lien de confirmation ou de réinitialisation transmis par un tiers ouvre le compte de ce tiers
+  (limite des liens à usage unique de Supabase) ; le compte concerné est affiché avant toute saisie.
+- Une notification d'événement peut être renvoyée une fois par 24 heures.
+
 ## Documents
 
 Bucket privé `candidate-documents`, chemin `<user_id>/<uuid>.pdf` imposé par politique de stockage, aucune mise à jour

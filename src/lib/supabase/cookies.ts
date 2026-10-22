@@ -7,7 +7,8 @@ import { publicEnv } from "@/lib/env";
  */
 export const AUTH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: publicEnv.siteUrl.startsWith("https://"),
+  // HTTPS : adresse du site en https, ou déploiement Vercel (toujours servi en HTTPS)
+  secure: publicEnv.siteUrl.startsWith("https://") || process.env.VERCEL === "1",
   sameSite: "lax" as const,
   path: "/",
 };

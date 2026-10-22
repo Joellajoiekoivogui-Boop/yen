@@ -66,3 +66,8 @@ export const resetRequestSchema = z.object({ email: z.email("Adresse e-mail inva
 export const newPasswordSchema = z
   .object({ password: passwordSchema, password_confirm: z.string() })
   .refine((v) => v.password === v.password_confirm, { path: ["password_confirm"], message: "Les deux mots de passe ne sont pas identiques." });
+
+/** Changement de mot de passe depuis les paramètres du compte : le mot de passe actuel est exigé. */
+export const changePasswordSchema = z
+  .object({ current_password: z.string().min(1, "Mot de passe actuel requis.").max(128), password: passwordSchema, password_confirm: z.string() })
+  .refine((v) => v.password === v.password_confirm, { path: ["password_confirm"], message: "Les deux mots de passe ne sont pas identiques." });

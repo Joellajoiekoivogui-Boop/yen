@@ -11,7 +11,9 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
+// Exclus : fichiers de Next.js et images du dossier public (à la racine uniquement). Toute autre
+// adresse, même terminée par « .png » (page 404 comprise), reçoit la politique de sécurité du contenu.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|[^/]+\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };
 

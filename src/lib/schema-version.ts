@@ -1,8 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
-/** Version du schéma de base attendue par ce code (fonction public.app_schema_version, migration 15). */
-export const EXPECTED_SCHEMA_VERSION = 15;
+/** Version du schéma de base attendue par ce code (fonction public.app_schema_version, migration 16). */
+export const EXPECTED_SCHEMA_VERSION = 16;
 
 /** Version minimale pour le dépôt de CV et de certificats (migration 14) : une mise à jour plus récente ne le bloque pas. */
 export const UPLOADS_SCHEMA_VERSION = 14;

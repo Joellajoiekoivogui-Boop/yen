@@ -69,6 +69,12 @@ test("après connexion : retour vers la page demandée, jamais vers un autre sit
   await fillLogin(page, DEMO.email, DEMO.password);
   await page.waitForURL((u) => !u.pathname.startsWith("/connexion"));
   await expect(page).toHaveURL(/localhost:3000\/candidat$/);
+  // chemin qui, une fois normalisé, deviendrait « //exemple-malveillant.test »
+  await context.clearCookies();
+  await page.goto("/connexion?suivant=/.//exemple-malveillant.test/vol");
+  await fillLogin(page, DEMO.email, DEMO.password);
+  await page.waitForURL((u) => !u.pathname.startsWith("/connexion"));
+  await expect(page).toHaveURL(/localhost:3000\/candidat$/);
   await context.clearCookies();
   await page.goto("/candidat/cv");
   await expect(page).toHaveURL(/\/connexion\?suivant=%2Fcandidat%2Fcv/);
@@ -153,6 +159,32 @@ test("récupération de compte : le lien reçu permet de choisir un nouveau mot 
   await expect(page).toHaveURL(/\/connexion\?erreur=lien/);
   // l'ancien mot de passe ne fonctionne plus, le nouveau oui
   await fillLogin(page, email, "Ancien-mot-2026");
+  await expect(page.getByText("Adresse e-mail ou mot de passe incorrect.")).toBeVisible();
+  await fillLogin(page, email, "Nouveau-mot-2026");
+  await page.waitForURL(/\/candidat/);
+});
+
+test("changement de mot de passe depuis les paramètres : le mot de passe actuel est exigé", async ({ page, context }) => {
+  const email = `parametres.${Date.now()}.${randomUUID().slice(0, 6)}@example.test`;
+  await authAdmin("users", { email, password: "Actuel-mot-2026", email_confirm: true, user_metadata: { first_name: "Test", last_name: "Parametres", phone: "+224 620 00 00 03", account_type: "candidate", accepted_terms: "true" } });
+  await page.goto("/connexion");
+  await fillLogin(page, email, "Actuel-mot-2026");
+  await page.waitForURL(/\/candidat/);
+  await page.goto("/candidat/parametres");
+  const fill = async (current: string) => {
+    await page.getByRole("textbox", { name: "Mot de passe actuel" }).fill(current);
+    await page.getByRole("textbox", { name: "Nouveau mot de passe" }).fill("Nouveau-mot-2026");
+    await page.getByRole("textbox", { name: "Confirmer", exact: true }).fill("Nouveau-mot-2026");
+    await page.getByRole("button", { name: "Changer le mot de passe" }).click();
+  };
+  // une session ouverte ne suffit pas : sans le mot de passe actuel, rien ne change
+  await fill("Mauvais-mot-2026");
+  await expect(page.getByText(/Mot de passe actuel incorrect/)).toBeVisible();
+  await fill("Actuel-mot-2026");
+  await expect(page.getByText(/Mot de passe mis à jour/).first()).toBeVisible();
+  await context.clearCookies();
+  await page.goto("/connexion");
+  await fillLogin(page, email, "Actuel-mot-2026");
   await expect(page.getByText("Adresse e-mail ou mot de passe incorrect.")).toBeVisible();
   await fillLogin(page, email, "Nouveau-mot-2026");
   await page.waitForURL(/\/candidat/);

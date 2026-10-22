@@ -175,11 +175,10 @@ export async function partnerToggleShortlistAction(applicationId: string, shortl
   return runAction({}, async (ctx) => {
     if (!ctx.partnerOrganizationIds.length || !isUuid(applicationId)) return fail("Action non autorisée.");
     const supabase = await createClient();
-    const { data: cur } = await supabase.from("applications").select("status").eq("id", applicationId).single();
-    if (!cur) return fail("Candidature introuvable.");
-    const status = ["proposee_partenaire", "entretien_programme", "attente_decision", "acceptee", "refusee"].includes(cur.status) ? cur.status : "proposee_partenaire";
-    const { error } = await supabase.from("applications").update({ partner_shortlisted: shortlisted, status }).eq("id", applicationId);
+    // seule la présélection change : le statut de la candidature reste celui fixé par YEN ou le candidat
+    const { data, error } = await supabase.from("applications").update({ partner_shortlisted: shortlisted }).eq("id", applicationId).select("id");
     if (error) return fail(dbErrorMessage(error));
+    if (!data?.length) return fail("Candidature introuvable.");
     revalidatePath("/partenaire", "layout");
     return { ok: true, message: shortlisted ? "Ajouté à votre présélection." : "Retiré de votre présélection." };
   });
@@ -223,8 +222,10 @@ export async function updateInterviewAction(values: Record<string, unknown>): Pr
   return runAction({}, async () => {
     const v = parseInput(interviewUpdateSchema, values);
     const supabase = await createClient();
-    const { error } = await supabase.from("interviews").update({ status: v.status, outcome: v.outcome ?? null }).eq("id", v.id);
+    const { data, error } = await supabase.from("interviews").update({ status: v.status, outcome: v.outcome ?? null }).eq("id", v.id).select("id");
     if (error) return fail(dbErrorMessage(error, "Mise à jour impossible."));
+    // aucune ligne modifiée : entretien inexistant ou non autorisé (règles d'accès de la base)
+    if (!data?.length) return fail("Entretien introuvable ou modification non autorisée.");
     revalidatePath("/admin", "layout");
     revalidatePath("/partenaire", "layout");
     return { ok: true, message: "Entretien mis à jour." };

@@ -1,12 +1,16 @@
 import "server-only";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
-/** CSV compatible tableur (séparateur « ; », BOM UTF-8), protégé contre l'injection de formules. */
+/**
+ * CSV compatible tableur (séparateur « ; », BOM UTF-8), protégé contre l'injection de formules.
+ * Chaque cellule est entre guillemets : un tableur qui découperait aussi sur la virgule
+ * (« Dupont,=FORMULE() ») garde la cellule entière, dont le début est neutralisé.
+ */
 export function toCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
   const cell = (v: string | number | null | undefined) => {
     let s = v == null ? "" : String(v);
     if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
-    return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    return `"${s.replace(/"/g, '""')}"`;
   };
   return "﻿" + [headers, ...rows].map((r) => r.map(cell).join(";")).join("\r\n");
 }

@@ -60,14 +60,17 @@ export const isUuid = (v: unknown): v is string => typeof v === "string" && UUID
 /**
  * Chemin interne sûr pour une redirection ou un lien (« /candidat?x=1 »), ou null.
  * Refuse les caractères de contrôle et la barre oblique inverse, que les
- * navigateurs suppriment ou normalisent (« /\t/site.example » mènerait ailleurs).
+ * navigateurs suppriment ou normalisent (« /\t/site.example » mènerait ailleurs),
+ * ainsi qu'un chemin qui, une fois normalisé, commence par « // » : « /.//site.example »
+ * devient « //site.example », qu'un navigateur lit comme une adresse d'un autre site.
  */
 export function safeInternalPath(path: unknown): string | null {
   if (typeof path !== "string" || !path.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(path)) return null;
   try {
     const base = "http://yen.invalid";
     const url = new URL(path, base);
-    return url.origin === base ? `${url.pathname}${url.search}${url.hash}` : null;
+    const internal = `${url.pathname}${url.search}${url.hash}`;
+    return url.origin === base && !internal.startsWith("//") ? internal : null;
   } catch {
     return null;
   }

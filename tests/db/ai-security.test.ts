@@ -109,7 +109,7 @@ d("Audit IA : non-régression", () => {
     await expect(as(U.evaluator, `select public.rate_limit_hit('ai:staff:${U.manager}')`)).rejects.toThrow(/invalide/);
   });
 
-  it("la base annonce la version de schéma 15", async () => {
-    expect((await as<{ v: number }>(U.alice, "select public.app_schema_version() v"))[0].v).toBe(15);
+  it("la base annonce une version de schéma comprenant la migration 15", async () => {
+    expect((await as<{ v: number }>(U.alice, "select public.app_schema_version() v"))[0].v).toBeGreaterThanOrEqual(15);
   });
 });

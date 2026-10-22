@@ -5,6 +5,7 @@ import { clearLoginFailures, loginRetryAfter, recordLoginFailure, takeEmailReque
 import { safeInternalPath } from "@/lib/utils";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
+import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { EMAIL_NOT_CONFIRMED_MESSAGE, signUpErrorMessage } from "./errors";
 import { candidateSignUpSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
@@ -138,10 +139,43 @@ export async function requestPasswordResetAction(values: Record<string, unknown>
   });
 }
 
+/** Session ouverte il y a moins de 15 minutes par un lien reçu par e-mail (mot de passe oublié, confirmation). */
+async function openedByRecentEmailLink(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+  const { data } = await supabase.auth.getClaims();
+  const amr = (data?.claims?.amr ?? []) as unknown[];
+  const now = Date.now() / 1000;
+  return amr.some((m) => {
+    const entry = m as { method?: string; timestamp?: number };
+    return (entry.method === "otp" || entry.method === "recovery") && typeof entry.timestamp === "number" && now - entry.timestamp < 15 * 60;
+  });
+}
+
+/**
+ * Nouveau mot de passe. Juste après un lien « Mot de passe oublié », la session vient d'être ouverte
+ * par l'e-mail : aucun autre contrôle. Sinon (paramètres du compte), le mot de passe actuel est exigé,
+ * pour qu'une session restée ouverte ailleurs ne suffise pas à s'emparer du compte.
+ */
 export async function updatePasswordAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
   return runAction<{ redirectTo: string }>({}, async (ctx) => {
     const input = parseInput(newPasswordSchema, values);
     const supabase = await createClient();
+    if (!(await openedByRecentEmailLink(supabase))) {
+      const current = typeof values.current_password === "string" ? values.current_password.slice(0, 128) : "";
+      if (!current) return fail("Saisissez votre mot de passe actuel.");
+      if (!ctx.email) return fail("Le mot de passe n'a pas pu être modifié.");
+      const ip = await clientIp();
+      const wait = loginRetryAfter(ip, ctx.email);
+      if (wait) return fail(`Trop de tentatives. Réessayez dans ${minutes(wait)} minute(s), ou utilisez « Mot de passe oublié ».`);
+      // vérification par une session séparée, sans cookies, fermée aussitôt (la session en cours n'est pas touchée)
+      const check = createPublicClient();
+      const { error: wrong } = await check.auth.signInWithPassword({ email: ctx.email, password: current });
+      if (wrong) {
+        if (isRateLimited(wrong)) return fail("Trop de demandes en même temps sur la plateforme. Patientez une minute puis réessayez.");
+        recordLoginFailure(ip, ctx.email);
+        return fail("Mot de passe actuel incorrect. Si vous vous connectez avec Google ou l'avez oublié, utilisez « Mot de passe oublié » sur la page de connexion.");
+      }
+      await check.auth.signOut({ scope: "local" });
+    }
     const { error } = await supabase.auth.updateUser({ password: input.password });
     if (error) {
       if (error.code === "same_password") return fail("Le nouveau mot de passe doit être différent de l'ancien.");

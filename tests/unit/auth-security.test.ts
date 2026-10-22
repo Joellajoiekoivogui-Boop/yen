@@ -70,6 +70,11 @@ describe("redirection après connexion", () => {
     "//exemple-malveillant.test/connexion",
     "/\\exemple-malveillant.test",
     "\\\\exemple-malveillant.test",
+    // une fois normalisés, ces chemins deviendraient « //exemple-malveillant.test »
+    "/.//exemple-malveillant.test",
+    "/..//exemple-malveillant.test",
+    "/%2e//exemple-malveillant.test",
+    "/candidat/..//exemple-malveillant.test",
     "/%0d%0aSet-Cookie:x=1".replace("%0d%0a", "\r\n"),
     "javascript:alert(1)",
     "candidat",

@@ -7,7 +7,7 @@ import { Alert, Button } from "@/components/ui";
 import { saveConsentsAction, requestAccountDeletionAction } from "@/features/candidates/actions";
 import { consentsSchema } from "@/features/candidates/schemas";
 import { signOutEverywhereAction, updatePasswordAction } from "@/features/auth/actions";
-import { newPasswordSchema } from "@/features/auth/schemas";
+import { changePasswordSchema } from "@/features/auth/schemas";
 import { consentLabel } from "@/lib/labels";
 
 export function ConsentsForm({ defaults }: { defaults: Record<string, boolean> }) {
@@ -26,11 +26,12 @@ export function ConsentsForm({ defaults }: { defaults: Record<string, boolean> }
 export function PasswordForm() {
   return (
     <EntityForm
-      schema={newPasswordSchema}
+      schema={changePasswordSchema}
       submitLabel="Changer le mot de passe"
       resetOnSuccess
       action={updatePasswordAction}
       fields={[
+        { name: "current_password", label: "Mot de passe actuel", type: "password", autoComplete: "current-password", required: true, colSpan: 2 },
         { name: "password", label: "Nouveau mot de passe", type: "password", autoComplete: "new-password", required: true },
         { name: "password_confirm", label: "Confirmer", type: "password", autoComplete: "new-password", required: true },
       ]}
