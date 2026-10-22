@@ -93,6 +93,13 @@ export const offerStatusLabel: Record<OfferStatus, string> = {
   archivee: "Archivée",
 };
 
+export const organizationStatusLabel: Record<string, string> = {
+  en_attente: "En attente",
+  actif: "Actif",
+  suspendu: "Suspendu",
+  inactif: "Inactif",
+};
+
 export const importanceLabel = { obligatoire: "Obligatoire", importante: "Importante", souhaitee: "Souhaitée" } as const;
 
 export const questionTypeLabel = {

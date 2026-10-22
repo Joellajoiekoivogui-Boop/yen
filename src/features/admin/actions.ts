@@ -6,7 +6,7 @@ import { dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResul
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/utils";
 import { PIPELINE_STATUSES } from "@/lib/labels";
-import { notifyCandidate } from "@/features/notifications/service";
+import { notify, notifyCandidate } from "@/features/notifications/service";
 
 /* ----------------------------- Suivi des candidats ----------------------- */
 
@@ -383,6 +383,61 @@ export async function setMembershipStatusAction(values: Record<string, unknown>)
     await logAudit(ctx.userId, v.status === "actif" ? "partner_member_approved" : "partner_member_revoked", "partner_memberships", v.membershipId, { organization_id: m.organization_id });
     revalidatePath(`/admin/partenaires/${m.organization_id}`);
     return { ok: true, message: v.status === "actif" ? "Recruteur validé : son espace partenaire est ouvert (si le portail de l'organisation est activé)." : "Accès révoqué." };
+  });
+}
+
+const partnerRequestSchema = z.object({ organizationId: z.guid(), decision: z.enum(["accepter", "refuser"]) });
+
+/**
+ * Demande partenaire traitée en un clic depuis la liste des partenaires.
+ * Accepter : une organisation en attente devient active avec son espace activé, ses recruteurs
+ * en attente sont validés (rôle « partner » aligné en base) et prévenus.
+ * Refuser : une organisation en attente devient inactive, ses recruteurs en attente sont refusés.
+ * Une organisation suspendue ou inactive n'est jamais réactivée par ce raccourci : sa fiche reste
+ * le seul endroit pour la réactiver.
+ */
+export async function decidePartnerRequestAction(values: Record<string, unknown>): Promise<ActionResult> {
+  return runAction({ permission: "partners.manage" }, async (ctx) => {
+    const v = parseInput(partnerRequestSchema, values);
+    const accept = v.decision === "accepter";
+    const supabase = await createClient();
+    const { data: org, error } = await supabase.from("organizations").select("id, name, status").eq("id", v.organizationId).maybeSingle();
+    if (error || !org) return fail(dbErrorMessage(error, "Organisation introuvable."));
+    if (org.status !== "en_attente" && org.status !== "actif") return fail("Organisation suspendue ou inactive : ouvrez sa fiche pour décider.");
+
+    if (org.status === "en_attente") {
+      const { error: e } = await supabase
+        .from("organizations")
+        .update(accept ? { status: "actif", portal_enabled: true } : { status: "inactif", portal_enabled: false })
+        .eq("id", org.id);
+      if (e) return fail(dbErrorMessage(e));
+    }
+    const { data: members, error: me } = await supabase
+      .from("partner_memberships")
+      .update({ status: accept ? "actif" : "revoque", approved_by: ctx.userId, approved_at: new Date().toISOString() })
+      .eq("organization_id", org.id)
+      .eq("status", "en_attente")
+      .select("user_id");
+    if (me) return fail(dbErrorMessage(me));
+    for (const m of members ?? []) {
+      const role = await supabase.rpc("sync_partner_role", { p_user: m.user_id });
+      if (role.error) return fail(dbErrorMessage(role.error, "L'accès n'a pas pu être mis à jour."));
+    }
+
+    await logAudit(ctx.userId, accept ? "partner_request_approved" : "partner_request_rejected", "organizations", org.id, { recruiters: (members ?? []).length });
+    await Promise.all(
+      (members ?? []).map((m) =>
+        notify(
+          m.user_id,
+          accept
+            ? { category: "systeme", title: "Votre espace partenaire est ouvert", body: `L'équipe YEN a validé ${org.name}. Vous pouvez publier vos offres et suivre vos candidatures.`, link: "/partenaire" }
+            : { category: "systeme", title: "Demande d'espace partenaire non retenue", body: `La demande pour ${org.name} n'a pas été retenue. Contactez l'équipe YEN pour en savoir plus.` },
+        ),
+      ),
+    );
+    revalidatePath("/admin/partenaires");
+    revalidatePath(`/admin/partenaires/${org.id}`);
+    return { ok: true, message: accept ? `${org.name} : demande acceptée, l'espace partenaire est ouvert.` : `${org.name} : demande refusée.` };
   });
 }
 

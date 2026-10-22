@@ -5,9 +5,10 @@ import { Badge, Card, CardBody, CardHeader, PageHeader, Table, Td } from "@/comp
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, fullName, isUuid } from "@/lib/utils";
-import { offerStatusLabel, type OfferStatus } from "@/lib/labels";
+import { offerStatusLabel, organizationStatusLabel, type OfferStatus } from "@/lib/labels";
 import { setMembershipStatusAction } from "@/features/admin/actions";
 import { OrganizationEventForm, OrganizationForm, OrganizationStatusForm } from "../forms";
+import { PartnerRequestActions } from "../request-actions";
 
 export default async function PartnerAdminPage(props: PageProps<"/admin/partenaires/[id]">) {
   const { id } = await props.params;
@@ -23,9 +24,19 @@ export default async function PartnerAdminPage(props: PageProps<"/admin/partenai
     supabase.from("engineering_domains").select("id, name").eq("is_active", true).order("position"),
   ]);
   if (!o) notFound();
+  const pendingRequest = o.status === "en_attente" || (o.status === "actif" && (members.data ?? []).some((m) => m.status === "en_attente"));
   return (
     <div className="space-y-6">
-      <PageHeader title={o.name} description={[o.sector, o.city, o.country].filter(Boolean).join(" · ")} actions={<Badge tone={o.status === "actif" ? "green" : "amber"}>{o.status}</Badge>} />
+      <PageHeader title={o.name} description={[o.sector, o.city, o.country].filter(Boolean).join(" · ")} actions={<Badge tone={o.status === "actif" ? "green" : "amber"}>{organizationStatusLabel[o.status] ?? o.status}</Badge>} />
+      {pendingRequest && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-amber-300 bg-amber-50/60 px-5 py-4">
+          <div>
+            <p className="font-semibold text-navy-900">{o.status === "en_attente" ? "Demande d'espace partenaire en attente" : "Nouveau recruteur en attente"}</p>
+            <p className="text-sm text-muted">Accepter active l&apos;organisation, ouvre son espace partenaire et prévient le recruteur.</p>
+          </div>
+          <PartnerRequestActions organizationId={id} name={o.name} />
+        </Card>
+      )}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card><CardHeader title="Informations" /><CardBody><OrganizationForm domains={(domains.data ?? []).map((d) => ({ value: d.id, label: d.name }))} defaults={{ ...o, domain_ids: (o.organization_domains as { domain_id: string }[]).map((d) => d.domain_id) }} /></CardBody></Card>

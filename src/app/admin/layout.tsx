@@ -14,6 +14,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const toReview = ctx.permissions.has("assessments.review")
     ? deferredCount(supabase.from("assessment_attempts").select("id", { count: "exact", head: true }).eq("status", "en_correction"))
     : 0;
+  // demandes d'accès partenaire (nouvelle organisation ou nouveau recruteur) à traiter
+  const partnerRequests = ctx.permissions.has("partners.manage")
+    ? deferredCount(supabase.from("partner_memberships").select("id", { count: "exact", head: true }).eq("status", "en_attente"))
+    : 0;
   const can = (p: Permission) => ctx.permissions.has(p);
   const items = (list: (NavItem & { perm?: Permission })[]) => list.filter((i) => !i.perm || can(i.perm));
 
@@ -33,7 +37,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       items: items([
         { href: "/admin/offres", label: "Offres", icon: "Briefcase", perm: "offers.manage" },
         { href: "/admin/candidatures", label: "Candidatures", icon: "Send", perm: "applications.manage" },
-        { href: "/admin/partenaires", label: "Partenaires", icon: "Handshake", perm: "partners.manage" },
+        { href: "/admin/partenaires", label: "Partenaires", icon: "Handshake", perm: "partners.manage", badge: partnerRequests },
         { href: "/admin/placements", label: "Placements", icon: "Trophy", perm: "placements.manage" },
       ]),
     },
