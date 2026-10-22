@@ -1,4 +1,5 @@
 import { z } from "@/lib/zod";
+import { suggestEmailFix } from "./email-typos";
 import { isCommonPassword, MIN_PASSWORD_LENGTH } from "./password-rules";
 
 export const passwordSchema = z
@@ -16,6 +17,14 @@ export const phoneSchema = z
   .regex(/^[+0-9 ().-]+$/, "Numéro invalide : chiffres, espaces et « + » uniquement.")
   .refine((v) => /^\d{8,15}$/.test(v.replace(/\D/g, "")), "Numéro invalide : 8 à 15 chiffres, indicatif compris (ex. +224 620 00 00 00).");
 
+/** Adresse d'inscription : une faute de frappe connue dans le domaine (gmail.co…) est refusée avec la correction proposée. */
+const signUpEmail = (message: string) =>
+  z
+    .email(message)
+    .trim()
+    .toLowerCase()
+    .refine((v) => !suggestEmailFix(v), { error: (iss) => `Adresse probablement mal écrite : vouliez-vous dire ${suggestEmailFix(String(iss.input))} ?` });
+
 const name = (label: string) => z.string().trim().min(1, `${label} requis.`).max(100, "100 caractères maximum.");
 
 export const signInSchema = z.object({
@@ -31,7 +40,7 @@ export const candidateSignUpSchema = z
   .object({
     first_name: name("Prénom"),
     last_name: name("Nom"),
-    email: z.email("Adresse e-mail invalide.").trim().toLowerCase(),
+    email: signUpEmail("Adresse e-mail invalide."),
     phone: phoneSchema,
     password: passwordSchema,
     password_confirm: z.string(),
@@ -44,7 +53,7 @@ export const partnerSignUpSchema = z
     organization_name: z.string().trim().min(2, "Nom de l'organisation requis.").max(200),
     first_name: name("Prénom"),
     last_name: name("Nom"),
-    email: z.email("Adresse e-mail professionnelle invalide.").trim().toLowerCase(),
+    email: signUpEmail("Adresse e-mail professionnelle invalide."),
     phone: z.string().trim().max(30).regex(/^[+0-9 ()-]*$/, "Numéro invalide.").optional().nullable(),
     password: passwordSchema,
     password_confirm: z.string(),

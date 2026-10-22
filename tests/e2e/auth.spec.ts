@@ -172,6 +172,10 @@ test("inscription : données invalides refusées avant tout envoi", async ({ pag
   await expect(page.getByText("Numéro de téléphone requis.")).toBeVisible();
   await expect(page.getByText(/Ce mot de passe est trop courant/)).toBeVisible();
   await expect(page.getByText("Vous devez accepter les conditions d'utilisation.")).toBeVisible();
+  // une faute de frappe connue dans l'adresse est signalée, avec la correction
+  await page.getByRole("textbox", { name: "Adresse e-mail" }).fill("massaseredou86@gmail.co");
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await expect(page.getByText("Adresse probablement mal écrite : vouliez-vous dire massaseredou86@gmail.com ?")).toBeVisible();
   // une fois les champs corrigés, la confirmation différente est signalée à son tour
   await page.getByRole("textbox", { name: "Téléphone" }).fill("+224 620 00 00 02");
   await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(`invalide.${Date.now()}@example.test`);
