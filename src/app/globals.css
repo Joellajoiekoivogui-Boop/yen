@@ -441,6 +441,119 @@
   animation: none;
 }
 
+/* -----------------------------------------------------------------------------
+   Transitions entre pages (site public, <ViewTransition> dans (public)/template.tsx)
+   L'en-tête reste immobile ; l'ancienne page s'efface, la nouvelle monte en fondu.
+   ----------------------------------------------------------------------------- */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+::view-transition-old(.page-exit) {
+  animation: 140ms ease-in both vt-fade-out;
+}
+::view-transition-new(.page-enter) {
+  animation: 340ms var(--ease-out-expo) 60ms both vt-rise-in;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes vt-rise-in {
+  from { opacity: 0; translate: 0 16px; }
+}
+:root[data-motion-paused]::view-transition-old(*),
+:root[data-motion-paused]::view-transition-new(*),
+:root[data-motion-paused]::view-transition-group(*) {
+  animation: none !important;
+}
+
+/* -----------------------------------------------------------------------------
+   Profondeur au défilement (animations liées au défilement, sans script) :
+   transformations uniquement, calculées par le navigateur hors du fil principal.
+   Sans prise en charge, ou si les animations sont réduites, tout reste immobile.
+   Les cadres de ces éléments utilisent overflow: clip, pas hidden : un cadre en
+   overflow: hidden devient une zone de défilement et l'animation suivrait ce cadre
+   (immobile) au lieu de la page.
+   ----------------------------------------------------------------------------- */
+@keyframes hero-photo-in {
+  from { transform: translate3d(0, 18px, 0) scale(1.03); }
+}
+.hero-photo-in {
+  animation: hero-photo-in 1s var(--ease-out-expo) backwards;
+}
+@keyframes depth-drift {
+  to { transform: translate3d(0, var(--depth, 60px), 0); }
+}
+/* amplitude (--px) et agrandissement (--ps) réglables par photo */
+@keyframes media-parallax {
+  from { transform: translate3d(0, calc(var(--px, 7%) * -1), 0) scale(var(--ps, 1.14)); }
+  to { transform: translate3d(0, var(--px, 7%), 0) scale(var(--ps, 1.14)); }
+}
+@keyframes timeline-fill {
+  from { transform: scaleY(0); }
+}
+@keyframes step-light {
+  from { opacity: 0; transform: scale(0.6); }
+}
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* photo du héros : glisse plus lentement que la page (effet de profondeur) */
+    .hero-depth {
+      animation: depth-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 700px;
+    }
+    /* photos des cartes et de la galerie : légère parallaxe dans leur cadre */
+    .media-parallax {
+      animation: media-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+    /* parcours : la ligne se remplit et chaque étape s'allume au fil du défilement */
+    .timeline-fill {
+      transform-origin: top;
+      animation: timeline-fill linear both;
+      animation-timeline: view();
+      animation-range: cover 18% cover 62%;
+    }
+    .step-light {
+      animation: step-light linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 45%;
+    }
+    /* barres de pondération : elles se remplissent à leur arrivée à l'écran */
+    .bar-grow {
+      transform-origin: left;
+      animation: bar-grow linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 40%;
+    }
+  }
+}
+.media-parallax {
+  transform: scale(var(--ps, 1.14));
+}
+@media (prefers-reduced-motion: reduce) {
+  .media-parallax {
+    transform: none;
+  }
+}
+[data-motion-paused] :is(.hero-depth, .media-parallax, .timeline-fill, .step-light, .bar-grow) {
+  animation: none;
+}
+
 /* En-tête public : ombre au défilement et barre de progression de lecture */
 .site-header {
   transition: box-shadow 0.3s ease, background-color 0.3s ease;

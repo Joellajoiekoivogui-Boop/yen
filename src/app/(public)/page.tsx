@@ -243,7 +243,8 @@ export default async function HomePage() {
             </div>
             {/* photo affichée sans animation d'entrée : c'est l'élément principal du premier écran (LCP) */}
             {/* plus large que sa colonne (toujours centrée) : d'un bord à l'autre sur téléphone, débordante sur ordinateur */}
-            <div className="relative w-[118%] max-w-none shrink-0 sm:w-full sm:max-w-lg lg:w-[118%] lg:max-w-none xl:w-[122%]">
+            {/* profondeur : la photo glisse plus lentement que la page au défilement */}
+            <div className="hero-depth relative w-[118%] max-w-none shrink-0 [--depth:48px] sm:w-full sm:max-w-lg lg:w-[118%] lg:max-w-none xl:w-[122%]">
               <Image
                 src={heroPhoto}
                 alt="Deux jeunes professionnels de l'ingénierie en tenue de sécurité : casques, lunettes de protection et vêtements haute visibilité"
@@ -306,17 +307,20 @@ export default async function HomePage() {
             <div
               key={t}
               data-spotlight
-              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-white transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
+              className="group flex flex-col overflow-clip rounded-2xl border border-border bg-white transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
-              <div className="relative aspect-[2/1] overflow-hidden bg-navy-100 md:aspect-[16/10]">
-                <Image
-                  src={photo}
-                  alt={alt}
-                  fill
-                  placeholder="blur"
-                  sizes="(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw"
-                  className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-105"
-                />
+              <div className="relative aspect-[2/1] overflow-clip bg-navy-100 md:aspect-[16/10]">
+                {/* légère parallaxe au défilement ; le zoom au survol reste sur la photo */}
+                <div className="media-parallax absolute inset-0 origin-top [--ps:1.07] [--px:3%]">
+                  <Image
+                    src={photo}
+                    alt={alt}
+                    fill
+                    placeholder="blur"
+                    sizes="(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw"
+                    className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-105"
+                  />
+                </div>
               </div>
               <div className="flex flex-1 flex-col px-6 pb-6">
                 <span className="relative -mt-6 grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 shadow-lg shadow-navy-900/10 ring-4 ring-white transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
@@ -398,15 +402,17 @@ export default async function HomePage() {
           />
           <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
             {GALLERY.map(({ photo, caption, alt, cell, focus, sizes }, i) => (
-              <figure key={caption} data-reveal="zoom" style={revealDelay(i * 80)} className={cn("group relative overflow-hidden rounded-2xl bg-navy-100", cell)}>
-                <Image
-                  src={photo}
-                  alt={alt}
-                  fill
-                  placeholder="blur"
-                  sizes={sizes}
-                  className={cn("object-cover transition-transform duration-700 ease-out-expo group-hover:scale-105", focus)}
-                />
+              <figure key={caption} data-reveal="zoom" style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
+                <div className="media-parallax absolute inset-0 [--ps:1.12] [--px:5%]">
+                  <Image
+                    src={photo}
+                    alt={alt}
+                    fill
+                    placeholder="blur"
+                    sizes={sizes}
+                    className={cn("object-cover transition-transform duration-700 ease-out-expo group-hover:scale-105", focus)}
+                  />
+                </div>
                 <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy-950/85 via-navy-950/40 to-transparent px-4 pt-10 pb-3 text-sm font-semibold text-white">
                   {caption}
                 </figcaption>
