@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, Handshake, LineChart, Lock, Scale, Search, UserCheck } from "lucide-react";
@@ -9,11 +10,14 @@ import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
+import heroPhoto from "@/assets/hero-ingenieurs.webp";
 
-const HERO_CARDS = [
-  { icon: FileText, t: "Un profil professionnel complet", d: "CV, formations, projets, certifications et expériences au même endroit." },
-  { icon: ClipboardCheck, t: "Des compétences démontrées", d: "Questionnaires, exercices et évaluations : ce qui est prouvé est distingué de ce qui est déclaré." },
-  { icon: Briefcase, t: "Des opportunités adaptées", d: "Stages, emplois, alternances et missions rapprochés de votre profil, avec explications." },
+/** Étiquettes posées sur la photo du héros, placées hors des visages (positions en % de la photo). */
+const HERO_TAGS = [
+  { icon: FileText, t: "Profil complet", d: "CV, projets, certifications", pos: "left-0 top-[46%] sm:-left-4 sm:top-[49%]" },
+  { icon: ClipboardCheck, t: "Compétences démontrées", d: "prouvées, pas seulement déclarées", pos: "right-0 top-[66%] sm:-right-3 sm:top-[63%]" },
+  // sur téléphone, deux étiquettes seulement : la troisième couvrirait les personnes
+  { icon: Briefcase, t: "Opportunités adaptées", d: "stages, emplois, missions", pos: "left-[14%] bottom-[7%] max-sm:hidden" },
 ];
 
 const SPACES = [
@@ -165,8 +169,10 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="relative grid content-center gap-4">
-            <div aria-hidden className="pointer-events-none absolute top-1/2 left-1/2 hidden size-[34rem] -translate-x-1/2 -translate-y-1/2 lg:block">
+          {/* Photo posée sur le bas du héros, halo et orbites derrière, étiquettes devant */}
+          <div className="relative -mb-28 flex items-end justify-center self-end lg:-mb-36">
+            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto aspect-square w-full max-w-[34rem] rounded-full bg-[radial-gradient(closest-side,rgb(237_180_19/0.3),rgb(53_101_221/0.22)_55%,transparent)]" />
+            <div aria-hidden className="pointer-events-none absolute top-[42%] left-1/2 hidden size-[34rem] -translate-x-1/2 -translate-y-1/2 lg:block">
               <div className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-white/10">
                 <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-gold-300 shadow-[0_0_18px_4px_rgb(237_180_19/0.6)]" />
               </div>
@@ -174,31 +180,41 @@ export default async function HomePage() {
                 <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-electric-300 shadow-[0_0_14px_3px_rgb(143_174_247/0.6)]" />
               </div>
             </div>
-            {HERO_CARDS.map(({ icon: Icon, t, d }, i) => (
-              <div key={t} className="relative animate-hero-card" style={animationDelay(450 + i * 160)}>
-                <div className="animate-float" style={animationDelay(-i * 1900)}>
-                  <div data-tilt className="group flex gap-4 rounded-2xl bg-white/[0.08] p-5 ring-1 ring-white/15 transition-colors duration-300 hover:bg-white/[0.1] hover:ring-gold-300/40">
-                    <span className="relative grid size-11 shrink-0 place-items-center rounded-xl bg-gold-400/15 text-gold-300">
-                      <span className="absolute inset-0 animate-ping-slow rounded-xl ring-1 ring-gold-300/50" style={animationDelay(i * 800)} aria-hidden />
-                      <Icon className="size-5 transition-transform duration-500 ease-spring group-hover:scale-125 group-hover:rotate-6" aria-hidden />
-                    </span>
-                    <div>
-                      <p className="font-semibold">{t}</p>
-                      <p className="mt-0.5 text-sm text-navy-200">{d}</p>
+            {/* photo affichée sans animation d'entrée : c'est l'élément principal du premier écran (LCP) */}
+            <div className="relative w-full max-w-md lg:max-w-none">
+              <Image
+                src={heroPhoto}
+                alt="Deux jeunes professionnels de l'ingénierie en tenue de sécurité : casques, lunettes de protection et vêtements haute visibilité"
+                preload
+                sizes="(min-width: 1280px) 34rem, (min-width: 1024px) 42vw, (min-width: 640px) 28rem, 92vw"
+                className="h-auto w-full select-none"
+                draggable={false}
+              />
+              {HERO_TAGS.map(({ icon: Icon, t, d, pos }, i) => (
+                <div key={t} className={cn("absolute animate-hero-card", pos)} style={animationDelay(650 + i * 160)}>
+                  <div className="animate-float" style={animationDelay(-i * 1900)}>
+                    <div className="flex items-center gap-2 rounded-2xl bg-navy-950/80 py-1.5 pr-3 pl-1.5 shadow-xl shadow-navy-950/40 ring-1 ring-white/15 sm:gap-3 sm:py-2 sm:pr-4 sm:pl-2">
+                      <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-gold-400 text-navy-950 sm:size-9">
+                        <Icon className="size-4" aria-hidden />
+                      </span>
+                      <span className="leading-tight">
+                        <span className="block text-xs font-semibold text-white sm:text-sm">{t}</span>
+                        <span className="hidden text-xs text-navy-200 sm:block">{d}</span>
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
-        <div aria-hidden className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 md:block">
+        <div aria-hidden className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 xl:block">
           <div className="flex h-9 w-6 justify-center rounded-full border-2 border-white/30 pt-1.5">
             <span className="scroll-cue-dot size-1.5 rounded-full bg-white/80" />
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-6">
+        <div className="pointer-events-none absolute inset-x-0 top-4">
           <div className="mx-auto flex max-w-7xl justify-end px-4 sm:px-6 lg:px-8">
             <MotionToggle className="pointer-events-auto motion-reduce:hidden" />
           </div>

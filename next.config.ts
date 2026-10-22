@@ -19,6 +19,8 @@ const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // photos servies en AVIF (ou WebP) à la taille de l'écran : plus légères sur les réseaux mobiles
+  images: { formats: ["image/avif", "image/webp"] },
   turbopack: {
     rules: {
       "*.css": {
