@@ -11,6 +11,15 @@ import { MotionToggle } from "@/components/motion/motion-toggle";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
 import heroPhoto from "@/assets/hero-ingenieurs.webp";
+import amphiPhoto from "@/assets/photos/amphi.jpg";
+import communautePhoto from "@/assets/photos/communaute.jpg";
+import equipePhoto from "@/assets/photos/equipe-yen.jpg";
+import etudiantsPhoto from "@/assets/photos/etudiants.jpg";
+import laureatsPhoto from "@/assets/photos/laureats.jpg";
+import partenairesPhoto from "@/assets/photos/partenaires.jpg";
+import priseDeParolePhoto from "@/assets/photos/prise-de-parole.jpg";
+import rencontresPhoto from "@/assets/photos/rencontres.jpg";
+import tropheesPhoto from "@/assets/photos/trophees.jpg";
 
 /** Étiquettes posées sur la photo du héros, placées hors des visages (positions en % de la photo). */
 const HERO_TAGS = [
@@ -24,18 +33,24 @@ const SPACES = [
   {
     icon: UserCheck,
     t: "Étudiants et diplômés",
+    photo: etudiantsPhoto,
+    alt: "Étudiante concentrée sur son ordinateur portable dans un amphithéâtre, entourée d'autres participants",
     items: ["Profil et CV sécurisés", "Évaluations par domaine", "Recommandations de métiers et plan de progression", "Candidatures et suivi"],
     cta: { href: "/inscription", label: "Créer mon profil" },
   },
   {
     icon: Search,
     t: "Équipe YEN",
+    photo: equipePhoto,
+    alt: "Intervenant en costume prenant la parole au micro devant une affiche Youth Engineers Network",
     items: ["Répertoire des talents filtrable", "Preuves de compétences et analyses explicables", "Présélection et suivi des placements", "Rapports d'insertion"],
     cta: { href: "/connexion", label: "Accéder à mon espace" },
   },
   {
     icon: Handshake,
     t: "Partenaires",
+    photo: partenairesPhoto,
+    alt: "Panel de quatre intervenants sur scène, entre les affiches de l'Africa Engineering Summit et de Youth Engineers Network",
     items: ["Publication d'offres validées par YEN", "Accès limité aux profils partagés", "Suivi des recrutements", "Retours sur les compétences"],
     cta: { href: "/inscription?type=partenaire", label: "Demander un espace partenaire" },
   },
@@ -48,6 +63,52 @@ const COMMITMENTS = [
   { icon: Lock, t: "Données protégées", d: "Documents privés, accès contrôlés par rôle, consentement explicite avant tout partage avec un partenaire." },
   { icon: Scale, t: "Analyses explicables", d: "Chaque recommandation cite ses sources. Aucune caractéristique sensible n'est utilisée pour classer les candidats." },
   { icon: LineChart, t: "Décision humaine", d: "Les scores de compatibilité aident l'équipe YEN ; la décision finale reste toujours humaine." },
+];
+
+/**
+ * Photos de l'Africa Engineering Summit. Téléphone : 2 colonnes ; tablette et ordinateur : 3 colonnes,
+ * la photo de groupe sur deux colonnes et la prise de parole à sa hauteur.
+ */
+const GALLERY = [
+  {
+    photo: laureatsPhoto,
+    caption: "Lauréats et participants",
+    alt: "Photo de groupe d'une quarantaine de jeunes participants, certificats et trophées en main",
+    cell: "col-span-2 aspect-video",
+    sizes: "(min-width: 1280px) 50rem, (min-width: 768px) 66vw, 100vw",
+  },
+  {
+    photo: priseDeParolePhoto,
+    caption: "Prise de parole",
+    alt: "Jeune femme en hijab prenant la parole au micro, l'index levé",
+    cell: "aspect-[3/4] md:aspect-auto",
+    focus: "object-[50%_0%]",
+    sizes: "(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 50vw",
+  },
+  {
+    photo: tropheesPhoto,
+    caption: "Remise des trophées",
+    alt: "Jeune homme déballant des trophées, dont un trophée en forme de casque de chantier",
+    cell: "aspect-[3/4] md:aspect-[4/3]",
+    focus: "object-[54%_0%]",
+    sizes: "(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 50vw",
+  },
+  {
+    photo: rencontresPhoto,
+    caption: "Rencontres",
+    alt: "Deux jeunes femmes souriantes, bras croisés, devant les affiches de l'événement",
+    cell: "col-span-2 aspect-[16/10] md:col-span-1 md:aspect-[4/3]",
+    focus: "object-[50%_20%]",
+    sizes: "(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw",
+  },
+  {
+    photo: communautePhoto,
+    caption: "La communauté YEN",
+    alt: "Trois jeunes hommes souriants portant le t-shirt YEN de l'Africa Engineering Summit",
+    cell: "col-span-2 aspect-[16/10] md:col-span-1 md:aspect-[4/3]",
+    focus: "object-[50%_0%]",
+    sizes: "(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw",
+  },
 ];
 
 /** Mots qui défilent dans le titre (le dernier répète le premier pour une boucle sans saut). */
@@ -241,31 +302,43 @@ export default async function HomePage() {
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
         <SectionTitle eyebrow="Pour qui ?" title="Une plateforme, trois espaces" description="Chaque utilisateur accède uniquement aux informations qui le concernent." />
         <div data-reveal-children className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-          {SPACES.map(({ icon: Icon, t, items, cta }) => (
+          {SPACES.map(({ icon: Icon, t, photo, alt, items, cta }) => (
             <div
               key={t}
               data-spotlight
-              className="group flex flex-col rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-white transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
-              <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 ring-1 ring-navy-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
-                <Icon className="size-5" aria-hidden />
-              </span>
-              <h3 className="mt-4 text-lg font-semibold text-navy-900">{t}</h3>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                {items.map((item, j) => (
-                  <li key={item} className="flex animate-nav-item gap-2" style={animationDelay(350 + j * 90)}>
-                    <BadgeCheck className="mt-0.5 size-4 shrink-0 text-gold-600" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={cta.href}
-                className="group/cta mt-auto inline-flex items-center gap-1.5 self-start pt-5 text-sm font-semibold text-electric-700 transition-colors hover:text-navy-900"
-              >
-                {cta.label}
-                <ArrowRight className="size-4 transition-transform duration-300 group-hover/cta:translate-x-1" aria-hidden />
-              </Link>
+              <div className="relative aspect-[2/1] overflow-hidden bg-navy-100 md:aspect-[16/10]">
+                <Image
+                  src={photo}
+                  alt={alt}
+                  fill
+                  placeholder="blur"
+                  sizes="(min-width: 1280px) 25rem, (min-width: 768px) 33vw, 100vw"
+                  className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-105"
+                />
+              </div>
+              <div className="flex flex-1 flex-col px-6 pb-6">
+                <span className="relative -mt-6 grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 shadow-lg shadow-navy-900/10 ring-4 ring-white transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <h3 className="mt-4 text-lg font-semibold text-navy-900">{t}</h3>
+                <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                  {items.map((item, j) => (
+                    <li key={item} className="flex animate-nav-item gap-2" style={animationDelay(350 + j * 90)}>
+                      <BadgeCheck className="mt-0.5 size-4 shrink-0 text-gold-600" aria-hidden />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={cta.href}
+                  className="group/cta mt-auto inline-flex items-center gap-1.5 self-start pt-5 text-sm font-semibold text-electric-700 transition-colors hover:text-navy-900"
+                >
+                  {cta.label}
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover/cta:translate-x-1" aria-hidden />
+                </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -310,6 +383,34 @@ export default async function HomePage() {
                 <h3 className="mt-4 font-semibold">{t}</h3>
                 <p className="mt-1 text-sm text-navy-200">{d}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* En images */}
+      <section data-reveal="none" className="bg-canvas">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+          <SectionTitle
+            eyebrow="En images"
+            title="La communauté YEN sur le terrain"
+            description="Moments de l'Africa Engineering Summit, une initiative de YEN : panels, prises de parole, remise des certificats et des trophées."
+          />
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+            {GALLERY.map(({ photo, caption, alt, cell, focus, sizes }, i) => (
+              <figure key={caption} data-reveal="zoom" style={revealDelay(i * 80)} className={cn("group relative overflow-hidden rounded-2xl bg-navy-100", cell)}>
+                <Image
+                  src={photo}
+                  alt={alt}
+                  fill
+                  placeholder="blur"
+                  sizes={sizes}
+                  className={cn("object-cover transition-transform duration-700 ease-out-expo group-hover:scale-105", focus)}
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy-950/85 via-navy-950/40 to-transparent px-4 pt-10 pb-3 text-sm font-semibold text-white">
+                  {caption}
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
@@ -363,21 +464,33 @@ export default async function HomePage() {
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
         <div data-reveal="zoom">
-          <div className="relative overflow-hidden rounded-3xl bg-navy-800 p-8 text-white sm:p-12">
+          <div className="relative overflow-hidden rounded-3xl bg-navy-800 text-white">
             <span aria-hidden className="absolute inset-y-0 left-0 w-[300%] animate-gradient-drift bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] [--drift:-66.667%]" />
             <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
             <span aria-hidden className="absolute -bottom-20 left-1/3 size-44 animate-float rounded-full bg-white/10 [animation-delay:-3s]" />
             <span aria-hidden className="absolute top-8 left-8 hidden size-3 animate-ping-slow rounded-full bg-gold-300 sm:block" />
-            <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-              <div>
-                <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN ?</h2>
-                <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
+            <div className="relative grid lg:grid-cols-[1.15fr_1fr]">
+              <div className="flex flex-col items-start justify-center gap-6 p-8 sm:p-12">
+                <div>
+                  <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN&nbsp;?</h2>
+                  <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
+                </div>
+                <span className="glow-ring">
+                  <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group">
+                    Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                  </ButtonLink>
+                </span>
               </div>
-              <span className="glow-ring">
-                <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group">
-                  Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-                </ButtonLink>
-              </span>
+              <div className="relative order-first aspect-[16/9] sm:aspect-[21/9] lg:order-none lg:aspect-auto lg:min-h-72">
+                <Image
+                  src={amphiPhoto}
+                  alt="Deux jeunes participants attentifs dans un amphithéâtre"
+                  fill
+                  placeholder="blur"
+                  sizes="(min-width: 1280px) 36rem, (min-width: 1024px) 45vw, 100vw"
+                  className="object-cover object-[50%_35%] [mask-image:linear-gradient(to_bottom,black_55%,transparent)] lg:[mask-image:linear-gradient(to_right,transparent,black_40%)]"
+                />
+              </div>
             </div>
           </div>
         </div>
