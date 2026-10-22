@@ -15,7 +15,7 @@ import heroPhoto from "@/assets/hero-ingenieurs.webp";
 /** Étiquettes posées sur la photo du héros, placées hors des visages (positions en % de la photo). */
 const HERO_TAGS = [
   { icon: FileText, t: "Profil complet", d: "CV, projets, certifications", pos: "left-0 top-[46%] sm:-left-4 sm:top-[49%]" },
-  { icon: ClipboardCheck, t: "Compétences démontrées", d: "prouvées, pas seulement déclarées", pos: "right-0 top-[66%] sm:-right-3 sm:top-[63%]" },
+  { icon: ClipboardCheck, t: "Compétences démontrées", d: "prouvées, pas seulement déclarées", pos: "right-0 top-[66%] sm:-right-3 sm:top-[63%] lg:right-[5%]" },
   // sur téléphone, deux étiquettes seulement : la troisième couvrirait les personnes
   { icon: Briefcase, t: "Opportunités adaptées", d: "stages, emplois, missions", pos: "left-[14%] bottom-[7%] max-sm:hidden" },
 ];
@@ -171,8 +171,8 @@ export default async function HomePage() {
 
           {/* Photo posée sur le bas du héros, halo et orbites derrière, étiquettes devant */}
           <div className="relative -mb-28 flex items-end justify-center self-end lg:-mb-36">
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto aspect-square w-full max-w-[34rem] rounded-full bg-[radial-gradient(closest-side,rgb(237_180_19/0.3),rgb(53_101_221/0.22)_55%,transparent)]" />
-            <div aria-hidden className="pointer-events-none absolute top-[42%] left-1/2 hidden size-[34rem] -translate-x-1/2 -translate-y-1/2 lg:block">
+            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto aspect-square w-full max-w-[34rem] rounded-full lg:max-w-[42rem] bg-[radial-gradient(closest-side,rgb(237_180_19/0.3),rgb(53_101_221/0.22)_55%,transparent)]" />
+            <div aria-hidden className="pointer-events-none absolute top-[42%] left-1/2 hidden size-[34rem] -translate-x-1/2 -translate-y-1/2 lg:block xl:size-[40rem]">
               <div className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-white/10">
                 <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-gold-300 shadow-[0_0_18px_4px_rgb(237_180_19/0.6)]" />
               </div>
@@ -181,12 +181,13 @@ export default async function HomePage() {
               </div>
             </div>
             {/* photo affichée sans animation d'entrée : c'est l'élément principal du premier écran (LCP) */}
-            <div className="relative w-full max-w-md lg:max-w-none">
+            {/* sur ordinateur, la photo déborde un peu de sa colonne (plus grande, toujours centrée) */}
+            <div className="relative w-full max-w-md shrink-0 lg:w-[118%] lg:max-w-none xl:w-[122%]">
               <Image
                 src={heroPhoto}
                 alt="Deux jeunes professionnels de l'ingénierie en tenue de sécurité : casques, lunettes de protection et vêtements haute visibilité"
                 preload
-                sizes="(min-width: 1280px) 34rem, (min-width: 1024px) 42vw, (min-width: 640px) 28rem, 92vw"
+                sizes="(min-width: 1280px) 44rem, (min-width: 1024px) 50vw, (min-width: 640px) 28rem, 92vw"
                 className="h-auto w-full select-none"
                 draggable={false}
               />
@@ -209,11 +210,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div aria-hidden className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 xl:block">
-          <div className="flex h-9 w-6 justify-center rounded-full border-2 border-white/30 pt-1.5">
-            <span className="scroll-cue-dot size-1.5 rounded-full bg-white/80" />
-          </div>
-        </div>
         <div className="pointer-events-none absolute inset-x-0 top-4">
           <div className="mx-auto flex max-w-7xl justify-end px-4 sm:px-6 lg:px-8">
             <MotionToggle className="pointer-events-auto motion-reduce:hidden" />
