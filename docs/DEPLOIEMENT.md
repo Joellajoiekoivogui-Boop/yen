@@ -65,10 +65,30 @@ du compte Google et enregistre l'acceptation des conditions. Un nouveau compte G
 candidat ; le téléphone, obligatoire, est demandé ensuite. Un compte existant avec la même adresse e-mail
 (confirmée) est relié automatiquement par Supabase et garde ses rôles (administrateur compris).
 
+## Authentification : réglages Supabase à vérifier
+
+Dans le tableau de bord Supabase (*Authentication*) :
+
+1. **URL Configuration** : Site URL = `https://yen-b3vs.vercel.app` ; Redirect URLs :
+   `https://yen-b3vs.vercel.app/auth/callback**` (et `http://localhost:3000/auth/callback**` en développement).
+2. **E-mails** : l'expéditeur intégré de Supabase est réservé aux essais (quota très faible, adresses limitées).
+   Configurez un SMTP (*Emails › SMTP Settings*, par exemple Brevo ou Resend), ou désactivez *Confirm email*
+   (*Sign In / Providers › Email*) : sinon une partie des inscriptions et des réinitialisations échoue.
+3. **Modèles d'e-mail** (pour que les liens marchent aussi ouverts sur un autre appareil que celui de la demande) :
+   - *Confirm signup* : lien `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
+   - *Reset password* : lien `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
+4. **Mot de passe** : longueur minimale 8 (comme le site) ; protection contre les mots de passe divulgués si
+   l'offre le permet.
+5. **Rate Limits** : les connexions passent par le serveur, Supabase voit donc les adresses de Vercel. Si des
+   utilisateurs voient « Trop de connexions en même temps » (séance de formation, par exemple), augmentez
+   *Sign-ins and sign-ups* ; les tentatives par compte restent limitées par le site.
+6. **Sessions** : « Déconnecter tous les appareils » prend effet sur les autres appareils au plus tard à
+   l'expiration du jeton (1 heure par défaut, réglable dans *JWT Keys / Sessions*).
+
 ## Check-list de mise en production
 
 - [ ] Migrations appliquées, catalogue chargé, bucket `candidate-documents` privé
-- [ ] Confirmation des e-mails + SMTP configurés, URL de redirection exactes
+- [ ] Confirmation des e-mails + SMTP configurés, modèles d'e-mail à `token_hash`, URL de redirection exactes
 - [ ] Premier `super_admin` créé, rôles du personnel attribués
 - [ ] Données de démonstration absentes (ou supprimées avec `npm run seed:demo:reset`)
 - [ ] Politique de confidentialité et CGU validées par YEN

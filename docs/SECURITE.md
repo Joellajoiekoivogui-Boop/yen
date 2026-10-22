@@ -57,7 +57,8 @@ déconnexion immédiate d'un compte désactivé).
   extension et type ; « sain » est réservé à un antivirus de confiance ; un fichier signalé n'est jamais servi.
 - Évaluations : une tentative abandonnée expire et compte pour le délai ; questions refusées après le temps imparti.
 - Offres : un partenaire ne modifie plus une offre publiée (clôture seulement) ni les pondérations.
-- Limitation de débit : uniquement sur des clés propres à l'utilisateur connecté (connexions limitées par Supabase Auth).
+- Limitation de débit : en base, uniquement sur des clés propres à l'utilisateur connecté ; les connexions et demandes
+  d'e-mail sont limitées côté serveur (voir « Authentification »).
 - Organisations : coordonnées internes invisibles des visiteurs et des candidats (colonnes et politique).
 - Étapes internes YEN et leur motif : invisibles du candidat et du partenaire.
 - Liens web `http(s)` imposés en base ; consentements non consultables sans connexion.
@@ -83,6 +84,33 @@ dépendance de développement, jamais déployée) ; aucune version corrigée n'e
 Ces règles sont couvertes par 80 tests exécutés sur un vrai PostgreSQL (`tests/db/rls.test.ts`,
 `tests/db/server-functions.test.ts`, `tests/db/security-audit.test.ts`).
 
+
+## Authentification
+
+Supabase Auth (`@supabase/ssr`), entièrement côté serveur : aucun client Supabase ni jeton dans le navigateur
+(cookies `httpOnly`, `Secure` en production, `SameSite=Lax`). Il n'y a donc volontairement pas de
+`lib/supabase/client.ts` : un client navigateur exigerait des cookies lisibles par JavaScript.
+
+- **Vérification de l'identité** : `getClaims()` (signature du jeton vérifiée) dans chaque page, action et route ;
+  le proxy ne fait que rafraîchir la session et rediriger les visiteurs (confort), la base revérifie tout (RLS).
+- **Connexion** : message identique que le compte existe ou non. Supabase Auth ne voyant que l'adresse du
+  serveur, les échecs sont comptés côté serveur (`lib/security/attempts.ts`) : 8 par compte depuis une même
+  adresse IP et 40 par adresse IP en 15 minutes. Seuls les échecs comptent, et un attaquant ne bloque pas le
+  titulaire du compte qui se connecte d'ailleurs. Une limite atteinte chez Supabase affiche un message dédié,
+  jamais « mot de passe incorrect ». Compteurs en mémoire par instance : une protection d'appoint.
+- **Demandes d'e-mail** (réinitialisation, renvoi de confirmation) : 3 par adresse e-mail et 10 par adresse IP en
+  15 minutes, pour préserver le quota d'envoi du projet ; réponse identique que le compte existe ou non.
+- **Inscription** : validation identique côté navigateur et serveur (Zod) ; compte existant jamais signalé ;
+  profil créé en base par déclencheur à partir de l'identifiant Auth ; rôle « candidat » ou demande partenaire
+  uniquement (aucun rôle privilégié attribuable par l'utilisateur).
+- **Récupération** : lien à usage unique (`token_hash` ou code PKCE) vérifié par `/auth/callback` ; lien invalide
+  ou expiré → message clair ; nouveau mot de passe → les autres appareils sont déconnectés.
+- **Déconnexion** : POST uniquement, origine comparée à l'hôte demandé et `Sec-Fetch-Site` contrôlé (CSRF),
+  cookies supprimés, espaces privés de nouveau redirigés vers la connexion.
+- **Redirections** : chemins internes uniquement (`safeInternalPath`) et redirections relatives dans les routes
+  d'authentification (jamais l'adresse d'écoute interne du serveur, qui ferait perdre la session).
+- Tests : `tests/e2e/auth.spec.ts` (10 scénarios), `tests/e2e/google.spec.ts`, `tests/unit/auth-security.test.ts`,
+  `tests/db/*` (rôles, RLS, comptes désactivés).
 
 ## Intelligence artificielle (audit IA, migration 15)
 

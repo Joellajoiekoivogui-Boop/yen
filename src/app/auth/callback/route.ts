@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { getSession, homePathFor } from "@/lib/auth/session";
+import { redirectToPath } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/utils";
 
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const google = url.searchParams.get("fournisseur") === "google";
   const next = safeInternalPath(url.searchParams.get("suivant"));
-  const redirect = (path: string) => NextResponse.redirect(new URL(path, url.origin));
+  const redirect = (path: string) => redirectToPath(path);
 
   // Connexion Google annulée ou refusée (le code d'erreur seul, jamais le détail technique)
   const oauthError = url.searchParams.get("error");

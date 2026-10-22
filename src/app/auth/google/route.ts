@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isGoogleAuthEnabled } from "@/lib/auth/oauth";
 import { publicEnv } from "@/lib/env";
+import { redirectToPath } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/utils";
 
@@ -11,7 +12,7 @@ import { safeInternalPath } from "@/lib/utils";
  * `suivant` : page interne où revenir après la connexion (jamais un autre site).
  */
 export async function GET(request: NextRequest) {
-  const fail = (code: string) => NextResponse.redirect(new URL(`/connexion?erreur=${code}`, request.nextUrl.origin), { status: 303 });
+  const fail = (code: string) => redirectToPath(`/connexion?erreur=${code}`, 303);
   if (!(await isGoogleAuthEnabled())) return fail("google_indisponible");
 
   const callback = new URL("/auth/callback", publicEnv.siteUrl);

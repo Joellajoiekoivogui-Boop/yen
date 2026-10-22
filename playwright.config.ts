@@ -30,5 +30,6 @@ export default defineConfig({
     { name: "mobile", testMatch: /public\.spec\.ts/, use: { ...devices["Pixel 7"] } },
     { name: "parcours", testMatch: /journey\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
     { name: "google", testMatch: /google\.spec\.ts/, use: { ...devices["Pixel 7"] } },
+    { name: "auth", testMatch: /auth\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
   ],
 });

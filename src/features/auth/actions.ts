@@ -1,6 +1,7 @@
 "use server";
 
-import { fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
+import { clientIp, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
+import { clearLoginFailures, loginRetryAfter, recordLoginFailure, takeEmailRequest } from "@/lib/security/attempts";
 import { safeInternalPath } from "@/lib/utils";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
@@ -9,19 +10,34 @@ import { EMAIL_NOT_CONFIRMED_MESSAGE, signUpErrorMessage } from "./errors";
 import { candidateSignUpSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
+const minutes = (seconds: number) => Math.max(1, Math.ceil(seconds / 60));
+const isRateLimited = (error: { code?: string; status?: number }) =>
+  error.status === 429 || error.code === "over_request_rate_limit" || error.code === "over_email_send_rate_limit";
 
 
 export async function signInAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
   return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(signInSchema, values);
-    // Tentatives limitées par Supabase Auth (par adresse IP) ; voir Authentication → Rate Limits
+    // Échecs comptés ici par (adresse IP, compte) : Supabase Auth ne voit que l'adresse du serveur
+    const ip = await clientIp();
+    const wait = loginRetryAfter(ip, input.email);
+    if (wait) return fail(`Trop de tentatives de connexion. Réessayez dans ${minutes(wait)} minute(s), ou utilisez « Mot de passe oublié ».`);
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
     if (error) {
       if (error.code === "email_not_confirmed") return fail(EMAIL_NOT_CONFIRMED_MESSAGE);
-      return fail("Adresse e-mail ou mot de passe incorrect.");
+      if (isRateLimited(error)) return fail("Trop de connexions en même temps sur la plateforme. Patientez une minute puis réessayez.");
+      if (error.code === "invalid_credentials" || error.code === "invalid_grant" || error.status === 400) {
+        recordLoginFailure(ip, input.email);
+        // même message que le compte existe ou non
+        return fail("Adresse e-mail ou mot de passe incorrect.");
+      }
+      // service indisponible : ce n'est pas la faute du mot de passe (code seul dans les journaux)
+      console.error("[connexion] refus Supabase Auth", error.code, error.status);
+      return fail("La connexion n'a pas pu aboutir : le service est momentanément indisponible. Réessayez dans un instant.");
     }
+    clearLoginFailures(ip, input.email);
     const ctx = await getSession();
     if (ctx && !ctx.profile.is_active) {
       await supabase.auth.signOut();
@@ -56,7 +72,8 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
     }
     // Si la confirmation d'e-mail est désactivée côté Supabase, une session est ouverte immédiatement
     if (data?.session) return { ok: true, message: "Compte créé : bienvenue !", data: { redirectTo: "/candidat" } };
-    return { ok: true, message: "Votre compte est créé. Ouvrez l'e-mail que nous venons de vous envoyer et cliquez sur le lien : vous pourrez ensuite vous connecter avec votre adresse e-mail et le mot de passe choisi." };
+    // message identique si l'adresse a déjà un compte (pas d'énumération), avec la marche à suivre dans ce cas
+    return { ok: true, message: "Votre compte est créé. Ouvrez l'e-mail que nous venons de vous envoyer et cliquez sur le lien : vous pourrez ensuite vous connecter avec votre adresse e-mail et le mot de passe choisi. Si vous aviez déjà un compte avec cette adresse, connectez-vous ou utilisez « Mot de passe oublié »." };
   });
 }
 
@@ -93,6 +110,8 @@ export async function resendConfirmationAction(values: Record<string, unknown>):
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(resetRequestSchema, values);
+    const wait = takeEmailRequest(await clientIp(), input.email);
+    if (wait) return fail(`Trop de demandes d'e-mail. Réessayez dans ${minutes(wait)} minute(s).`);
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({ type: "signup", email: input.email, options: { emailRedirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/candidat` } });
     if (error?.code === "over_email_send_rate_limit" || error?.code === "over_request_rate_limit") return fail("Un e-mail vient déjà d'être envoyé. Patientez quelques minutes avant de réessayer.");
@@ -105,10 +124,15 @@ export async function requestPasswordResetAction(values: Record<string, unknown>
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(resetRequestSchema, values);
+    // plafond par adresse : un seul visiteur ne peut pas épuiser le quota d'e-mails du projet
+    const wait = takeEmailRequest(await clientIp(), input.email);
+    if (wait) return fail(`Trop de demandes de réinitialisation. Réessayez dans ${minutes(wait)} minute(s).`);
     const supabase = await createClient();
-    await supabase.auth.resetPasswordForEmail(input.email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(input.email, {
       redirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/reinitialiser-mot-de-passe`,
     });
+    if (error && isRateLimited(error)) return fail("Trop de demandes d'e-mail sur la plateforme pour le moment. Réessayez dans quelques minutes.");
+    if (error) console.error("[mot de passe oublié] refus Supabase Auth", error.code, error.status);
     // Message identique que le compte existe ou non
     return { ok: true, message: "Si un compte correspond à cette adresse, un lien de réinitialisation vient d'être envoyé." };
   });
@@ -124,8 +148,11 @@ export async function updatePasswordAction(values: Record<string, unknown>): Pro
       if (error.code === "weak_password") return fail("Ce mot de passe est trop faible.");
       return fail("Le mot de passe n'a pas pu être modifié. Le lien a peut-être expiré.");
     }
+    // les autres appareils (dont un éventuel intrus) sont déconnectés ; cette session reste ouverte
+    const others = await supabase.auth.signOut({ scope: "others" });
+    if (others.error) console.error("[mot de passe] fermeture des autres sessions impossible", others.error.code);
     await logAudit(ctx.userId, "password_changed", "profiles", ctx.userId);
-    return { ok: true, message: "Mot de passe mis à jour.", data: { redirectTo: homePathFor(ctx) } };
+    return { ok: true, message: "Mot de passe mis à jour. Vos autres appareils ont été déconnectés.", data: { redirectTo: homePathFor(ctx) } };
   });
 }
 
