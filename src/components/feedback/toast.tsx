@@ -88,7 +88,7 @@ function ToastCard({ item }: { item: ToastItem }) {
       <button
         type="button"
         onClick={() => dismissToast(item.id)}
-        className="absolute top-2.5 right-2.5 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-navy-900"
+        className="absolute top-2.5 right-2.5 rounded-lg p-1 text-slate-500 transition hover:bg-slate-100 hover:text-navy-900"
         aria-label="Fermer la notification"
       >
         <X className="size-4" aria-hidden />

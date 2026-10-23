@@ -7,6 +7,7 @@ import { CountUp } from "@/components/motion/count-up";
 import { animationDelay } from "@/components/motion/delay";
 import { EdgeBeam, NightSky } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
+import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import laureatsPhoto from "@/assets/photos/laureats.jpg";
 import rencontresPhoto from "@/assets/photos/rencontres.jpg";
@@ -59,10 +60,7 @@ export default async function PresentationPage() {
 
       {/* Pourquoi */}
       <section data-reveal="none" className="mx-auto grid max-w-7xl gap-12 overflow-x-clip px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-24">
-        <div data-reveal-children className="min-w-0">
-          <p className="text-sm font-semibold tracking-wide text-gold-600 uppercase">Pourquoi cette plateforme ?</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-balance text-navy-900 sm:text-4xl">Savoir ce que chacun sait réellement faire</h2>
-          <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
+        <SectionTitle eyebrow="Pourquoi cette plateforme ?" title="Savoir ce que chacun sait réellement faire" className="min-w-0">
           <p className="mt-5 text-lg leading-relaxed text-slate-600">
             Un simple site d&apos;annonces ne suffit pas pour rapprocher les jeunes ingénieurs et techniciens des organisations qui recrutent.
           </p>
@@ -87,7 +85,7 @@ export default async function PresentationPage() {
               ))}
             </dl>
           )}
-        </div>
+        </SectionTitle>
         <div data-reveal="zoom" className="relative">
           <div aria-hidden className="absolute -inset-4 rotate-2 rounded-[2rem] bg-gradient-to-br from-gold-100 via-navy-50 to-electric-100" />
           <div data-tilt className="relative aspect-[4/3] overflow-clip rounded-3xl shadow-2xl shadow-navy-900/15">
@@ -111,11 +109,7 @@ export default async function PresentationPage() {
       {/* Ce que fait la plateforme */}
       <section data-reveal="none" className="bg-canvas">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
-          <div data-reveal-children>
-            <p className="text-sm font-semibold tracking-wide text-gold-600 uppercase">Ce que fait YEN Career Bridge</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">Du dossier du candidat à son insertion</h2>
-            <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
-          </div>
+          <SectionTitle eyebrow="Ce que fait YEN Career Bridge" title="Du dossier du candidat à son insertion" />
           <div data-reveal-children className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(({ icon: Icon, t, d }) => (
               <div
@@ -140,11 +134,7 @@ export default async function PresentationPage() {
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
         <NightSky stars={3} twinkles={4} />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div data-reveal-children>
-            <p className="text-sm font-semibold tracking-wide text-gold-300 uppercase">Nos principes</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Une plateforme digne de confiance</h2>
-            <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-gold-300 to-electric-400" />
-          </div>
+          <SectionTitle eyebrow="Nos principes" title="Une plateforme digne de confiance" inverted />
           <div data-reveal-children className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {PRINCIPLES.map(({ icon: Icon, t, d }, i) => (
               <div

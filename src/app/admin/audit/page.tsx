@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Form from "next/form";
-import { Card, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
+import { Button, Card, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { clampInt, formatDateTime, param } from "@/lib/utils";
@@ -27,7 +27,7 @@ export default async function AuditPage(props: PageProps<"/admin/audit">) {
       <Form action="/admin/audit" className="flex flex-wrap items-end gap-3">
         <div><label htmlFor="entite" className="mb-1 block text-xs font-medium text-muted">Entité</label><input id="entite" name="entite" defaultValue={entity} className="field-input" placeholder="ex. user_roles" /></div>
         <div><label htmlFor="action" className="mb-1 block text-xs font-medium text-muted">Action</label><input id="action" name="action" defaultValue={action} className="field-input" placeholder="ex. update, document_downloaded" /></div>
-        <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white">Filtrer</button>
+        <Button type="submit">Filtrer</Button>
       </Form>
       <Card>
         <Table className="min-w-[900px]">
@@ -39,7 +39,7 @@ export default async function AuditPage(props: PageProps<"/admin/audit">) {
                 <Td className="text-xs">{l.actor_id ? email[l.actor_id] ?? l.actor_id : "Système / inscription"}</Td>
                 <Td><code className="text-xs">{l.action}</code></Td>
                 <Td className="text-xs">{l.entity_type}<div className="text-muted">{l.entity_id}</div></Td>
-                <Td><details><summary className="cursor-pointer text-xs text-electric-700">Voir</summary><pre className="mt-1 max-h-48 max-w-md overflow-auto rounded bg-slate-50 p-2 text-[11px]">{JSON.stringify(l.details, null, 2)}</pre></details></Td>
+                <Td><details><summary className="cursor-pointer text-xs text-electric-700">Voir</summary><pre className="mt-1 max-h-48 max-w-md overflow-auto rounded bg-slate-50 p-2 text-2xs">{JSON.stringify(l.details, null, 2)}</pre></details></Td>
               </tr>
             ))}
           </tbody>

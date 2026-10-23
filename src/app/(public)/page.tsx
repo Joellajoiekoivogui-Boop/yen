@@ -10,6 +10,7 @@ import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
 import { EdgeBeam, FloatingIcons, NightSky } from "@/components/motion/sky";
+import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
 import heroPhoto from "@/assets/hero-ingenieurs.webp";
@@ -139,17 +140,6 @@ const PARTICLES = [
   { left: 86, top: 82, size: 3, delay: 1.6, duration: 8 },
   { left: 93, top: 48, size: 2, delay: 3.9, duration: 9 },
 ];
-
-function SectionTitle({ eyebrow, title, description, inverted = false }: { eyebrow: string; title: string; description?: string; inverted?: boolean }) {
-  return (
-    <div data-reveal-children>
-      <p className={inverted ? "text-sm font-semibold tracking-wide text-gold-300 uppercase" : "text-sm font-semibold tracking-wide text-gold-600 uppercase"}>{eyebrow}</p>
-      <h2 className={inverted ? "mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl" : "mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl"}>{title}</h2>
-      <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
-      {description && <p className={inverted ? "mt-4 max-w-2xl text-navy-200" : "mt-4 max-w-2xl text-muted"}>{description}</p>}
-    </div>
-  );
-}
 
 export default async function HomePage() {
   const domains = await listDomains().catch(() => referenceDomains());

@@ -55,7 +55,7 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 animate-pop-in place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-navy-900"
+              className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 animate-pop-in place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900"
               aria-label="Effacer la recherche"
             >
               <X className="size-4" aria-hidden />

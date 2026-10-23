@@ -296,7 +296,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                   )}
                 </a>
               ) : (
-                <span className="grid h-[68px] w-24 shrink-0 place-items-center rounded-lg border border-dashed border-border px-1 text-center text-[11px] text-muted">{ce.document_id ? "Justificatif joint" : "Pas de justificatif"}</span>
+                <span className="grid h-[68px] w-24 shrink-0 place-items-center rounded-lg border border-dashed border-border px-1 text-center text-2xs text-muted">{ce.document_id ? "Justificatif joint" : "Pas de justificatif"}</span>
               )}
               <div className="min-w-0 flex-1 text-sm">
                 <p className="font-medium text-navy-900">{ce.name} <Badge tone={st.tone}>{st.label}</Badge></p>

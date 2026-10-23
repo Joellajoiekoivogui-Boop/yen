@@ -37,7 +37,7 @@ export function AssistantChat() {
   };
 
   return (
-    <div className="flex min-h-[60vh] flex-col rounded-[var(--radius-card)] border border-border bg-white">
+    <div className="flex min-h-[60vh] flex-col rounded-card border border-border bg-white">
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.length === 0 && (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

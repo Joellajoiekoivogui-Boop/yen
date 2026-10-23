@@ -3,7 +3,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { IntentLink } from "@/components/layout/intent-link";
 import { ChevronDown, Download, Flag, Phone, SlidersHorizontal } from "lucide-react";
-import { Badge, ButtonLink, Card, PageHeader, Pagination, Table, TableEmpty, Td, Th } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, PageHeader, Pagination, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { availabilityLabel, levelLabel, opportunityLabel, pipelineLabel, PIPELINE_STATUSES, SKILL_LEVELS, type Availability, type PipelineStatus, type SkillLevel } from "@/lib/labels";
@@ -74,7 +74,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
             {sel("domaine", "Domaine", (domains.data ?? []).map((d) => ({ value: d.id, label: d.name })), filters.domain)}
             {sel("statut", "Statut du profil", PIPELINE_STATUSES.map((l) => ({ value: l, label: pipelineLabel[l] })), filters.pipeline)}
             <div className="flex items-end gap-2">
-              <button className="h-10 rounded-xl bg-navy-800 px-4 text-sm font-medium text-white transition hover:bg-navy-700">Filtrer</button>
+              <Button type="submit">Filtrer</Button>
               <Link href="/admin/talents" className="h-10 px-2 text-sm leading-10 text-muted hover:text-navy-900">Réinitialiser</Link>
             </div>
           </div>

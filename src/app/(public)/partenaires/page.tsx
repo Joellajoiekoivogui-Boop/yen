@@ -4,6 +4,7 @@ import { ButtonLink, EmptyState } from "@/components/ui";
 import { revealDelay } from "@/components/motion/delay";
 import { EdgeBeam, NightSky } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
+import { SectionTitle } from "@/components/public/section-title";
 import { listPublicPartners } from "@/features/catalog/queries";
 import tropheesPhoto from "@/assets/photos/trophees.jpg";
 
@@ -48,11 +49,7 @@ export default async function PartnersPage() {
 
       {/* Pourquoi recruter avec YEN */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
-        <div data-reveal-children>
-          <p className="text-sm font-semibold tracking-wide text-gold-600 uppercase">Pourquoi recruter avec YEN</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">Des candidats évalués, présentés avec leurs preuves</h2>
-          <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
-        </div>
+        <SectionTitle eyebrow="Pourquoi recruter avec YEN" title="Des candidats évalués, présentés avec leurs preuves" />
         <div data-reveal-children className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           {BENEFITS.map(({ icon: Icon, t, d }) => (
             <div
@@ -76,11 +73,7 @@ export default async function PartnersPage() {
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
         <NightSky stars={3} twinkles={4} />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div data-reveal-children>
-            <p className="text-sm font-semibold tracking-wide text-gold-300 uppercase">Comment ça marche</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">De la demande au recrutement</h2>
-            <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-gold-300 to-electric-400" />
-          </div>
+          <SectionTitle eyebrow="Comment ça marche" title="De la demande au recrutement" inverted />
           <ol className="relative mt-12 grid grid-cols-1 gap-8 md:grid-cols-5 md:gap-4">
             {/* trait reliant les étapes, tracé à l'arrivée à l'écran (ordinateur) */}
             <span aria-hidden className="absolute top-6 right-[10%] left-[10%] hidden h-0.5 bg-white/10 md:block" />
@@ -93,7 +86,7 @@ export default async function PartnersPage() {
               <li key={t} data-reveal="up" className="group relative flex gap-4 md:flex-col md:items-center md:text-center" style={revealDelay(i * 90)}>
                 <span className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full bg-navy-900 text-gold-300 ring-2 ring-gold-300/40 transition-transform duration-500 ease-spring group-hover:scale-110">
                   <Icon className="size-5" aria-hidden />
-                  <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-gold-400 text-[11px] font-bold text-navy-950">{i + 1}</span>
+                  <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-gold-400 text-2xs font-bold text-navy-950">{i + 1}</span>
                 </span>
                 <div>
                   <h3 className="font-semibold">{t}</h3>
@@ -107,11 +100,7 @@ export default async function PartnersPage() {
 
       {/* Partenaires publiés */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div data-reveal-children>
-          <p className="text-sm font-semibold tracking-wide text-gold-600 uppercase">Ils collaborent avec YEN</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">Nos partenaires</h2>
-          <p className="mt-3 max-w-2xl text-muted">Seules les organisations ayant autorisé leur publication sont affichées.</p>
-        </div>
+        <SectionTitle eyebrow="Ils collaborent avec YEN" title="Nos partenaires" description="Seules les organisations ayant autorisé leur publication sont affichées." />
         <div className="mt-8">
           {orgs.length === 0 ? (
             <div data-reveal="up">

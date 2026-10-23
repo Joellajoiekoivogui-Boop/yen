@@ -82,7 +82,7 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-14 z-10 space-y-3 rounded-[var(--radius-card)] border border-border bg-white px-4 py-3 shadow-sm lg:top-2">
+      <div className="sticky top-14 z-10 space-y-3 rounded-card border border-border bg-white px-4 py-3 shadow-sm lg:top-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span
             className={cn(
@@ -136,7 +136,7 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
                 <span
                   aria-hidden
                   className={cn(
-                    "grid size-6 place-items-center rounded-full text-[11px] font-bold transition-colors duration-300",
+                    "grid size-6 place-items-center rounded-full text-2xs font-bold transition-colors duration-300",
                     isAnswered(q.id) ? "bg-emerald-500 text-white" : "bg-navy-50 text-navy-700",
                   )}
                 >

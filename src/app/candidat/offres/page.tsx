@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { Briefcase, MapPin } from "lucide-react";
-import { Badge, Card, EmptyState, PageHeader, Pagination, ScorePill } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader, Pagination, ScorePill } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { opportunityLabel, OPPORTUNITY_TYPES, type OpportunityType } from "@/lib/labels";
@@ -72,7 +72,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
             {(domains.data ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </div>
-        <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white hover:bg-navy-700">Filtrer</button>
+        <Button type="submit">Filtrer</Button>
       </Form>
 
       {(offers ?? []).length === 0 ? (

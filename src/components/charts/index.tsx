@@ -1,12 +1,14 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CHART } from "@/lib/design-tokens";
 
 /** Palette catégorielle validée (validate_palette.js : contraste, daltonisme) — ordre fixe. */
-export const SERIES = ["#3565dd", "#b08209"] as const;
-const AXIS = { stroke: "#94a3b8", fontSize: 12, tickLine: false, axisLine: false } as const;
-const GRID = <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />;
-const TOOLTIP_STYLE = { borderRadius: 8, border: "1px solid #dfe6f0", fontSize: 12, boxShadow: "0 4px 12px rgb(10 23 48 / 0.08)" };
+export const SERIES = CHART.series;
+// la couleur de l'axe sert aussi aux libellés : texte secondaire lisible (l'ancien gris clair n'atteignait pas 4,5:1)
+const AXIS = { stroke: CHART.axis, fontSize: 12, tickLine: false, axisLine: false } as const;
+const GRID = <CartesianGrid stroke={CHART.grid} strokeDasharray="3 3" vertical={false} />;
+const TOOLTIP_STYLE = { borderRadius: 8, border: `1px solid ${CHART.grid}`, fontSize: 12, boxShadow: "0 4px 12px rgb(10 23 48 / 0.08)" };
 
 export function SingleLineChart({ data, xKey, yKey, label, height = 220 }: { data: Record<string, string | number>[]; xKey: string; yKey: string; label: string; height?: number }) {
   return (
@@ -16,7 +18,7 @@ export function SingleLineChart({ data, xKey, yKey, label, height = 220 }: { dat
           {GRID}
           <XAxis dataKey={xKey} {...AXIS} />
           <YAxis allowDecimals={false} {...AXIS} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: CHART.axis, strokeDasharray: "3 3" }} />
           <Line type="monotone" dataKey={yKey} name={label} stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6 }} />
         </LineChart>
       </ResponsiveContainer>
@@ -40,7 +42,7 @@ export function SimpleBarChart({
     <figure aria-label={label}>
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} layout={vertical ? "vertical" : "horizontal"} barGap={2} margin={{ top: 8, right: 12, bottom: 0, left: vertical ? 8 : -16 }}>
-          <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" horizontal={!vertical} vertical={vertical} />
+          <CartesianGrid stroke={CHART.grid} strokeDasharray="3 3" horizontal={!vertical} vertical={vertical} />
           {vertical ? (
             <>
               <XAxis type="number" allowDecimals={false} {...AXIS} />
@@ -52,8 +54,8 @@ export function SimpleBarChart({
               <YAxis allowDecimals={false} {...AXIS} />
             </>
           )}
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgb(47 111 255 / 0.06)" }} />
-          {series.length > 1 && <Legend iconType="circle" wrapperStyle={{ fontSize: 12, color: "#334155" }} />}
+          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: CHART.cursor }} />
+          {series.length > 1 && <Legend iconType="circle" wrapperStyle={{ fontSize: 12, color: CHART.legend }} />}
           {series.map((s, i) => (
             <Bar key={s.key} dataKey={s.key} name={s.label} fill={SERIES[i % SERIES.length]} radius={vertical ? [0, 4, 4, 0] : [4, 4, 0, 0]} maxBarSize={28} stroke="#fff" strokeWidth={1} />
           ))}

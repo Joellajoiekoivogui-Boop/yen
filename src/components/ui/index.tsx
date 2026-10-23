@@ -46,7 +46,7 @@ export function ButtonLink({ variant, size, className, ...props }: ComponentProp
  * Surfaces
  * ------------------------------------------------------------------------- */
 export function Card({ className, ...props }: ComponentProps<"div">) {
-  return <div data-reveal="up" className={cn("min-w-0 rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--shadow-card)]", className)} {...props} />;
+  return <div data-reveal="up" className={cn("min-w-0 rounded-card border border-border bg-surface shadow-card", className)} {...props} />;
 }
 
 export function CardHeader({ title, description, action, icon: Icon }: { title: ReactNode; description?: ReactNode; action?: ReactNode; icon?: LucideIcon }) {
@@ -237,7 +237,7 @@ export function ScorePill({ score, confidence, caption }: { score: number; confi
       <span className={cn("inline-flex h-7 min-w-11 animate-pop-in items-center justify-center rounded-md px-1.5 text-sm font-bold tabular-nums", tone)} aria-label={meaning}>
         {score}
       </span>
-      {caption && <span className="text-[11px] leading-none text-muted" aria-hidden>compatibilité</span>}
+      {caption && <span className="text-2xs leading-none text-muted" aria-hidden>compatibilité</span>}
       {confidence && <span className="text-xs text-muted">confiance {confidence === "elevee" ? "élevée" : confidence}</span>}
     </span>
   );
@@ -340,12 +340,12 @@ export function PageSkeleton() {
       <div className="skeleton mt-3 h-4 w-96 max-w-full rounded" />
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="skeleton h-24 rounded-[var(--radius-card)]" style={{ animationDelay: `${i * 120}ms` }} />
+          <div key={i} className="skeleton h-24 rounded-card" style={{ animationDelay: `${i * 120}ms` }} />
         ))}
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="skeleton h-64 rounded-[var(--radius-card)] lg:col-span-2" />
-        <div className="skeleton h-64 rounded-[var(--radius-card)] [animation-delay:200ms]" />
+        <div className="skeleton h-64 rounded-card lg:col-span-2" />
+        <div className="skeleton h-64 rounded-card [animation-delay:200ms]" />
       </div>
     </div>
   );

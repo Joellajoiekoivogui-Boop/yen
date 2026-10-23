@@ -3,7 +3,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { SimpleBarChart } from "@/components/charts";
-import { Alert, ButtonLink, Card, CardBody, CardHeader, PageHeader, StatCard } from "@/components/ui";
+import { Alert, Button, ButtonLink, Card, CardBody, CardHeader, PageHeader, StatCard } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatPercent, param } from "@/lib/utils";
@@ -62,7 +62,7 @@ export default async function ReportsPage(props: PageProps<"/admin/rapports">) {
           <div><label htmlFor="debut" className="mb-1 block text-xs font-medium text-muted">Début (personnalisée)</label><input id="debut" name="debut" type="date" defaultValue={param(sp.debut)} className="field-input" /></div>
           <div><label htmlFor="fin" className="mb-1 block text-xs font-medium text-muted">Fin (personnalisée)</label><input id="fin" name="fin" type="date" defaultValue={param(sp.fin)} className="field-input" /></div>
           <label className="flex h-10 items-center gap-1.5 text-sm"><input type="checkbox" name="demo" value="1" defaultChecked={includeDemo} className="accent-electric-600" /> Inclure la démo</label>
-          <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white">Afficher</button>
+          <Button type="submit">Afficher</Button>
         </Form>
       </Card>
       {error || !r ? <Alert tone="error">Le rapport n&apos;a pas pu être calculé.</Alert> : (

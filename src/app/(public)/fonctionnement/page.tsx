@@ -3,6 +3,7 @@ import { ArrowRight, Lock, ShieldCheck, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { EdgeBeam } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
+import { SectionTitle } from "@/components/public/section-title";
 import { DEFAULT_WEIGHTS, WEIGHT_LABELS, type Weights } from "@/features/matching/engine";
 import { HOW_IT_WORKS_STEPS as STEPS } from "@/lib/content/how-it-works";
 import etudiantsPhoto from "@/assets/photos/etudiants.jpg";
@@ -34,11 +35,7 @@ export default function HowItWorksPage() {
 
       {/* Parcours : la ligne se remplit et chaque étape s'allume au fil du défilement */}
       <section data-reveal="none" className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:py-24">
-        <div data-reveal-children>
-          <p className="text-sm font-semibold tracking-wide text-gold-600 uppercase">Le parcours du candidat</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">Six étapes, dans l&apos;ordre</h2>
-          <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
-        </div>
+        <SectionTitle eyebrow="Le parcours du candidat" title={<>Six étapes, dans l&apos;ordre</>} />
         <ol className="relative mt-12 space-y-6">
           <span aria-hidden className="absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-navy-100 sm:left-[1.625rem]" />
           <span aria-hidden className="timeline-fill absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-gradient-to-b from-gold-400 via-electric-500 to-navy-700 sm:left-[1.625rem]" />
@@ -72,10 +69,7 @@ export default function HowItWorksPage() {
       {/* Score de compatibilité */}
       <section data-reveal="none" className="bg-canvas">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
-          <div data-reveal-children className="min-w-0">
-            <p className="text-sm font-semibold tracking-wide text-gold-600 uppercase">Le score de compatibilité</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">Un score expliqué, pas une prédiction</h2>
-            <span aria-hidden className="mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r from-navy-700 to-gold-400" />
+          <SectionTitle eyebrow="Le score de compatibilité" title="Un score expliqué, pas une prédiction" className="min-w-0">
             <p className="mt-5 leading-relaxed text-slate-600">
               Le score (0 à 100) estime l&apos;adéquation entre un profil et un métier ou une offre. Il combine, selon une pondération configurable par YEN, les
               compétences démontrées, les résultats d&apos;évaluation, les projets, la formation et l&apos;expérience. Ce n&apos;est pas une probabilité d&apos;embauche.
@@ -83,7 +77,7 @@ export default function HowItWorksPage() {
             <p className="mt-3 leading-relaxed text-slate-600">
               Lorsque des données manquent, elles sont signalées et la confiance du résultat diminue au lieu de compter silencieusement pour zéro.
             </p>
-          </div>
+          </SectionTitle>
           <div data-reveal="up" className="relative min-w-0 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
             <EdgeBeam />
             <p className="text-sm font-semibold text-navy-900">Pondération par défaut</p>

@@ -78,7 +78,7 @@ function CertificateCard({ item, onEdit }: { item: CertificateItem; onEdit: () =
           )}
         </a>
       ) : (
-        <span className="grid size-[88px] shrink-0 place-items-center rounded-lg border border-dashed border-border px-1 text-center text-[11px] text-muted">Sans fichier</span>
+        <span className="grid size-[88px] shrink-0 place-items-center rounded-lg border border-dashed border-border px-1 text-center text-2xs text-muted">Sans fichier</span>
       )}
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-navy-900">{item.name}</p>

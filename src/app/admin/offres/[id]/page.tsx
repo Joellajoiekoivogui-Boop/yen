@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ActionButton } from "@/components/forms/action-button";
 import { OfferForm } from "@/components/forms/offer-form";
 import { MatchDetails } from "@/components/match-details";
-import { Alert, ApplicationStatusBadge, Badge, Card, CardBody, CardHeader, PageHeader, ScorePill, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
+import { Alert, ApplicationStatusBadge, Badge, Button, Card, CardBody, CardHeader, PageHeader, ScorePill, Table, TableEmpty, TabLinks, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { fillMissingSnapshots } from "@/features/applications/snapshots";
@@ -76,7 +76,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
           <label className="flex items-center gap-1.5"><input type="checkbox" name="obligatoires" value="1" defaultChecked={onlyMandatory} className="accent-electric-600" /> Exigences obligatoires satisfaites</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="evaluees" value="1" defaultChecked={onlyEvaluated} className="accent-electric-600" /> Au moins une compétence requise évaluée</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="demo" value="1" defaultChecked={param(sp.demo) === "1"} className="accent-electric-600" /> Inclure la démo</label>
-          <button className="rounded-md border border-border bg-white px-3 py-1 font-medium">Appliquer</button>
+          <Button type="submit" variant="outline" size="sm">Appliquer</Button>
         </Form>
         {top.length === 0 && <Alert tone="warning">Aucun candidat du vivier ne correspond pour l&apos;instant.</Alert>}
         <div className="space-y-3">

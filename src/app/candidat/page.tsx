@@ -69,7 +69,7 @@ export default async function CandidateDashboard() {
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted">Complétion du profil</p>
             <p className="mt-0.5 text-sm font-semibold text-navy-900">{completion.percent >= 100 ? "Profil complet" : completion.percent >= 70 ? "Presque terminé" : "À compléter"}</p>
-            <p className="mt-1 text-[11px] text-muted">Mesure le renseignement du profil, pas vos compétences.</p>
+            <p className="mt-1 text-2xs text-muted">Mesure le renseignement du profil, pas vos compétences.</p>
           </div>
         </Card>
         <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par une évaluation, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="gold" />

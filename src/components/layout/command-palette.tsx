@@ -108,7 +108,7 @@ export function CommandPalette({ sections, renderIcon }: { sections: NavSection[
             aria-activedescendant={results[active] ? `${listId}-${active}` : undefined}
             aria-autocomplete="list"
           />
-          <kbd className="hidden rounded-md border border-border bg-slate-50 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 sm:block">Échap</kbd>
+          <kbd className="hidden rounded-md border border-border bg-slate-50 px-1.5 py-0.5 text-2xs font-medium text-slate-500 sm:block">Échap</kbd>
         </div>
         <ul id={listId} role="listbox" aria-label="Pages" className="max-h-[50vh] overflow-y-auto p-2">
           {results.length === 0 && <li className="px-3 py-8 text-center text-sm text-muted">Aucune page ne correspond à « {query} ».</li>}
@@ -136,7 +136,7 @@ export function CommandPalette({ sections, renderIcon }: { sections: NavSection[
             </li>
           ))}
         </ul>
-        <div className="flex items-center gap-4 border-t border-border bg-slate-50/80 px-4 py-2 text-[11px] text-slate-500">
+        <div className="flex items-center gap-4 border-t border-border bg-slate-50/80 px-4 py-2 text-2xs text-slate-500">
           <span>
             <kbd className="font-semibold">↑↓</kbd> naviguer
           </span>

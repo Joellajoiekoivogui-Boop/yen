@@ -54,6 +54,10 @@
   --color-border: #dfe6f0;
   --color-muted: #5b6b82;
 
+  /* très petit texte (pastilles, raccourcis clavier, légendes) : jamais en dessous de 11 px */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
   --radius-card: 1rem;
   --shadow-card: 0 1px 2px rgb(10 23 48 / 0.04), 0 1px 3px rgb(10 23 48 / 0.06);
 }
@@ -321,7 +325,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--spot-color, rgb(47 111 255 / 0.1)), transparent 45%);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--spot-color, rgb(53 101 221 / 0.1)), transparent 45%);
 }
 [data-spotlight]:hover::before {
   opacity: 1;

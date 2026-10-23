@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Form from "next/form";
-import { Badge, Card, CardBody, CardHeader, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
+import { Badge, Button, Card, CardBody, CardHeader, PageHeader, Pagination, Table, Td, Th } from "@/components/ui";
 import { requireStaff } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { roleLabel, type AppRole } from "@/lib/labels";
@@ -28,7 +28,7 @@ export default async function UsersPage(props: PageProps<"/admin/utilisateurs">)
       <Form action="/admin/utilisateurs" className="flex flex-wrap items-end gap-3">
         <div><label htmlFor="q" className="mb-1 block text-xs font-medium text-muted">Recherche</label><input id="q" name="q" defaultValue={qText} className="field-input" placeholder="Nom ou e-mail" /></div>
         <div><label htmlFor="type" className="mb-1 block text-xs font-medium text-muted">Type de compte</label><select id="type" name="type" defaultValue={type ?? ""} className="field-input"><option value="">Tous</option><option value="candidate">Candidats</option><option value="partner">Partenaires</option><option value="staff">Personnel YEN</option></select></div>
-        <button className="h-10 rounded-lg bg-navy-800 px-4 text-sm font-medium text-white">Filtrer</button>
+        <Button type="submit">Filtrer</Button>
       </Form>
       <Card>
         <Table className="min-w-[900px]">

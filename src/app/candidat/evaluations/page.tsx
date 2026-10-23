@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { ClipboardCheck, Clock } from "lucide-react";
-import { Badge, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
+import { Badge, Button, Card, CardBody, CardHeader, EmptyState, PageHeader, Table, TableEmpty, Td, Th } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { attemptStatusLabel, levelLabel, type SkillLevel } from "@/lib/labels";
@@ -38,7 +38,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
           </select>
         </div>
         <input type="hidden" name="tous" value="1" />
-        <button className="h-10 rounded-lg border border-border bg-white px-4 text-sm font-medium text-navy-800 hover:bg-navy-50">Filtrer</button>
+        <Button type="submit" variant="outline">Filtrer</Button>
       </Form>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

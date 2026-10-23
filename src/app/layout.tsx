@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { MotionEngine } from "@/components/motion/motion-engine";
 import { NavigationProgress } from "@/components/feedback/navigation-progress";
 import { Toaster } from "@/components/feedback/toast";
+import { COLORS } from "@/lib/design-tokens";
 import { publicEnv } from "@/lib/env";
 
 const DESCRIPTION =
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a2a6c",
+  themeColor: COLORS.navy700,
   width: "device-width",
   initialScale: 1,
 };

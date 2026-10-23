@@ -60,7 +60,7 @@ export default async function CandidateLayout({ children }: { children: React.Re
             </p>
           )}
           {!ctx.profile.phone?.trim() && (
-            <div role="status" className="mb-6 flex animate-slide-down items-start gap-3 rounded-[var(--radius-card)] border border-red-200 bg-gradient-to-r from-red-50 to-white p-4 sm:items-center">
+            <div role="status" className="mb-6 flex animate-slide-down items-start gap-3 rounded-card border border-red-200 bg-gradient-to-r from-red-50 to-white p-4 sm:items-center">
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-red-100 text-red-700">
                 <PhoneCall className="size-5" aria-hidden />
               </span>

@@ -7,7 +7,7 @@ const reqIcon = {
   satisfaite: <CheckCircle2 className="size-4 text-emerald-600" aria-label="Satisfaite" />,
   partielle: <CircleDashed className="size-4 text-amber-500" aria-label="Partielle" />,
   declaree_a_confirmer: <HelpCircle className="size-4 text-electric-500" aria-label="Déclarée, à confirmer" />,
-  non_demontree: <AlertTriangle className="size-4 text-slate-400" aria-label="Non démontrée" />,
+  non_demontree: <AlertTriangle className="size-4 text-slate-500" aria-label="Non démontrée" />,
 };
 
 /** Explication complète d'un score : composantes, exigences, données manquantes, confiance. */
@@ -27,7 +27,7 @@ export function MatchDetails({ match, compact = false }: { match: MatchResult; c
               <span className="text-muted">poids {c.weight}</span>
             </div>
             {c.value == null ? <p className="mt-1 text-xs font-medium text-amber-700">Données manquantes</p> : <ProgressBar value={c.value * 100} className="mt-1.5" tone="blue" label={c.label} />}
-            {!compact && <p className="mt-1 text-[11px] leading-snug text-muted">{c.explanation}</p>}
+            {!compact && <p className="mt-1 text-2xs leading-snug text-muted">{c.explanation}</p>}
           </div>
         ))}
       </div>
@@ -42,14 +42,14 @@ export function MatchDetails({ match, compact = false }: { match: MatchResult; c
                   — attendu {levelLabel[r.requiredLevel]} ({importanceLabel[r.importance]})
                   {r.demonstratedLevel ? ` · démontré ${levelLabel[r.demonstratedLevel]}` : r.declaredLevel ? ` · déclaré ${levelLabel[r.declaredLevel]} (à confirmer)` : " · aucune preuve"}
                 </span>
-                {!compact && r.evidence.length > 0 && <span className="block text-[11px] text-muted">Preuves : {r.evidence.map((e) => e.label).join(" · ")}</span>}
+                {!compact && r.evidence.length > 0 && <span className="block text-2xs text-muted">Preuves : {r.evidence.map((e) => e.label).join(" · ")}</span>}
               </span>
             </li>
           ))}
         </ul>
       )}
       {match.missingData.length > 0 && <p className="text-xs text-amber-800">Données manquantes : {match.missingData.join(" · ")}.</p>}
-      <p className="text-[11px] text-muted italic">{match.disclaimer}</p>
+      <p className="text-2xs text-muted italic">{match.disclaimer}</p>
     </div>
   );
 }

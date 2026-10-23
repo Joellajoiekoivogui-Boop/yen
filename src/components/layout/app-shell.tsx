@@ -89,7 +89,7 @@ const NavList = memo(function NavList({ sections, dark, onNavigate }: { sections
     <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
       {sections.map((s, i) => (
         <div key={i}>
-          {s.title && <p className={cn("mb-1.5 px-2 text-[11px] font-semibold tracking-wider uppercase", dark ? "text-navy-300" : "text-slate-500")}>{s.title}</p>}
+          {s.title && <p className={cn("mb-1.5 px-2 text-2xs font-semibold tracking-wider uppercase", dark ? "text-navy-300" : "text-slate-500")}>{s.title}</p>}
           <ul className="space-y-0.5">
             {s.items.map((item, j) => {
               const active = isActiveItem(pathname, item);
@@ -114,7 +114,7 @@ const NavList = memo(function NavList({ sections, dark, onNavigate }: { sections
                       className={cn("size-4 shrink-0 transition-transform duration-300 ease-spring group-hover:translate-x-0.5 group-hover:scale-110", active && !dark && "text-navy-700", active && dark && "text-gold-300")}
                     />
                     <span className="truncate">{item.label}</span>
-                    <Badge value={item.badge} className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-[11px] font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")} />
+                    <Badge value={item.badge} className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-2xs font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")} />
                   </IntentLink>
                 </li>
               );
@@ -262,7 +262,7 @@ export function AppShell({
     >
       <Search className="size-4 shrink-0" aria-hidden />
       <span className="flex-1 text-left">Rechercher…</span>
-      <kbd className={cn("rounded-md border px-1.5 text-[10px] font-semibold", dark ? "border-white/15 text-navy-200" : "border-border bg-white text-slate-500")}>Ctrl K</kbd>
+      <kbd className={cn("rounded-md border px-1.5 text-2xs font-semibold", dark ? "border-white/15 text-navy-200" : "border-border bg-white text-slate-500")}>Ctrl K</kbd>
     </button>
   );
 
@@ -319,7 +319,7 @@ export function AppShell({
                     href={item.href}
                     eager={!active}
                     aria-current={active ? "page" : undefined}
-                    className={cn("group flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors", dark ? (active ? "text-white" : "text-navy-200") : active ? "text-navy-900" : "text-slate-500")}
+                    className={cn("group flex flex-col items-center gap-0.5 py-2 text-2xs font-medium transition-colors", dark ? (active ? "text-white" : "text-navy-200") : active ? "text-navy-900" : "text-slate-500")}
                   >
                     <span
                       className={cn(
@@ -328,7 +328,7 @@ export function AppShell({
                       )}
                     >
                       <Icon name={item.icon} className="size-[18px]" />
-                      <Badge value={item.badge} className="absolute -top-1 right-1.5 grid min-w-4 animate-pop-in place-items-center rounded-full bg-red-500 px-1 text-[10px] leading-4 font-bold text-white" />
+                      <Badge value={item.badge} className="absolute -top-1 right-1.5 grid min-w-4 animate-pop-in place-items-center rounded-full bg-red-500 px-1 text-2xs leading-4 font-bold text-white" />
                     </span>
                     <span className="max-w-[4.75rem] truncate">{item.short ?? item.label}</span>
                   </IntentLink>
@@ -336,7 +336,7 @@ export function AppShell({
               );
             })}
             <li>
-              <MobileMenuButton className={cn("flex w-full flex-col items-center gap-0.5 py-2 text-[11px] font-medium", dark ? "text-navy-200" : "text-slate-500")} label="Ouvrir le menu complet">
+              <MobileMenuButton className={cn("flex w-full flex-col items-center gap-0.5 py-2 text-2xs font-medium", dark ? "text-navy-200" : "text-slate-500")} label="Ouvrir le menu complet">
                 <span className="grid h-7 w-12 place-items-center rounded-full transition active:scale-90">
                   <Menu className="size-[18px]" aria-hidden />
                 </span>

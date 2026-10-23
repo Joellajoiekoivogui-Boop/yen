@@ -27,7 +27,7 @@ const validationLabel: Record<string, { label: string; tone: "neutral" | "green"
 };
 
 function Sources({ ids }: { ids: string[] }) {
-  return <span className="ml-1 text-[11px] text-muted">[{ids.map((s) => s.split(":")[0]).join(", ")}]</span>;
+  return <span className="ml-1 text-2xs text-muted">[{ids.map((s) => s.split(":")[0]).join(", ")}]</span>;
 }
 
 /** Alerte réservée à l'équipe YEN : le texte analysé semble contenir des consignes adressées à l'IA. */
@@ -81,7 +81,7 @@ export function ProfileAnalysisView({ row, staff = false }: { row: AnalysisRow; 
         {list("Métiers compatibles", o.compatible_occupations.map((d) => ({ text: `${d.occupation_slug} — ${d.rationale}`, source_ids: d.source_ids })))}
         {list("Recommandations de formation", o.training_recommendations.map((d) => ({ text: `${d.title} : ${d.detail}`, source_ids: d.source_ids })))}
       </div>
-      <p className="text-[11px] text-muted">Sources entre crochets : profil, cv, decl (déclaration), eval (preuve validée), projet, exp, form, cert.</p>
+      <p className="text-2xs text-muted">Sources entre crochets : profil, cv, decl (déclaration), eval (preuve validée), projet, exp, form, cert.</p>
     </div>
   );
 }
