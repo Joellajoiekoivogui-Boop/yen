@@ -26,8 +26,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="sticky top-0 flex h-dvh flex-col justify-between overflow-hidden p-10 xl:p-12">
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="hero-grid absolute inset-0" />
-            <div className="absolute -top-40 -right-32 size-[30rem] animate-blob rounded-full bg-electric-500/30 blur-3xl" />
-            <div className="absolute -bottom-48 -left-24 size-[26rem] animate-blob rounded-full bg-gold-400/20 blur-3xl [animation-delay:-8s]" />
+            <div className="absolute -top-56 -right-48 size-[38rem] animate-blob glow-blob glow-electric opacity-30" />
+            <div className="absolute -bottom-64 -left-40 size-[34rem] animate-blob glow-blob glow-gold opacity-20 [animation-delay:-8s]" />
             {PARTICLES.map((p, i) => (
               <span
                 key={i}
@@ -65,8 +65,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute top-1/4 -right-32 size-[26rem] animate-blob rounded-full bg-electric-300/20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-16 size-[22rem] animate-blob rounded-full bg-gold-300/20 blur-3xl [animation-delay:-9s]" />
+          <div className="absolute top-[calc(25%-4rem)] -right-48 size-[34rem] animate-blob glow-blob glow-electric-light opacity-20" />
+          <div className="absolute -bottom-56 -left-32 size-[30rem] animate-blob glow-blob glow-gold-light opacity-20 [animation-delay:-9s]" />
         </div>
         <header className="flex w-full animate-header-in items-center justify-between gap-4 px-4 py-5 sm:px-8">
           <Logo className="lg:invisible" />

@@ -46,10 +46,10 @@ export function PageHero({
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="hero-grid absolute inset-0" />
         <div className="absolute -top-40 right-[-10%] size-[30rem]">
-          <div className="size-full animate-blob rounded-full bg-electric-500/25 blur-3xl" />
+          <div className="absolute -inset-16 animate-blob glow-blob glow-electric opacity-25" />
         </div>
         <div className="absolute bottom-[-12rem] left-[-8rem] size-[26rem]">
-          <div className="size-full animate-blob rounded-full bg-gold-400/15 blur-3xl [animation-delay:-7s]" />
+          <div className="absolute -inset-16 animate-blob glow-blob glow-gold opacity-20 [animation-delay:-7s]" />
         </div>
         <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-300/50 to-transparent" />
       </div>

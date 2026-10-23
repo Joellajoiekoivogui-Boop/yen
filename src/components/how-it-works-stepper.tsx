@@ -114,8 +114,8 @@ export function HowItWorksStepper() {
         className="relative overflow-hidden rounded-3xl bg-navy-950 p-8 text-white sm:p-10"
       >
         <EdgeBeam />
-        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 animate-blob rounded-full bg-gold-400/20 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-28 -left-20 size-72 animate-blob rounded-full bg-electric-500/25 blur-3xl [animation-delay:-8s]" />
+        <div aria-hidden className="pointer-events-none absolute -top-40 -right-40 size-[26rem] animate-blob glow-blob glow-gold opacity-20" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-44 -left-36 size-[26rem] animate-blob glow-blob glow-electric opacity-25 [animation-delay:-8s]" />
         <div key={active} className="relative">
           <p className="animate-slide-down text-sm font-semibold tracking-wide text-gold-300 uppercase">
             Étape {active + 1} sur {steps.length}

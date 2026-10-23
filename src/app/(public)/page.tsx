@@ -158,13 +158,13 @@ export default async function HomePage() {
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="hero-grid absolute inset-0" />
           <div data-parallax="0.12" className="absolute -top-48 right-[-12%] size-[38rem]">
-            <div className="size-full animate-blob rounded-full bg-electric-500/30 blur-3xl" />
+            <div className="absolute -inset-16 animate-blob glow-blob glow-electric opacity-30" />
           </div>
           <div data-parallax="0.28" className="absolute bottom-[-14rem] left-[-10rem] size-[32rem]">
-            <div className="size-full animate-blob rounded-full bg-gold-400/20 blur-3xl [animation-delay:-6s]" />
+            <div className="absolute -inset-16 animate-blob glow-blob glow-gold opacity-20 [animation-delay:-6s]" />
           </div>
           <div data-parallax="0.2" className="absolute top-1/4 left-1/3 size-[24rem]">
-            <div className="size-full animate-blob rounded-full bg-navy-400/25 blur-3xl [animation-delay:-12s]" />
+            <div className="absolute -inset-16 animate-blob glow-blob glow-navy opacity-25 [animation-delay:-12s]" />
           </div>
           <Constellation />
           <NightSky stars={5} twinkles={6} />
@@ -312,7 +312,7 @@ export default async function HomePage() {
               data-tilt
               className="group flex flex-col overflow-clip rounded-2xl border border-border bg-white transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
-              <div className="relative aspect-[2/1] overflow-clip bg-navy-100 md:aspect-[16/10]">
+              <div className="photo-curtain relative aspect-[2/1] overflow-clip bg-navy-100 md:aspect-[16/10]">
                 {/* légère parallaxe au défilement ; le zoom au survol reste sur la photo */}
                 <div className="media-parallax absolute inset-0 origin-top [--ps:1.07] [--px:3%]">
                   <Image
@@ -407,7 +407,7 @@ export default async function HomePage() {
           />
           <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
             {GALLERY.map(({ photo, caption, alt, cell, focus, sizes }, i) => (
-              <figure key={caption} data-reveal="zoom" data-tilt style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
+              <figure key={caption} data-reveal="curtain" data-tilt style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
                 <div className="media-parallax absolute inset-0 [--ps:1.12] [--px:5%]">
                   <Image
                     src={photo}

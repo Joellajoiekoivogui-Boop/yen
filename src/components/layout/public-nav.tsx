@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
 import { buttonClass } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { PUBLIC_NAV } from "./public-nav-links";
@@ -65,7 +64,12 @@ export function PublicMobileMenu({ signedIn }: { signedIn: boolean }) {
         aria-expanded={open}
         aria-controls="menu-public"
       >
-        {open ? <X className="size-6" aria-hidden /> : <Menu className="size-6" aria-hidden />}
+        {/* trois traits qui se croisent en « ✕ » à l'ouverture */}
+        <span aria-hidden className="relative block h-4 w-5">
+          <span className={cn("absolute top-0 left-0 h-0.5 w-5 rounded-full bg-current transition-[translate,rotate] duration-300 ease-out-expo", open && "translate-y-[7px] rotate-45")} />
+          <span className={cn("absolute top-[7px] left-0 h-0.5 w-5 rounded-full bg-current transition-[opacity,scale] duration-200", open && "scale-x-0 opacity-0")} />
+          <span className={cn("absolute top-[14px] left-0 h-0.5 w-5 rounded-full bg-current transition-[translate,rotate] duration-300 ease-out-expo", open && "-translate-y-[7px] -rotate-45")} />
+        </span>
       </button>
       {/* fermé : invisible (ni focus ni lecteur d'écran), une fois le glissement terminé */}
       <div id="menu-public" className={cn("absolute inset-x-0 top-full lg:hidden", open ? "visible" : "invisible [transition:visibility_0s_linear_200ms]")}>
@@ -73,15 +77,16 @@ export function PublicMobileMenu({ signedIn }: { signedIn: boolean }) {
         <nav
           aria-label="Navigation publique (mobile)"
           className={cn(
-            "relative border-b border-border bg-white px-4 pt-3 pb-5 shadow-xl transition-[transform,opacity] duration-200 ease-out sm:px-6",
-            open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0",
+            "relative border-b border-border bg-white px-4 pt-3 pb-5 shadow-xl transition-[translate,opacity] duration-300 ease-out-expo sm:px-6",
+            open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0",
           )}
         >
           <ul className="space-y-1">
-            {PUBLIC_NAV.map((n) => {
+            {PUBLIC_NAV.map((n, i) => {
               const active = isActive(pathname, n.href);
               return (
-                <li key={n.href}>
+                // les liens arrivent l'un après l'autre à l'ouverture
+                <li key={n.href} className={cn("transition-[translate,opacity] duration-300 ease-out-expo", open ? "translate-x-0 opacity-100" : "-translate-x-3 opacity-0")} style={{ transitionDelay: open ? `${80 + i * 45}ms` : "0ms" }}>
                   <Link
                     href={n.href}
                     onClick={close}
@@ -98,7 +103,10 @@ export function PublicMobileMenu({ signedIn }: { signedIn: boolean }) {
               );
             })}
           </ul>
-          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4">
+          <div
+            className={cn("mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 transition-[translate,opacity] duration-300 ease-out-expo", open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0")}
+            style={{ transitionDelay: open ? `${80 + PUBLIC_NAV.length * 45}ms` : "0ms" }}
+          >
             {signedIn ? (
               <Link href="/connexion" onClick={close} className={buttonClass("secondary", "md", "col-span-2")}>
                 Mon espace

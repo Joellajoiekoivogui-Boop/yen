@@ -88,7 +88,7 @@ export default async function PresentationPage() {
         </SectionTitle>
         <div data-reveal="zoom" className="relative">
           <div aria-hidden className="absolute -inset-4 rotate-2 rounded-[2rem] bg-gradient-to-br from-gold-100 via-navy-50 to-electric-100" />
-          <div data-tilt className="relative aspect-[4/3] overflow-clip rounded-3xl shadow-2xl shadow-navy-900/15">
+          <div data-tilt className="photo-curtain relative aspect-[4/3] overflow-clip rounded-3xl shadow-2xl shadow-navy-900/15">
             <div className="media-parallax absolute inset-0">
               <Image
                 src={rencontresPhoto}
