@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { setMotionPaused, useMotionPaused } from "@/components/motion/motion-toggle";
+import { EdgeBeam } from "@/components/motion/sky";
 import { HOW_IT_WORKS_STEPS } from "@/lib/content/how-it-works";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ export function HowItWorksStepper() {
               id={`${baseId}-tab-${i}`}
               type="button"
               role="tab"
+              data-sparkle
               aria-selected={selected}
               aria-controls={`${baseId}-panel`}
               tabIndex={selected ? 0 : -1}
@@ -111,6 +113,7 @@ export function HowItWorksStepper() {
         aria-labelledby={`${baseId}-tab-${active}`}
         className="relative overflow-hidden rounded-3xl bg-navy-950 p-8 text-white sm:p-10"
       >
+        <EdgeBeam />
         <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 animate-blob rounded-full bg-gold-400/20 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-28 -left-20 size-72 animate-blob rounded-full bg-electric-500/25 blur-3xl [animation-delay:-8s]" />
         <div key={active} className="relative">

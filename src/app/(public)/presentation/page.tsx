@@ -5,6 +5,7 @@ import { ArrowRight, BadgeCheck, Briefcase, ClipboardCheck, Compass, FolderLock,
 import { ButtonLink } from "@/components/ui";
 import { CountUp } from "@/components/motion/count-up";
 import { animationDelay } from "@/components/motion/delay";
+import { EdgeBeam, NightSky } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import laureatsPhoto from "@/assets/photos/laureats.jpg";
@@ -48,7 +49,7 @@ export default async function PresentationPage() {
         photoAlt="Photo de groupe d'une quarantaine de jeunes participants, certificats et trophées en main"
         caption="Lauréats et participants de l'Africa Engineering Summit, une initiative de YEN"
       >
-        <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+        <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
           Créer un compte <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </ButtonLink>
         <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20 sm:w-auto">
@@ -89,7 +90,7 @@ export default async function PresentationPage() {
         </div>
         <div data-reveal="zoom" className="relative">
           <div aria-hidden className="absolute -inset-4 rotate-2 rounded-[2rem] bg-gradient-to-br from-gold-100 via-navy-50 to-electric-100" />
-          <div className="relative aspect-[4/3] overflow-clip rounded-3xl shadow-2xl shadow-navy-900/15">
+          <div data-tilt className="relative aspect-[4/3] overflow-clip rounded-3xl shadow-2xl shadow-navy-900/15">
             <div className="media-parallax absolute inset-0">
               <Image
                 src={rencontresPhoto}
@@ -120,6 +121,7 @@ export default async function PresentationPage() {
               <div
                 key={t}
                 data-spotlight
+                data-tilt
                 className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
               >
                 <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 ring-1 ring-navy-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
@@ -136,6 +138,7 @@ export default async function PresentationPage() {
       {/* Principes */}
       <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
+        <NightSky stars={3} twinkles={4} />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div data-reveal-children>
             <p className="text-sm font-semibold tracking-wide text-gold-300 uppercase">Nos principes</p>
@@ -147,6 +150,7 @@ export default async function PresentationPage() {
               <div
                 key={t}
                 data-spotlight
+                data-tilt
                 className="group rounded-2xl bg-white/[0.05] p-6 ring-1 ring-white/10 transition duration-500 ease-out-expo hover:-translate-y-1 hover:bg-white/[0.08]"
                 style={{ "--spot-color": "rgb(237 180 19 / 0.1)" } as CSSProperties}
               >
@@ -167,6 +171,7 @@ export default async function PresentationPage() {
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div data-reveal="zoom" className="relative overflow-hidden rounded-3xl bg-navy-800 p-8 text-white sm:p-12">
+          <EdgeBeam />
           <span aria-hidden className="absolute inset-y-0 left-0 w-[300%] animate-gradient-drift bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] [--drift:-66.667%]" />
           <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
           <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
@@ -176,7 +181,7 @@ export default async function PresentationPage() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <span className="glow-ring">
-                <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group">
+                <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group">
                   Créer un compte <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                 </ButtonLink>
               </span>

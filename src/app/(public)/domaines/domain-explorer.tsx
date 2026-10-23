@@ -65,6 +65,7 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
         <div className="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="group" aria-label="Trier les domaines">
           {SORTS.map((s) => (
             <button
+              data-sparkle
               key={s.key}
               type="button"
               onClick={() => setSort(s.key)}
@@ -102,6 +103,7 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
               href={`/domaines/${d.slug}`}
               data-reveal="zoom"
               data-spotlight
+              data-tilt
               style={revealDelay(Math.min(i, 8) * 45)}
               className="group relative rounded-2xl border border-border bg-white p-5 transition duration-300 ease-out-expo hover:-translate-y-1 hover:border-navy-200 hover:shadow-xl hover:shadow-navy-900/10"
             >

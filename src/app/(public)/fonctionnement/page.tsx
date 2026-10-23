@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight, Lock, ShieldCheck, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
+import { EdgeBeam } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
 import { DEFAULT_WEIGHTS, WEIGHT_LABELS, type Weights } from "@/features/matching/engine";
 import { HOW_IT_WORKS_STEPS as STEPS } from "@/lib/content/how-it-works";
@@ -26,7 +27,7 @@ export default function HowItWorksPage() {
         photoAlt="Étudiante concentrée sur son ordinateur portable dans un amphithéâtre, entourée d'autres participants"
         caption="Chaque compétence démontrée repose sur une preuve"
       >
-        <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+        <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
           Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </ButtonLink>
       </PageHero>
@@ -41,6 +42,10 @@ export default function HowItWorksPage() {
         <ol className="relative mt-12 space-y-6">
           <span aria-hidden className="absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-navy-100 sm:left-[1.625rem]" />
           <span aria-hidden className="timeline-fill absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-gradient-to-b from-gold-400 via-electric-500 to-navy-700 sm:left-[1.625rem]" />
+          {/* comète qui file le long du parcours */}
+          <span aria-hidden className="comet-track pointer-events-none absolute top-2 bottom-2 left-[1.375rem] w-0.5 sm:left-[1.625rem]">
+            <span className="comet-y" />
+          </span>
           {STEPS.map(({ t, d, icon: Icon }, i) => (
             <li key={t} data-reveal="up" className="group relative flex gap-5 sm:gap-6">
               {/* numéro bleu au repos ; la pastille allumée (même numéro, en blanc) apparaît au défilement */}
@@ -50,7 +55,7 @@ export default function HowItWorksPage() {
                   {i + 1}
                 </span>
               </span>
-              <div className="min-w-0 flex-1 rounded-2xl border border-border bg-white p-5 transition duration-500 ease-out-expo group-hover:-translate-y-1 group-hover:border-electric-200 group-hover:shadow-xl group-hover:shadow-electric-500/10 sm:p-6">
+              <div data-tilt className="min-w-0 flex-1 rounded-2xl border border-border bg-white p-5 transition duration-500 ease-out-expo group-hover:-translate-y-1 group-hover:border-electric-200 group-hover:shadow-xl group-hover:shadow-electric-500/10 sm:p-6">
                 <div className="flex items-center gap-3">
                   <span className="grid size-9 place-items-center rounded-lg bg-gold-50 text-gold-700 ring-1 ring-gold-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
                     <Icon className="size-4" aria-hidden />
@@ -79,7 +84,8 @@ export default function HowItWorksPage() {
               Lorsque des données manquent, elles sont signalées et la confiance du résultat diminue au lieu de compter silencieusement pour zéro.
             </p>
           </div>
-          <div data-reveal="up" className="min-w-0 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
+          <div data-reveal="up" className="relative min-w-0 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
+            <EdgeBeam />
             <p className="text-sm font-semibold text-navy-900">Pondération par défaut</p>
             <p className="text-xs text-muted">Ajustable par l&apos;équipe YEN</p>
             <ul className="mt-6 space-y-5">
@@ -104,7 +110,7 @@ export default function HowItWorksPage() {
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div data-reveal-children className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {HUMAN.map(({ icon: Icon, t, d }) => (
-            <div key={t} data-spotlight className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-xl hover:shadow-navy-900/5">
+            <div key={t} data-spotlight data-tilt className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-xl hover:shadow-navy-900/5">
               <span className="grid size-11 place-items-center rounded-xl bg-navy-900 text-gold-300 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:rotate-6">
                 <Icon className="size-5" aria-hidden />
               </span>
@@ -116,7 +122,7 @@ export default function HowItWorksPage() {
         <div data-reveal="up" className="mt-12 flex flex-col items-center gap-4 text-center">
           <p className="text-lg font-semibold text-navy-900">Prêt à commencer&nbsp;?</p>
           <span className="glow-ring">
-            <ButtonLink href="/inscription" variant="secondary" size="lg" data-magnetic className="group">
+            <ButtonLink href="/inscription" variant="secondary" size="lg" data-magnetic data-sparkle className="btn-gleam group">
               Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
             </ButtonLink>
           </span>

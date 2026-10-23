@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight, BadgeCheck, Building2, CalendarCheck, FilePlus2, Handshake, Lock, Send, ShieldCheck, UserCheck } from "lucide-react";
 import { ButtonLink, EmptyState } from "@/components/ui";
 import { revealDelay } from "@/components/motion/delay";
+import { EdgeBeam, NightSky } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
 import { listPublicPartners } from "@/features/catalog/queries";
 import tropheesPhoto from "@/assets/photos/trophees.jpg";
@@ -40,7 +41,7 @@ export default async function PartnersPage() {
         photoAlt="Jeune homme déballant des trophées, dont un trophée en forme de casque de chantier"
         caption="Remise des trophées lors de l'Africa Engineering Summit"
       >
-        <ButtonLink href="/inscription?type=partenaire" variant="accent" size="lg" data-magnetic className="group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+        <ButtonLink href="/inscription?type=partenaire" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
           Demander un espace partenaire <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </ButtonLink>
       </PageHero>
@@ -57,6 +58,7 @@ export default async function PartnersPage() {
             <div
               key={t}
               data-spotlight
+              data-tilt
               className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
               <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 ring-1 ring-navy-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
@@ -72,6 +74,7 @@ export default async function PartnersPage() {
       {/* Les étapes pour une organisation (overflow-clip : le trait animé suit le défilement de la page) */}
       <section data-reveal="none" className="relative overflow-clip bg-navy-950 text-white">
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
+        <NightSky stars={3} twinkles={4} />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div data-reveal-children>
             <p className="text-sm font-semibold tracking-wide text-gold-300 uppercase">Comment ça marche</p>
@@ -82,6 +85,10 @@ export default async function PartnersPage() {
             {/* trait reliant les étapes, tracé à l'arrivée à l'écran (ordinateur) */}
             <span aria-hidden className="absolute top-6 right-[10%] left-[10%] hidden h-0.5 bg-white/10 md:block" />
             <span aria-hidden className="bar-grow absolute top-6 right-[10%] left-[10%] hidden h-0.5 bg-gradient-to-r from-gold-300 via-electric-400 to-gold-300 md:block" />
+            {/* comète qui file d'une étape à l'autre */}
+            <span aria-hidden className="comet-track pointer-events-none absolute top-6 right-[10%] left-[10%] hidden h-0.5 md:block">
+              <span className="comet-x" />
+            </span>
             {STEPS.map(({ icon: Icon, t, d }, i) => (
               <li key={t} data-reveal="up" className="group relative flex gap-4 md:flex-col md:items-center md:text-center" style={revealDelay(i * 90)}>
                 <span className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full bg-navy-900 text-gold-300 ring-2 ring-gold-300/40 transition-transform duration-500 ease-spring group-hover:scale-110">
@@ -122,7 +129,8 @@ export default async function PartnersPage() {
             </div>
           )}
         </div>
-        <div data-reveal="zoom" className="mt-12 flex flex-col gap-5 rounded-2xl border border-gold-200 bg-gold-50/60 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div data-reveal="zoom" className="relative mt-12 flex flex-col gap-5 rounded-2xl border border-gold-200 bg-gold-50/60 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <EdgeBeam />
           <div className="flex gap-4">
             <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gold-400/20 text-gold-700">
               <Handshake className="size-5" aria-hidden />
@@ -132,7 +140,7 @@ export default async function PartnersPage() {
               <p className="mt-1 text-sm text-slate-600">Publiez vos offres (validées par YEN) et recevez des profils présélectionnés, partagés avec le consentement des candidats.</p>
             </div>
           </div>
-          <ButtonLink href="/inscription?type=partenaire" className="group w-full shrink-0 sm:w-auto">
+          <ButtonLink href="/inscription?type=partenaire" data-sparkle className="group w-full shrink-0 sm:w-auto">
             Demander un espace partenaire <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
           </ButtonLink>
         </div>

@@ -1,13 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, Handshake, LineChart, Lock, Scale, Search, UserCheck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, GraduationCap, Handshake, LineChart, Lock, Rocket, Scale, Search, Sparkles, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { DomainIcon } from "@/components/domain-icon";
 import { HowItWorksStepper } from "@/components/how-it-works-stepper";
+import { Constellation } from "@/components/motion/constellation";
 import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
+import { EdgeBeam, FloatingIcons, NightSky } from "@/components/motion/sky";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
 import heroPhoto from "@/assets/hero-ingenieurs.webp";
@@ -111,6 +113,14 @@ const GALLERY = [
   },
 ];
 
+/** Bulles flottantes posées sur la photo de l'appel à l'action (ordinateur) */
+const CTA_FLOATING = [
+  { icon: GraduationCap, x: 62, y: 16, size: 60, depth: 24, dur: 7.2, className: "bg-navy-950/45" },
+  { icon: BadgeCheck, x: 86, y: 26, size: 52, depth: 16, dur: 6.4, delay: 2, className: "bg-navy-950/45" },
+  { icon: Rocket, x: 74, y: 66, size: 56, depth: 28, dur: 8, delay: 3.4, className: "bg-navy-950/45" },
+  { icon: Sparkles, x: 92, y: 74, size: 44, depth: 12, dur: 6.8, delay: 1.2, className: "bg-navy-950/45" },
+];
+
 /** Mots qui défilent dans le titre (le dernier répète le premier pour une boucle sans saut). */
 const ROTATING_WORDS = ["au stage", "à l'emploi", "à l'alternance", "aux missions"];
 
@@ -166,6 +176,8 @@ export default async function HomePage() {
           <div data-parallax="0.2" className="absolute top-1/4 left-1/3 size-[24rem]">
             <div className="size-full animate-blob rounded-full bg-navy-400/25 blur-3xl [animation-delay:-12s]" />
           </div>
+          <Constellation />
+          <NightSky stars={5} twinkles={6} />
           {PARTICLES.map((p, i) => (
             <span
               key={i}
@@ -204,7 +216,7 @@ export default async function HomePage() {
               pour des mises en relation fondées sur ce que chacun sait réellement faire.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
                 Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
               </ButtonLink>
               <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20 sm:w-auto">
@@ -307,6 +319,7 @@ export default async function HomePage() {
             <div
               key={t}
               data-spotlight
+              data-tilt
               className="group flex flex-col overflow-clip rounded-2xl border border-border bg-white transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
             >
               <div className="relative aspect-[2/1] overflow-clip bg-navy-100 md:aspect-[16/10]">
@@ -368,6 +381,7 @@ export default async function HomePage() {
       {/* Engagements */}
       <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
+        <NightSky stars={3} twinkles={4} />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos engagements" title="Une plateforme digne de confiance" inverted />
           <div data-reveal-children className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -375,6 +389,7 @@ export default async function HomePage() {
               <div
                 key={t}
                 data-spotlight
+                data-tilt
                 className="group rounded-2xl bg-white/[0.05] p-6 ring-1 ring-white/10 transition duration-500 ease-out-expo hover:-translate-y-1 hover:bg-white/[0.08]"
                 style={{ "--spot-color": "rgb(237 180 19 / 0.1)" } as CSSProperties}
               >
@@ -402,7 +417,7 @@ export default async function HomePage() {
           />
           <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
             {GALLERY.map(({ photo, caption, alt, cell, focus, sizes }, i) => (
-              <figure key={caption} data-reveal="zoom" style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
+              <figure key={caption} data-reveal="zoom" data-tilt style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
                 <div className="media-parallax absolute inset-0 [--ps:1.12] [--px:5%]">
                   <Image
                     src={photo}
@@ -471,6 +486,7 @@ export default async function HomePage() {
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
         <div data-reveal="zoom">
           <div className="relative overflow-hidden rounded-3xl bg-navy-800 text-white">
+            <EdgeBeam />
             <span aria-hidden className="absolute inset-y-0 left-0 w-[300%] animate-gradient-drift bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] [--drift:-66.667%]" />
             <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
             <span aria-hidden className="absolute -bottom-20 left-1/3 size-44 animate-float rounded-full bg-white/10 [animation-delay:-3s]" />
@@ -482,7 +498,7 @@ export default async function HomePage() {
                   <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
                 </div>
                 <span className="glow-ring">
-                  <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic className="group">
+                  <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group">
                     Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                   </ButtonLink>
                 </span>
@@ -498,6 +514,7 @@ export default async function HomePage() {
                 />
               </div>
             </div>
+            <FloatingIcons items={CTA_FLOATING} className="max-lg:hidden" />
           </div>
         </div>
       </section>

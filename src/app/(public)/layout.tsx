@@ -22,7 +22,7 @@ export default async function PublicLayout({ children }: { children: React.React
               <>
                 {/* sur téléphone, « Connexion » est dans le menu */}
                 <ButtonLink href="/connexion" variant="ghost" size="sm" className="max-sm:hidden">Connexion</ButtonLink>
-                <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic>Créer un compte</ButtonLink>
+                <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic data-sparkle>Créer un compte</ButtonLink>
               </>
             )}
             <PublicMobileMenu signedIn={signedIn} />

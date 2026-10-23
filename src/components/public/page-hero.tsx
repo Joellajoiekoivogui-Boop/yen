@@ -1,12 +1,28 @@
 import Image, { type StaticImageData } from "next/image";
 import type { ReactNode } from "react";
+import { BrainCircuit, Code, Cpu, HardHat, Leaf, Wifi, Wrench, Zap } from "lucide-react";
+import { MotionToggle } from "@/components/motion/motion-toggle";
+import { FloatingIcons, NightSky } from "@/components/motion/sky";
 import { cn } from "@/lib/utils";
+
+/** Bandeau sans photo : pictos de l'ingénierie qui flottent dans la moitié droite (ordinateur). */
+const FLOATING = [
+  { icon: Cpu, x: 62, y: 16, size: 64, depth: 26, dur: 7.5 },
+  { icon: Zap, x: 80, y: 10, size: 52, depth: 18, dur: 6.4, delay: 1.5 },
+  { icon: Code, x: 90, y: 38, size: 60, depth: 30, dur: 8.2, delay: 3 },
+  { icon: Wifi, x: 70, y: 46, size: 50, depth: 14, dur: 6.8, delay: 2.2 },
+  { icon: HardHat, x: 58, y: 70, size: 58, depth: 22, dur: 7.8, delay: 4 },
+  { icon: Leaf, x: 82, y: 72, size: 48, depth: 16, dur: 6.2, delay: 0.8 },
+  { icon: Wrench, x: 94, y: 82, size: 44, depth: 12, dur: 7, delay: 5 },
+  { icon: BrainCircuit, x: 50, y: 30, size: 46, depth: 20, dur: 8.6, delay: 2.8 },
+];
 
 /**
  * Bandeau d'ouverture des pages du site public (même identité que l'accueil) : quadrillage
  * et halos animés en fond, photo en profondeur qui glisse doucement au défilement.
  * Le titre n'a pas d'animation d'apparition : il est souvent l'élément principal de la page
- * et doit s'afficher immédiatement.
+ * et doit s'afficher immédiatement. Décor : étoiles filantes, scintillements et, sans photo,
+ * pictos flottants ; un bouton met ces animations en pause.
  */
 export function PageHero({
   eyebrow,
@@ -36,6 +52,13 @@ export function PageHero({
           <div className="size-full animate-blob rounded-full bg-gold-400/15 blur-3xl [animation-delay:-7s]" />
         </div>
         <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-300/50 to-transparent" />
+      </div>
+      <NightSky stars={3} twinkles={5} />
+      {!photo && <FloatingIcons items={FLOATING} className="max-lg:hidden" />}
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-10">
+        <div className="mx-auto flex max-w-7xl justify-end px-4 sm:px-6 lg:px-8">
+          <MotionToggle className="pointer-events-auto motion-reduce:hidden" />
+        </div>
       </div>
 
       <div className={cn("relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:px-8 lg:py-20", photo && "lg:grid-cols-[1.1fr_1fr] lg:items-center")}>

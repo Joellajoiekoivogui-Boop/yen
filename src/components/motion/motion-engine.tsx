@@ -10,8 +10,10 @@ const REVEAL_SELECTOR = "[data-reveal]:not([data-reveal='none']), [data-reveal-c
  * - apparition au défilement : les éléments hors écran sont marqués [data-reveal-pending]
  *   puis révélés à leur arrivée à l'écran (les éléments déjà visibles gardent l'animation CSS
  *   jouée au chargement, sans clignotement) ;
- * - halo qui suit le curseur ([data-spotlight]), inclinaison 3D ([data-tilt]),
- *   boutons magnétiques ([data-magnetic]) et parallaxe ([data-parallax="0.2"]) ;
+ * - halo qui suit le curseur ([data-spotlight]), inclinaison 3D avec reflet ([data-tilt]),
+ *   boutons magnétiques ([data-magnetic]), pictos qui suivent la souris ([data-depth])
+ *   et parallaxe ([data-parallax="0.2"]) ;
+ * - étincelles au clic ou au toucher ([data-sparkle]) ;
  * - état « page défilée » et progression de lecture sur <html>.
  * Rien n'est animé si l'utilisateur a demandé à réduire les animations.
  */
@@ -96,6 +98,49 @@ export function MotionEngine() {
       mo.disconnect();
     });
 
+    // Étincelles au clic ou au toucher sur les éléments [data-sparkle]
+    const SPARKLE_COLORS = ["var(--color-gold-300)", "var(--color-gold-200)", "var(--color-electric-300)", "#ffffff"];
+    let sparkleLayer: HTMLDivElement | null = null;
+    const onPointerDown = (ev: PointerEvent) => {
+      if (root.hasAttribute("data-motion-paused")) return;
+      const host = ev.target instanceof Element ? ev.target.closest("[data-sparkle]") : null;
+      if (!host) return;
+      if (!sparkleLayer?.isConnected) {
+        sparkleLayer = document.createElement("div");
+        sparkleLayer.className = "sparkle-layer";
+        sparkleLayer.setAttribute("aria-hidden", "true");
+        document.body.appendChild(sparkleLayer);
+      }
+      for (let i = 0; i < 14; i++) {
+        const dot = document.createElement("span");
+        dot.className = i % 3 === 0 ? "sparkle star" : "sparkle";
+        dot.style.left = `${ev.clientX}px`;
+        dot.style.top = `${ev.clientY}px`;
+        dot.style.setProperty("--c", SPARKLE_COLORS[i % SPARKLE_COLORS.length]);
+        sparkleLayer.appendChild(dot);
+        const angle = (i / 14) * Math.PI * 2 + Math.random() * 0.5;
+        const dist = 42 + Math.random() * 50;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist;
+        // départ rapide, puis l'étincelle reste visible avant de s'éteindre
+        dot
+          .animate(
+            [
+              { transform: "translate3d(0, 0, 0) scale(0.4) rotate(0deg)", opacity: 1 },
+              { transform: `translate3d(${(dx * 0.8).toFixed(1)}px, ${(dy * 0.8).toFixed(1)}px, 0) scale(1.1) rotate(90deg)`, opacity: 1, offset: 0.45 },
+              { transform: `translate3d(${dx.toFixed(1)}px, ${(dy + 14).toFixed(1)}px, 0) scale(0) rotate(180deg)`, opacity: 0 },
+            ],
+            { duration: 750 + Math.random() * 300, easing: "cubic-bezier(0.25, 0.8, 0.4, 1)" },
+          )
+          .finished.then(() => dot.remove(), () => dot.remove());
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown, { passive: true });
+    cleanups.push(() => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      sparkleLayer?.remove();
+    });
+
     // Effets liés au pointeur (souris uniquement)
     if (finePointer) {
       let pointerFrame = 0;
@@ -106,6 +151,7 @@ export function MotionEngine() {
         if (tiltEl) tiltEl.style.transform = "";
         tiltEl = null;
       };
+      const resetDepth = () => document.querySelectorAll<HTMLElement>("[data-depth]").forEach((el) => (el.style.translate = ""));
       const resetMagnetic = () => {
         if (magneticEl) magneticEl.style.translate = "";
         magneticEl = null;
@@ -131,7 +177,18 @@ export function MotionEngine() {
           const px = (ev.clientX - r.left) / r.width - 0.5;
           const py = (ev.clientY - r.top) / r.height - 0.5;
           tilt.style.transform = `perspective(900px) rotateX(${(-py * 9).toFixed(2)}deg) rotateY(${(px * 11).toFixed(2)}deg) scale(1.02)`;
+          // reflet : la lueur suit la souris sur la carte
+          tilt.style.setProperty("--gx", `${((px + 0.5) * 100).toFixed(1)}%`);
+          tilt.style.setProperty("--gy", `${((py + 0.5) * 100).toFixed(1)}%`);
         }
+
+        // pictos flottants : ils suivent la souris selon leur profondeur
+        const nx = ev.clientX / window.innerWidth - 0.5;
+        const ny = ev.clientY / window.innerHeight - 0.5;
+        document.querySelectorAll<HTMLElement>("[data-depth]").forEach((el) => {
+          const depth = Number(el.dataset.depth) || 16;
+          el.style.translate = `${(nx * depth).toFixed(1)}px ${(ny * depth).toFixed(1)}px`;
+        });
 
         const magnetic = target?.closest<HTMLElement>("[data-magnetic]") ?? null;
         if (magnetic !== magneticEl) resetMagnetic();
@@ -150,6 +207,7 @@ export function MotionEngine() {
       const onLeave = () => {
         resetTilt();
         resetMagnetic();
+        resetDepth();
       };
       document.addEventListener("pointermove", onPointerMove, { passive: true });
       root.addEventListener("mouseleave", onLeave);
