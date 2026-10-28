@@ -118,6 +118,20 @@
   from { clip-path: inset(100% 0 0 0); }
   to { clip-path: inset(0 0 0 0); }
 }
+@keyframes domain-in {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--dir, 1) * 80px), 0, 0) rotateY(calc(var(--dir, 1) * -16deg)) scale(0.94);
+    filter: blur(6px);
+  }
+}
+@keyframes domain-out {
+  to {
+    opacity: 0;
+    transform: translate3d(calc(var(--dir, 1) * -70px), 0, 0) scale(0.96);
+    filter: blur(5px);
+  }
+}
 @keyframes word-rise {
   from { opacity: 0; transform: translate3d(0, 105%, 0) rotate(5deg); }
 }
@@ -305,6 +319,23 @@
   [data-reveal="words"] { --reveal-animation: none; }
   /* photo : un rideau s'ouvre de bas en haut pendant que l'image se pose */
   [data-reveal="curtain"] { --reveal-animation: reveal-curtain; animation-duration: 1.1s; }
+  /* carrousel des domaines : les cartes arrivent en cascade du côté où l'on avance,
+     le groupe précédent glisse et s'efface (--dir : 1 en avançant, -1 en reculant) */
+  .domain-group {
+    perspective: 1200px;
+  }
+  .domain-card {
+    animation: domain-in 0.75s var(--ease-out-expo) calc(var(--i, 0) * 90ms) backwards;
+  }
+  .domain-icon {
+    animation: pop-in 0.6s var(--ease-spring) calc(var(--i, 0) * 90ms + 260ms) backwards;
+  }
+  .domain-group-leave {
+    animation: domain-out 0.45s ease-in forwards;
+  }
+  .domain-group-leave :is(.domain-card, .domain-icon) {
+    animation: none;
+  }
   /* photo dans un cadre déjà arrondi (cartes) : rideau à bords droits, le cadre arrondit les coins */
   .photo-curtain {
     animation: reveal-curtain-flat 1.1s var(--ease-out-expo) 0.15s backwards;

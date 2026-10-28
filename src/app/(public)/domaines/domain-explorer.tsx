@@ -1,20 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Search, X } from "lucide-react";
-import { DomainIcon } from "@/components/domain-icon";
-import { revealDelay } from "@/components/motion/delay";
+import { Search, X } from "lucide-react";
+import { DomainCarousel, type DomainCardData } from "@/components/public/domain-carousel";
 import { cn } from "@/lib/utils";
 
-interface DomainCard {
-  slug: string;
-  name: string;
-  short_description: string;
-  icon: string;
-  occupationCount: number;
-  skillCount: number;
-}
+type DomainCard = DomainCardData;
 
 type Sort = "catalogue" | "alpha" | "metiers";
 const SORTS: { key: Sort; label: string }[] = [
@@ -96,33 +87,9 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
           </button>
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {results.map((d, i) => (
-            <Link
-              key={`${d.slug}-${sort}`}
-              href={`/domaines/${d.slug}`}
-              data-reveal="zoom"
-              data-spotlight
-              data-tilt
-              style={revealDelay(Math.min(i, 8) * 45)}
-              className="group relative rounded-2xl border border-border bg-white p-5 transition duration-300 ease-out-expo hover:-translate-y-1 hover:border-navy-200 hover:shadow-xl hover:shadow-navy-900/10"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="grid size-11 place-items-center rounded-xl bg-navy-50 text-navy-700 transition-colors duration-300 group-hover:bg-gold-400 group-hover:text-navy-950">
-                  <span className="group-hover:animate-bounce-soft">
-                    <DomainIcon name={d.icon} className="size-5" />
-                  </span>
-                </span>
-                <ArrowUpRight className="size-5 -translate-x-1 text-navy-400 opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden />
-              </div>
-              <h2 className="mt-4 font-semibold text-navy-900">{d.name}</h2>
-              <p className="mt-1 text-sm text-slate-600">{d.short_description}</p>
-              <div className="mt-4 flex gap-2 text-xs">
-                <span className="rounded-full bg-navy-50 px-2.5 py-1 font-medium text-navy-700">{d.occupationCount} métiers</span>
-                <span className="rounded-full bg-gold-50 px-2.5 py-1 font-medium text-gold-700">{d.skillCount} compétences</span>
-              </div>
-            </Link>
-          ))}
+        // trois domaines à la fois ; une nouvelle recherche ou un nouveau tri repart du premier groupe
+        <div className="mt-4">
+          <DomainCarousel key={`${query}|${sort}`} domains={results} headingLevel={2} label="Résultats du catalogue" />
         </div>
       )}
     </div>

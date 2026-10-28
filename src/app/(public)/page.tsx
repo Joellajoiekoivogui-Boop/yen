@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, GraduationCap, Handshake, LineChart, Lock, Rocket, Scale, Search, Sparkles, UserCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, GraduationCap, Handshake, LineChart, Lock, Rocket, Scale, Search, Sparkles, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { DomainIcon } from "@/components/domain-icon";
 import { HowItWorksStepper } from "@/components/how-it-works-stepper";
@@ -10,6 +10,7 @@ import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
 import { EdgeBeam, FloatingIcons, NightSky } from "@/components/motion/sky";
+import { DomainCarousel } from "@/components/public/domain-carousel";
 import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
@@ -58,9 +59,6 @@ const SPACES = [
     cta: { href: "/inscription?type=partenaire", label: "Demander un espace partenaire" },
   },
 ];
-
-/** Domaines affichés sur l'accueil mobile (la liste complète est sur /domaines). */
-const MOBILE_DOMAINS = 6;
 
 const COMMITMENTS = [
   { icon: Lock, t: "Données protégées", d: "Documents privés, accès contrôlés par rôle, consentement explicite avant tout partage avec un partenaire." },
@@ -441,33 +439,14 @@ export default async function HomePage() {
             </ButtonLink>
           </div>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {domains.map((d, i) => (
-            <Link
-              key={d.slug}
-              href={`/domaines/${d.slug}`}
-              data-reveal="zoom"
-              data-spotlight
-              style={revealDelay((i % 3) * 80 + Math.floor(i / 3) * 50)}
-              className={cn(
-                "group items-start gap-3 overflow-hidden rounded-xl border border-border bg-white p-4 transition duration-300 ease-out-expo hover:-translate-y-1 hover:border-electric-300 hover:shadow-lg hover:shadow-electric-500/10",
-                i < MOBILE_DOMAINS ? "flex" : "hidden sm:flex",
-              )}
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-50 text-navy-700 transition-colors duration-300 group-hover:bg-electric-100 group-hover:text-electric-700">
-                <span className="group-hover:animate-bounce-soft">
-                  <DomainIcon name={d.icon} className="size-5" />
-                </span>
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-navy-900">{d.name}</span>
-                <span className="mt-0.5 block text-xs text-muted">{d.short_description}</span>
-              </span>
-              <ArrowUpRight className="ml-auto size-4 shrink-0 -translate-x-1 text-electric-500 opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden />
-            </Link>
-          ))}
+        {/* trois domaines à la fois : la liste défile par groupes au lieu d'une grille de quinze cartes */}
+        <div data-reveal="up" className="mt-10">
+          <DomainCarousel
+            autoplay
+            domains={domains.map((d) => ({ slug: d.slug, name: d.name, short_description: d.short_description, icon: d.icon, occupationCount: d.occupationCount, skillCount: d.skillCount }))}
+          />
         </div>
-        <ButtonLink href="/domaines" variant="outline" className="group mt-4 w-full sm:hidden">
+        <ButtonLink href="/domaines" variant="outline" className="group mt-6 w-full sm:hidden">
           Voir les {domains.length} domaines <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </ButtonLink>
       </section>
