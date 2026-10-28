@@ -18,8 +18,8 @@ export interface DomainCardData {
   skillCount: number;
 }
 
-/** Un cran toutes les 3,2 s quand la roue tourne seule. */
-const AUTO_MS = 3200;
+/** Un cran toutes les 2,4 s : la roue tourne seule en permanence. */
+const AUTO_MS = 2400;
 /** En dessous de ce nombre de domaines, pas de roue : les cartes s'affichent simplement. */
 const MIN_RING = 4;
 
@@ -31,9 +31,11 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * Animations : la roue tourne avec un léger rebond, les pictos restent droits, les cartes roulent
  * comme un barillet, une traînée dorée file autour de l'anneau, le picto central pulse.
  * Contrôles : clic sur un picto, flèches, flèches du clavier, roue attrapée à la souris, glissement
- * du doigt. La rotation automatique (facultative) s'arrête au survol, au clavier, dès que le visiteur
- * choisit un domaine, avec le bouton pause, hors de l'écran, et n'existe pas si l'appareil demande
- * moins d'animations. Toutes les cartes restent dans la page (liens lisibles sans JavaScript).
+ * du doigt. La rotation automatique (facultative) ne s'arrête pas quand le visiteur fait tourner la
+ * roue : elle repart du cran choisi. Elle attend seulement le temps qu'on survole les cartes (pour
+ * cliquer celle qu'on vise) ou qu'on parcoure la roue au clavier, s'arrête avec le bouton pause et
+ * hors de l'écran, et n'existe pas si l'appareil demande moins d'animations.
+ * Toutes les cartes restent dans la page (liens lisibles sans JavaScript).
  */
 export function DomainOrbit({
   domains,
@@ -53,8 +55,9 @@ export function DomainOrbit({
   const [turn, setTurn] = useState(0);
   // angle de la roue pendant qu'on la fait tourner à la souris
   const [dragAngle, setDragAngle] = useState<number | null>(null);
-  const [manual, setManual] = useState(false);
-  const [hold, setHold] = useState(false);
+  // pointeur sur les cartes ou parcours au clavier : la rotation attend
+  const [overCards, setOverCards] = useState(false);
+  const [keyFocus, setKeyFocus] = useState(false);
   const [inView, setInView] = useState(false);
   const reduceMotion = useReducedMotion();
   const motionPaused = useMotionPaused();
@@ -67,7 +70,8 @@ export function DomainOrbit({
 
   const angle = dragAngle ?? -turn * step;
   const center = ringIndex(Math.round(-angle / step), count);
-  const stopped = manual || motionPaused;
+  const stopped = motionPaused;
+  const hold = overCards || keyFocus;
   const auto = autoplay && !reduceMotion && !stopped && inView && count >= MIN_RING && dragAngle === null;
 
   // la roue ne tourne seule que visible à l'écran
@@ -87,19 +91,10 @@ export function DomainOrbit({
   }, [center]);
 
   const go = (target: number, byVisitor: boolean) => {
-    if (byVisitor) {
-      setManual(true);
-      focusCenter.current = !!document.activeElement?.classList.contains("orbit-node");
-    }
+    if (byVisitor) focusCenter.current = !!document.activeElement?.classList.contains("orbit-node");
     setTurn(target);
   };
-  const toggleAuto = () => {
-    if (!stopped) setMotionPaused(true);
-    else {
-      setManual(false);
-      setMotionPaused(false);
-    }
-  };
+  const toggleAuto = () => setMotionPaused(!stopped);
 
   // souris : on attrape la roue, elle suit le pointeur puis se cale sur le cran le plus proche
   const onDragStart = (e: PointerEvent<HTMLDivElement>) => {
@@ -122,7 +117,6 @@ export function DomainOrbit({
     if (!dragged.current && Math.abs(g.moved) > 4) {
       dragged.current = true;
       e.currentTarget.setPointerCapture(g.id);
-      setManual(true);
     }
     if (dragged.current) setDragAngle(g.start + g.moved);
   };
@@ -200,11 +194,12 @@ export function DomainOrbit({
       data-paused={motionPaused || undefined}
       data-inview={inView || undefined}
       style={{ touchAction: "pan-y" }}
-      onMouseEnter={() => setHold(true)}
-      onMouseLeave={() => setHold(false)}
-      onFocus={() => setHold(true)}
+      onFocus={(e) => {
+        // focus au clavier seulement : un clic de souris sur un picto ne doit pas arrêter la roue
+        if (e.target.matches(":focus-visible")) setKeyFocus(true);
+      }}
       onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false);
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setKeyFocus(false);
       }}
       onKeyDown={(e) => {
         if (e.key === "ArrowRight") go(turn + 1, true);
@@ -268,7 +263,11 @@ export function DomainOrbit({
         </div>
 
         {/* barillet : la carte du centre et ses deux voisines ; les autres attendent, cachées, au-dessus ou en dessous */}
-        <div className="orbit-drum">
+        <div
+          className="orbit-drum"
+          onPointerEnter={(e) => e.pointerType === "mouse" && setOverCards(true)}
+          onPointerLeave={() => setOverCards(false)}
+        >
           {domains.map((d, i) => {
             const off = ringOffset(i, center, count);
             return card(d, i, Math.max(-2, Math.min(2, off)), Math.abs(off) <= 1);
@@ -324,8 +323,8 @@ export function DomainOrbit({
           </div>
         )}
       </div>
-      {/* annonce des domaines affichés (silencieuse pendant la rotation automatique) */}
-      <p className="sr-only" aria-live={auto ? "off" : "polite"}>
+      {/* annonce des domaines affichés (silencieuse tant que la roue tourne seule) */}
+      <p className="sr-only" aria-live={auto && !hold ? "off" : "polite"}>
         Domaines affichés : {[-1, 0, 1].map((o) => domains[ringIndex(center + o, count)].name).join(", ")}
       </p>
     </div>

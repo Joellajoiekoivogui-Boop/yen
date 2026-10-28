@@ -89,7 +89,7 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
       ) : (
         // orbite des résultats, trois domaines à la fois ; une nouvelle recherche ou un nouveau tri repart du premier
         <div className="mt-4">
-          <DomainOrbit key={`${query}|${sort}`} domains={results} headingLevel={2} label="Résultats du catalogue" />
+          <DomainOrbit key={`${query}|${sort}`} autoplay domains={results} headingLevel={2} label="Résultats du catalogue" />
         </div>
       )}
     </div>
