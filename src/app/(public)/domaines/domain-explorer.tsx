@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
-import { DomainCarousel, type DomainCardData } from "@/components/public/domain-carousel";
+import { DomainOrbit, type DomainCardData } from "@/components/public/domain-orbit";
 import { cn } from "@/lib/utils";
 
 type DomainCard = DomainCardData;
@@ -87,9 +87,9 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
           </button>
         </div>
       ) : (
-        // trois domaines à la fois ; une nouvelle recherche ou un nouveau tri repart du premier groupe
+        // orbite des résultats, trois domaines à la fois ; une nouvelle recherche ou un nouveau tri repart du premier
         <div className="mt-4">
-          <DomainCarousel key={`${query}|${sort}`} domains={results} headingLevel={2} label="Résultats du catalogue" />
+          <DomainOrbit key={`${query}|${sort}`} domains={results} headingLevel={2} label="Résultats du catalogue" />
         </div>
       )}
     </div>

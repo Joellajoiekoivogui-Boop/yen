@@ -10,7 +10,7 @@ import { CountUp } from "@/components/motion/count-up";
 import { animationDelay, revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
 import { EdgeBeam, FloatingIcons, NightSky } from "@/components/motion/sky";
-import { DomainCarousel } from "@/components/public/domain-carousel";
+import { DomainOrbit } from "@/components/public/domain-orbit";
 import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
@@ -439,9 +439,9 @@ export default async function HomePage() {
             </ButtonLink>
           </div>
         </div>
-        {/* trois domaines à la fois : la liste défile par groupes au lieu d'une grille de quinze cartes */}
+        {/* orbite : quinze pictos sur un anneau, trois domaines affichés à la fois au lieu d'une grille de quinze cartes */}
         <div data-reveal="up" className="mt-10">
-          <DomainCarousel
+          <DomainOrbit
             autoplay
             domains={domains.map((d) => ({ slug: d.slug, name: d.name, short_description: d.short_description, icon: d.icon, occupationCount: d.occupationCount, skillCount: d.skillCount }))}
           />

@@ -137,6 +137,7 @@ l'appareil demande à réduire les animations.
 |---|---|
 | `PageHero` | Bandeau d'ouverture des pages : titre, description, photo facultative, décor animé, bouton pause |
 | `SectionTitle` | Titre de section : surtitre doré, titre, trait animé, description ; `inverted` sur fond sombre |
+| `DomainOrbit` | Orbite des domaines : pictos sur un anneau, trois cartes affichées à la fois (accueil, page Domaines) |
 | Décor (`components/motion/sky.tsx`) | `NightSky` (étoiles filantes et scintillements), `FloatingIcons` (pictos flottants), `EdgeBeam` (traits lumineux sur les bords) |
 
 ## 3. Règles de contribution
