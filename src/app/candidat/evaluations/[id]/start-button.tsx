@@ -25,7 +25,7 @@ export function StartAttemptButton({ assessmentId }: { assessmentId: string }) {
           })
         }
       >
-        {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Play className="size-4" aria-hidden />} Commencer l&apos;évaluation
+        {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Play className="size-4" aria-hidden />} Commencer l&apos;entretien
       </Button>
     </div>
   );

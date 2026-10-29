@@ -51,7 +51,7 @@ export default async function SettingsPage() {
         <Card>
           <CardHeader icon={Download} title="Mes données" />
           <CardBody className="space-y-3">
-            <p className="text-sm text-slate-600">Téléchargez l&apos;ensemble de vos données (profil, documents référencés, évaluations, candidatures, analyses) au format JSON.</p>
+            <p className="text-sm text-slate-600">Téléchargez l&apos;ensemble de vos données (profil, documents référencés, entretiens, candidatures, analyses) au format JSON.</p>
             <div className="flex flex-wrap gap-2">
               <ButtonLink href="/api/candidat/export" variant="outline" prefetch={false}><Download className="size-4" aria-hidden /> Exporter mon profil</ButtonLink>
               <ButtonLink href="/api/candidat/cv-genere" variant="outline" prefetch={false}><Download className="size-4" aria-hidden /> Télécharger mon CV</ButtonLink>

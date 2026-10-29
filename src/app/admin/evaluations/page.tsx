@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { levelLabel, type SkillLevel } from "@/lib/labels";
 import { AssessmentForm } from "./forms";
 
-export const metadata: Metadata = { title: "Évaluations" };
+export const metadata: Metadata = { title: "Entretiens" };
 
 export default async function AdminAssessmentsPage() {
   await requireStaff("assessments.manage");
@@ -18,10 +18,10 @@ export default async function AdminAssessmentsPage() {
   ]);
   return (
     <div className="space-y-6">
-      <PageHeader title="Évaluations et banque de questions" description="Toute modification d'une évaluation publiée incrémente sa version ; les tentatives conservent la version passée." />
+      <PageHeader title="Entretiens et banque de questions" description="Toute modification d'un entretien publié incrémente sa version ; les tentatives conservent la version passée." />
       <Card>
         <Table>
-          <thead><tr><Th>Évaluation</Th><Th>Domaine</Th><Th>Niveau</Th><Th>Questions</Th><Th>Tentatives</Th><Th>Version</Th><Th>Statut</Th></tr></thead>
+          <thead><tr><Th>Entretien</Th><Th>Domaine</Th><Th>Niveau</Th><Th>Questions</Th><Th>Tentatives</Th><Th>Version</Th><Th>Statut</Th></tr></thead>
           <tbody>
             {(list.data ?? []).map((a) => (
               <tr key={a.id}>
@@ -38,7 +38,7 @@ export default async function AdminAssessmentsPage() {
         </Table>
       </Card>
       <Card>
-        <CardHeader title="Nouvelle évaluation" />
+        <CardHeader title="Nouvel entretien" />
         <CardBody><AssessmentForm domains={(domains.data ?? []).map((d) => ({ value: d.id, label: d.name }))} skills={(skills.data ?? []).map((d) => ({ value: d.id, label: d.name }))} /></CardBody>
       </Card>
     </div>

@@ -122,7 +122,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
               <CardBody><Certifications files={files} /></CardBody>
             </Card>
             <Card>
-              <CardHeader title={<span className="inline-flex items-center gap-2"><Target className="size-5 text-gold-600" aria-hidden /> Compétences</span>} description="« Déclaré » : saisi par le candidat. « Démontré » : confirmé par une évaluation, un projet vérifié ou un évaluateur." />
+              <CardHeader title={<span className="inline-flex items-center gap-2"><Target className="size-5 text-gold-600" aria-hidden /> Compétences</span>} description="« Déclaré » : saisi par le candidat. « Démontré » : confirmé par un entretien, un projet vérifié ou un évaluateur." />
               <CardBody><Skills /></CardBody>
             </Card>
             {can("notes.manage") && (
@@ -496,10 +496,10 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
     const { data } = await supabase.from("assessment_attempts").select("id, status, score_percent, passed, started_at, submitted_at, graded_at, reviewed_by, result_details, assessments(title, level)").eq("candidate_id", id).order("started_at", { ascending: false });
     return (
       <Card>
-        <CardHeader title="Résultats des évaluations" />
+        <CardHeader title="Résultats des entretiens" />
         <CardBody>
           <Table>
-            <thead><tr><Th>Évaluation</Th><Th>Date</Th><Th>Statut</Th><Th>Score</Th><Th>Détail par compétence</Th><Th>Correction</Th></tr></thead>
+            <thead><tr><Th>Entretien</Th><Th>Date</Th><Th>Statut</Th><Th>Score</Th><Th>Détail par compétence</Th><Th>Correction</Th></tr></thead>
             <tbody>
               {(data ?? []).map((t) => {
                 const a = t.assessments as unknown as { title: string; level: keyof typeof levelLabel };
@@ -636,13 +636,13 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                       ))}
                     </ol>
                     {((a.interviews ?? []) as { id: string; scheduled_at: string; mode: string; status: string; outcome: string | null }[]).map((i) => (
-                      <p key={i.id} className="text-xs text-gold-800">Entretien {formatDateTime(i.scheduled_at)} ({i.mode}) — {i.status}{i.outcome ? ` : ${i.outcome}` : ""}</p>
+                      <p key={i.id} className="text-xs text-gold-800">Entretien de recrutement {formatDateTime(i.scheduled_at)} ({i.mode}) — {i.status}{i.outcome ? ` : ${i.outcome}` : ""}</p>
                     ))}
                   </div>
                   {can("applications.manage") && (
                     <div className="space-y-4">
                       <ApplicationStatusForm applicationId={a.id} current={a.status} />
-                      <details><summary className="cursor-pointer text-sm font-medium text-electric-700">Programmer un entretien</summary><div className="mt-2"><InterviewForm applicationId={a.id} /></div></details>
+                      <details><summary className="cursor-pointer text-sm font-medium text-electric-700">Programmer un entretien de recrutement</summary><div className="mt-2"><InterviewForm applicationId={a.id} /></div></details>
                     </div>
                   )}
                 </CardBody>

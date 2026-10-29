@@ -15,8 +15,8 @@ export default function PrivacyPage() {
           <li>Identité et coordonnées : nom, prénom, adresse e-mail, téléphone (obligatoire pour les candidats, afin que YEN puisse vous contacter), ville, pays.</li>
           <li>Parcours : établissement, formation suivie chez YEN, niveau d&apos;études, formations, expériences, projets, certifications, langues.</li>
           <li>Documents : CV et justificatifs au format PDF, stockés de manière privée.</li>
-          <li>Évaluations : réponses, résultats, compétences démontrées et analyses associées.</li>
-          <li>Suivi : candidatures, entretiens, décisions et placements.</li>
+          <li>Entretiens : réponses, résultats, compétences démontrées et analyses associées.</li>
+          <li>Suivi : candidatures, entretiens de recrutement, décisions et placements.</li>
         </ul>
         <p>Aucune photo, ni donnée relative au sexe, à l&apos;origine, à la religion ou à la situation familiale n&apos;est demandée ni utilisée pour classer les candidats.</p>
         <h2>Finalités</h2>
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
         </ul>
         <h2>Intelligence artificielle</h2>
         <p>
-          Si vous y consentez (« Paramètres et confidentialité »), votre CV, votre profil et vos réponses écrites aux évaluations peuvent être transmis au
+          Si vous y consentez (« Paramètres et confidentialité »), votre CV, votre profil et vos réponses écrites aux entretiens peuvent être transmis au
           fournisseur d&apos;IA utilisé par YEN, actuellement Anthropic (modèles Claude), qui les traite hors de Guinée, notamment aux États-Unis. Ils
           servent à extraire les informations de votre CV, à proposer des recommandations, à répondre à l&apos;assistant de carrière et à aider l&apos;équipe
           YEN (synthèses de profil, propositions de note relues par un évaluateur). Votre adresse e-mail et votre téléphone de compte ne sont pas ajoutés

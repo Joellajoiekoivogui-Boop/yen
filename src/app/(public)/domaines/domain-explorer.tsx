@@ -38,7 +38,7 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un domaine (ex. énergie, réseaux, IA…)"
+            placeholder="Ex. énergie, réseaux, IA…"
             aria-label="Rechercher un domaine"
             className="field-input h-12 pr-10 pl-10"
           />
@@ -53,7 +53,8 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
             </button>
           )}
         </div>
-        <div className="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="group" aria-label="Trier les domaines">
+        {/* les boutons passent à la ligne sur petit écran au lieu d'être rognés */}
+        <div className="flex flex-wrap gap-1 self-start rounded-xl bg-slate-100 p-1 sm:shrink-0 sm:flex-nowrap sm:self-auto" role="group" aria-label="Trier les domaines">
           {SORTS.map((s) => (
             <button
               data-sparkle

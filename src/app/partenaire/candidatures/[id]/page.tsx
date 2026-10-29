@@ -35,7 +35,7 @@ export default async function PartnerApplicationPage(props: PageProps<"/partenai
         <div className="space-y-4">
           <Card><CardHeader title="Suivi du recrutement" /><CardBody><PartnerStatusForm applicationId={a.id} current={a.status} /></CardBody></Card>
           <Card>
-            <CardHeader title="Entretiens" />
+            <CardHeader title="Entretiens de recrutement" />
             <CardBody className="space-y-3">
               {((a.interviews ?? []) as { id: string; scheduled_at: string; mode: string; location: string | null; status: string }[]).map((i) => <p key={i.id} className="text-sm">{formatDateTime(i.scheduled_at)} — {i.mode} {i.location && `(${i.location})`} · {i.status}</p>)}
               <PartnerInterviewForm applicationId={a.id} />

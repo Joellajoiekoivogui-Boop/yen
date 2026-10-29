@@ -93,7 +93,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
               <div><label htmlFor="ville" className="mb-1 block text-xs font-medium text-muted">Ville</label><input id="ville" name="ville" defaultValue={filters.city} className="field-input" /></div>
               {sel("disponibilite", "Disponibilité", Object.entries(availabilityLabel).map(([value, label]) => ({ value, label })), filters.availability)}
               {sel("opportunite", "Opportunité recherchée", Object.entries(opportunityLabel).map(([value, label]) => ({ value, label })), filters.opportunity)}
-              <div><label htmlFor="score" className="mb-1 block text-xs font-medium text-muted">Résultat min. à une évaluation (%)</label><input id="score" name="score" type="number" min={0} max={100} defaultValue={filters.minScore} className="field-input" /></div>
+              <div><label htmlFor="score" className="mb-1 block text-xs font-medium text-muted">Résultat min. à un entretien (%)</label><input id="score" name="score" type="number" min={0} max={100} defaultValue={filters.minScore} className="field-input" /></div>
               {sel("tri", "Tri", [{ value: "activite", label: "Dernière activité" }, { value: "inscription", label: "Date d'inscription" }, { value: "identifiant", label: "Identifiant" }, { value: "diplomation", label: "Année de diplomation" }], filters.sort)}
               <div className="flex items-end gap-4 pb-2 text-sm">
                 <label className="flex items-center gap-1.5"><input type="checkbox" name="verifier" value="1" defaultChecked={filters.flagged} className="size-4 accent-electric-600" /> À vérifier</label>

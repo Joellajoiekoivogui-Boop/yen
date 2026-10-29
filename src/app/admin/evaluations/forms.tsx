@@ -29,7 +29,7 @@ export function AssessmentForm({ defaults, domains, skills }: { defaults?: Recor
         { name: "level", label: "Niveau", type: "select", options: Object.entries(levelLabel).map(([value, label]) => ({ value, label })) },
         { name: "assessment_type", label: "Type", type: "select", options: [
           { value: "questionnaire", label: "Questionnaire" }, { value: "exercice_pratique", label: "Exercice pratique" }, { value: "etude_de_cas", label: "Étude de cas" },
-          { value: "scenario", label: "Scénario professionnel" }, { value: "evaluation_formateur", label: "Évaluation par un formateur" }, { value: "portfolio", label: "Portfolio / dépôt de code" },
+          { value: "scenario", label: "Scénario professionnel" }, { value: "evaluation_formateur", label: "Entretien avec un formateur" }, { value: "portfolio", label: "Portfolio / dépôt de code" },
         ] },
         { name: "duration_minutes", label: "Durée indicative (min)", type: "number", min: 1, max: 480 },
         { name: "passing_score", label: "Seuil de réussite (%)", type: "number", min: 0, max: 100 },

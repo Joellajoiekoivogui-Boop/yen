@@ -11,9 +11,9 @@ import tropheesPhoto from "@/assets/photos/trophees.jpg";
 export const metadata: Metadata = { title: "Partenaires" };
 
 const BENEFITS = [
-  { icon: BadgeCheck, t: "Des compétences prouvées", d: "Les profils distinguent ce qui est déclaré de ce qui est démontré : évaluations, projets vérifiés, avis d'évaluateurs YEN." },
+  { icon: BadgeCheck, t: "Des compétences prouvées", d: "Les profils distinguent ce qui est déclaré de ce qui est démontré : entretiens, projets vérifiés, avis d'évaluateurs YEN." },
   { icon: UserCheck, t: "Une présélection par YEN", d: "L'équipe YEN vous propose des candidats adaptés à vos offres, avec un score de compatibilité expliqué." },
-  { icon: Lock, t: "Un cadre de confiance", d: "Les profils sont partagés avec le consentement des candidats ; le contact passe par YEN ou par l'entretien." },
+  { icon: Lock, t: "Un cadre de confiance", d: "Les profils sont partagés avec le consentement des candidats ; le contact passe par YEN ou par l'entretien de recrutement." },
 ];
 
 const STEPS = [
@@ -21,7 +21,7 @@ const STEPS = [
   { icon: ShieldCheck, t: "Validation par YEN", d: "L'équipe vérifie l'organisation et ouvre l'espace." },
   { icon: FilePlus2, t: "Publier des offres", d: "Stages, emplois, alternances, missions, validés par YEN." },
   { icon: Send, t: "Recevoir des candidats", d: "Candidatures et profils présélectionnés par YEN." },
-  { icon: CalendarCheck, t: "Entretiens et décision", d: "Suivi du recrutement jusqu'au placement." },
+  { icon: CalendarCheck, t: "Entretiens de recrutement et décision", d: "Suivi du recrutement jusqu'au placement." },
 ];
 
 /** N'affiche QUE les organisations dont la publication a été autorisée (is_public) et actives. */

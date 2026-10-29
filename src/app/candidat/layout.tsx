@@ -22,7 +22,7 @@ export default async function CandidateLayout({ children }: { children: React.Re
         { href: "/candidat/profil", label: "Mon profil", icon: "User" },
         { href: "/candidat/cv", label: "Mon CV", icon: "FileText" },
         { href: "/candidat/competences", label: "Mes compétences", icon: "Target" },
-        { href: "/candidat/evaluations", label: "Mes évaluations", short: "Évaluations", icon: "ClipboardCheck" },
+        { href: "/candidat/evaluations", label: "Mes entretiens", short: "Entretiens", icon: "ClipboardCheck" },
         { href: "/candidat/projets", label: "Mes projets", icon: "FolderKanban" },
         { href: "/candidat/certifications", label: "Mes certifications", icon: "Trophy" },
       ],

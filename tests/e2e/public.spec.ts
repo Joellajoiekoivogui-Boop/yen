@@ -43,7 +43,7 @@ test.describe("Pages publiques", () => {
   test("pas de défilement horizontal du téléphone à l'ordinateur (pages publiques)", async ({ page }) => {
     for (const width of [360, 640, 768, 900, 1024]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const path of ["/", "/presentation", "/fonctionnement", "/domaines", "/partenaires", "/connexion", "/inscription"]) {
+      for (const path of ["/", "/presentation", "/fonctionnement", "/domaines", "/domaines/automatisation-industrielle", "/domaines/energies-renouvelables", "/partenaires", "/connexion", "/inscription"]) {
         await page.goto(path);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow, `${path} à ${width} px`).toBeLessThanOrEqual(1);

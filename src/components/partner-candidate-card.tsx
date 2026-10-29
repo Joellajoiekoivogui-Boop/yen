@@ -17,12 +17,12 @@ export function PartnerCandidateCard({ v }: { v: PartnerCandidateView }) {
         <CardBody className="space-y-3 text-sm">
           {v.summary && <p className="whitespace-pre-line text-slate-700">{v.summary}</p>}
           <p className="text-xs text-muted">Formation YEN : {v.yen_program ?? "—"} · Niveau : {v.education_level ?? "—"} · Disponibilité : {availabilityLabel[v.availability as Availability]} · Recherche : {v.opportunity_types.map((o) => opportunityLabel[o as OpportunityType]).join(", ") || "—"}</p>
-          <p className="text-xs text-muted">Pour contacter le candidat, passez par l&apos;équipe YEN ou programmez un entretien depuis la candidature.</p>
+          <p className="text-xs text-muted">Pour contacter le candidat, passez par l&apos;équipe YEN ou programmez un entretien de recrutement depuis la candidature.</p>
         </CardBody>
       </Card>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Compétences démontrées" description="Validées par YEN (évaluations, projets vérifiés, évaluateurs)" />
+          <CardHeader title="Compétences démontrées" description="Validées par YEN (entretiens, projets vérifiés, évaluateurs)" />
           <CardBody className="space-y-1.5">
             {v.demonstrated.length === 0 && <p className="text-sm text-muted">Aucune compétence démontrée à ce jour.</p>}
             {v.demonstrated.map((d) => <p key={d.skill} className="text-sm"><Badge tone="gold">{levelLabel[d.level]}</Badge> {d.skill} <span className="text-xs text-muted">— {d.sources.join(" · ")}</span></p>)}
@@ -30,7 +30,7 @@ export function PartnerCandidateCard({ v }: { v: PartnerCandidateView }) {
           </CardBody>
         </Card>
         <Card>
-          <CardHeader title="Résultats d'évaluation" />
+          <CardHeader title="Résultats d'entretien" />
           <CardBody className="space-y-1 text-sm">
             {v.results.length === 0 && <p className="text-muted">Aucun résultat.</p>}
             {v.results.map((r, i) => <p key={i}>{r.title} : <strong className="tabular-nums">{r.score != null ? `${Math.round(r.score)} %` : "—"}</strong>{r.passed ? " ✓" : ""} <span className="text-xs text-muted">({formatDate(r.date)})</span></p>)}

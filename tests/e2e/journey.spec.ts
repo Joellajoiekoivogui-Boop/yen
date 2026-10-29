@@ -129,12 +129,12 @@ test("le candidat complète son profil, ses consentements et ses compétences", 
   await expect(page.getByText("À démontrer").first()).toBeVisible();
 });
 
-test("le candidat passe une évaluation corrigée automatiquement", async ({ page }) => {
+test("le candidat passe un entretien corrigé automatiquement", async ({ page }) => {
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/evaluations");
   await page.getByRole("link", { name: /Fondamentaux du développement web/ }).click();
   await expect(page.getByText("Barème et règles de correction")).toBeVisible();
-  await page.getByRole("button", { name: /Commencer l'évaluation/ }).click();
+  await page.getByRole("button", { name: /Commencer l'entretien/ }).click();
   await page.waitForURL(/tentative/);
   await page.getByLabel("<h1>").check();
   await page.getByLabel("[2, 4, 6]").check();

@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       items: items([
         { href: "/admin/talents", label: "Répertoire des talents", short: "Talents", icon: "Users", perm: "candidates.read" },
         { href: "/admin/corrections", label: "Corrections et validations", icon: "ClipboardCheck", perm: "assessments.review", badge: toReview },
-        { href: "/admin/evaluations", label: "Évaluations", icon: "ListChecks", perm: "assessments.manage" },
+        { href: "/admin/evaluations", label: "Entretiens", icon: "ListChecks", perm: "assessments.manage" },
         { href: "/admin/catalogue", label: "Catalogue des métiers", icon: "Layers", perm: "catalog.manage" },
       ]),
     },

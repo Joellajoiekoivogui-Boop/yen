@@ -14,7 +14,7 @@ export function PartnerStatusForm({ applicationId, current }: { applicationId: s
     <EntityForm schema={z.object({ status: z.string() }).passthrough()} defaultValues={{ status: ["proposee_partenaire", "entretien_programme", "attente_decision", "acceptee", "refusee"].includes(current) ? current : "proposee_partenaire" }} submitLabel="Mettre à jour"
       action={(v) => partnerUpdateApplicationAction({ ...v, applicationId })}
       fields={[
-        { name: "status", label: "Étape du recrutement", type: "select", options: [{ value: "proposee_partenaire", label: "En étude" }, { value: "entretien_programme", label: "Entretien programmé" }, { value: "attente_decision", label: "En attente de décision" }, { value: "acceptee", label: "Retenu(e)" }, { value: "refusee", label: "Non retenu(e)" }] },
+        { name: "status", label: "Étape du recrutement", type: "select", options: [{ value: "proposee_partenaire", label: "En étude" }, { value: "entretien_programme", label: "Entretien de recrutement programmé" }, { value: "attente_decision", label: "En attente de décision" }, { value: "acceptee", label: "Retenu(e)" }, { value: "refusee", label: "Non retenu(e)" }] },
         { name: "reason", label: "Motif (obligatoire pour une décision)" },
         { name: "shortlisted", label: "Ajouter à ma présélection", type: "checkbox", colSpan: 2 },
       ]} />
@@ -52,7 +52,7 @@ export function PartnerFeedbackForm({ applicationId, skills }: { applicationId: 
       <EntityForm schema={z.object({ comments: z.string().trim().min(10, "Commentaire trop court.") }).passthrough()} defaultValues={{ context: "entretien" }} resetOnSuccess submitLabel="Envoyer le retour à YEN"
         action={(v) => partnerFeedbackAction({ ...v, applicationId, skill_ratings: ratings.filter((r) => r.skill_id) })}
         fields={[
-          { name: "context", label: "Contexte", type: "select", options: [{ value: "entretien", label: "Après entretien" }, { value: "stage", label: "Pendant / après un stage" }, { value: "emploi", label: "En emploi" }] },
+          { name: "context", label: "Contexte", type: "select", options: [{ value: "entretien", label: "Après l'entretien de recrutement" }, { value: "stage", label: "Pendant / après un stage" }, { value: "emploi", label: "En emploi" }] },
           { name: "overall_rating", label: "Appréciation globale (1 à 5)", type: "number", min: 1, max: 5 },
           { name: "comments", label: "Commentaires sur les compétences observées", type: "textarea", rows: 4, required: true },
         ]} />

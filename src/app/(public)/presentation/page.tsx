@@ -16,10 +16,10 @@ export const metadata: Metadata = { title: "Présentation" };
 
 const FEATURES = [
   { icon: FolderLock, t: "Un dossier sécurisé", d: "CV, diplômes, certifications, projets et expériences de chaque bénéficiaire réunis dans un espace personnel protégé." },
-  { icon: ClipboardCheck, t: "Des compétences évaluées", d: "Questionnaires, exercices, études de cas et évaluations humaines, sur les compétences techniques et transversales." },
+  { icon: ClipboardCheck, t: "Des compétences évaluées", d: "Questionnaires, exercices, études de cas et entretiens avec des évaluateurs, sur les compétences techniques et transversales." },
   { icon: BadgeCheck, t: "Déclaré ou démontré", d: "Les compétences déclarées restent distinctes des compétences démontrées, toujours accompagnées de leurs preuves." },
   { icon: Compass, t: "Des métiers compatibles", d: "Des métiers proposés selon le profil, avec un score expliqué et un plan de progression personnalisé." },
-  { icon: Briefcase, t: "Offres et candidatures", d: "Offres de stage, d'emploi, d'alternance et de mission, candidatures, entretiens et placements suivis au même endroit." },
+  { icon: Briefcase, t: "Offres et candidatures", d: "Offres de stage, d'emploi, d'alternance et de mission, candidatures, entretiens de recrutement et placements suivis au même endroit." },
   { icon: LineChart, t: "Un impact mesuré", d: "L'insertion professionnelle mesurée sur des périodes et des définitions explicites, pour rendre compte de l'action de YEN." },
 ];
 
@@ -167,7 +167,7 @@ export default async function PresentationPage() {
           <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
               <h2 className="text-2xl font-bold sm:text-3xl">Prêt à faire reconnaître vos compétences&nbsp;?</h2>
-              <p className="mt-2 max-w-xl text-white/90">Créez votre profil en quelques minutes, puis passez vos premières évaluations.</p>
+              <p className="mt-2 max-w-xl text-white/90">Créez votre profil en quelques minutes, puis passez vos premiers entretiens.</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <span className="glow-ring">

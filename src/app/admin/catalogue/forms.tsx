@@ -59,7 +59,7 @@ export function OccupationForm({ defaults, domains, skills }: { defaults?: Recor
           { name: "title", label: "Intitulé", required: true }, { name: "slug", label: "Identifiant (slug)", required: true },
           { name: "domain_id", label: "Domaine", type: "select", options: domains, required: true }, { name: "typical_education", label: "Formation habituelle" },
           { name: "description", label: "Description", type: "textarea", rows: 2 },
-          { name: "w_demonstrated_skills", label: "Poids : compétences démontrées", type: "number" }, { name: "w_assessments", label: "Poids : évaluations", type: "number" },
+          { name: "w_demonstrated_skills", label: "Poids : compétences démontrées", type: "number" }, { name: "w_assessments", label: "Poids : entretiens", type: "number" },
           { name: "w_projects", label: "Poids : projets", type: "number" }, { name: "w_education", label: "Poids : formation", type: "number" }, { name: "w_experience", label: "Poids : expérience", type: "number", help: "Laissez les 5 poids vides pour utiliser la pondération de la plateforme." },
           { name: "is_active", label: "Actif", type: "checkbox" },
         ]} />

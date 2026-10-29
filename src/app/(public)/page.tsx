@@ -39,7 +39,7 @@ const SPACES = [
     t: "Étudiants et diplômés",
     photo: etudiantsPhoto,
     alt: "Étudiante concentrée sur son ordinateur portable dans un amphithéâtre, entourée d'autres participants",
-    items: ["Profil et CV sécurisés", "Évaluations par domaine", "Recommandations de métiers et plan de progression", "Candidatures et suivi"],
+    items: ["Profil et CV sécurisés", "Entretiens par domaine", "Recommandations de métiers et plan de progression", "Candidatures et suivi"],
     cta: { href: "/inscription", label: "Créer mon profil" },
   },
   {
@@ -431,7 +431,7 @@ export default async function HomePage() {
           <SectionTitle
             eyebrow="Catalogue"
             title={`${domains.length} domaines d'ingénierie`}
-            description="Chaque domaine décrit ses métiers, ses compétences avec des critères observables et ses évaluations."
+            description="Chaque domaine décrit ses métiers, ses compétences avec des critères observables et ses entretiens."
           />
           <div data-reveal="up" className="hidden sm:block">
             <ButtonLink href="/domaines" variant="outline" className="group">

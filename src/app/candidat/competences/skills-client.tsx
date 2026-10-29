@@ -14,7 +14,7 @@ export function DeclaredSkills({ items, skills }: { items: CrudItem[]; skills: {
       remove={deleteDeclaredSkillAction}
       addLabel="Déclarer une compétence"
       emptyTitle="Aucune compétence déclarée"
-      emptyDescription="Déclarez vos compétences : elles seront ensuite à démontrer par des évaluations ou des projets."
+      emptyDescription="Déclarez vos compétences : elles seront ensuite à démontrer par des entretiens ou des projets."
       defaults={{ self_level: "debutant" }}
       fields={[
         { name: "skill_id", label: "Compétence", type: "select", required: true, colSpan: 2, options: skills.map((s) => ({ value: s.id, label: `${s.name} — ${s.group}` })) },

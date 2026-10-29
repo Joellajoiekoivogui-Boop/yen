@@ -8,7 +8,7 @@ import { assistantAction } from "@/features/ai/actions";
 type Msg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = [
-  "Explique-moi mes résultats d'évaluation.",
+  "Explique-moi mes résultats d'entretien.",
   "Quelles compétences dois-je développer pour mon métier visé ?",
   "Aide-moi à préparer un entretien de stage.",
   "Propose-moi un projet pratique pour démontrer mes compétences.",

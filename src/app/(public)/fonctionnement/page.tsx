@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Fonctionnement" };
 
 const HUMAN = [
   { icon: UserCheck, t: "La décision reste humaine", d: "Le score aide l'équipe YEN et les recruteurs ; il ne décide jamais à leur place." },
-  { icon: ShieldCheck, t: "Le niveau expert se prouve", d: "Il n'est jamais attribué par un simple questionnaire : il faut une évaluation humaine ou des preuves." },
+  { icon: ShieldCheck, t: "Le niveau expert se prouve", d: "Il n'est jamais attribué par un simple questionnaire : il faut un entretien avec un évaluateur ou des preuves." },
   { icon: Lock, t: "Rien n'est partagé sans accord", d: "Un profil n'est transmis à un partenaire qu'avec le consentement du candidat." },
 ];
 
@@ -72,7 +72,7 @@ export default function HowItWorksPage() {
           <SectionTitle eyebrow="Le score de compatibilité" title="Un score expliqué, pas une prédiction" className="min-w-0">
             <p className="mt-5 leading-relaxed text-slate-600">
               Le score (0 à 100) estime l&apos;adéquation entre un profil et un métier ou une offre. Il combine, selon une pondération configurable par YEN, les
-              compétences démontrées, les résultats d&apos;évaluation, les projets, la formation et l&apos;expérience. Ce n&apos;est pas une probabilité d&apos;embauche.
+              compétences démontrées, les résultats d&apos;entretien, les projets, la formation et l&apos;expérience. Ce n&apos;est pas une probabilité d&apos;embauche.
             </p>
             <p className="mt-3 leading-relaxed text-slate-600">
               Lorsque des données manquent, elles sont signalées et la confiance du résultat diminue au lieu de compter silencieusement pour zéro.

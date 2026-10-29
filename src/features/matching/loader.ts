@@ -27,7 +27,7 @@ export async function loadEvidenceBatch(supabase: SupabaseClient, candidateIds: 
       const testScores: CandidateEvidence["testScores"] = {};
       for (const r of saRows) {
         if (r.status !== "valide" || r.score_percent == null || !(r.source === "questionnaire" || r.source === "exercice")) continue;
-        (testScores[r.skill_id] ??= []).push({ percent: Number(r.score_percent), ref: { type: r.source, id: r.attempt_id ?? r.id, label: "Évaluation" } });
+        (testScores[r.skill_id] ??= []).push({ percent: Number(r.score_percent), ref: { type: r.source, id: r.attempt_id ?? r.id, label: "Entretien" } });
       }
       const exps = (experiences.data ?? []).filter((e) => e.candidate_id === c.id && e.experience_type !== "projet_academique");
       const relevant = targetDomainId ? exps.filter((e) => !e.domain_id || e.domain_id === targetDomainId) : exps;

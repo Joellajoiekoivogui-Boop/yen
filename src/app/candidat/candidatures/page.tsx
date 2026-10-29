@@ -23,7 +23,7 @@ export default async function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Mes candidatures" description="Suivez chaque étape : présélection, proposition au partenaire, entretiens et décision." />
+      <PageHeader title="Mes candidatures" description="Suivez chaque étape : présélection, proposition au partenaire, entretiens de recrutement et décision." />
       {(apps ?? []).length === 0 && <EmptyState icon={Send} title="Aucune candidature" description="Consultez les offres et postulez à celles qui correspondent à votre profil." />}
       {(apps ?? []).map((a) => {
         const o = a.job_offers as unknown as { id: string; title: string; offer_type: OpportunityType; organization_id: string };
@@ -47,7 +47,7 @@ export default async function ApplicationsPage() {
               </div>
               {a.decision_reason && ["acceptee", "refusee"].includes(status) && <p className="rounded-md bg-slate-50 p-2 text-sm text-slate-700">Motif communiqué : {a.decision_reason}</p>}
               {interviews.filter((i) => i.status === "programme").map((i) => (
-                <p key={i.id} className="flex items-center gap-2 text-sm text-gold-800"><CalendarClock className="size-4" aria-hidden /> Entretien le {formatDateTime(i.scheduled_at)} ({i.mode}{i.location ? ` — ${i.location}` : ""})</p>
+                <p key={i.id} className="flex items-center gap-2 text-sm text-gold-800"><CalendarClock className="size-4" aria-hidden /> Entretien de recrutement le {formatDateTime(i.scheduled_at)} ({i.mode}{i.location ? ` — ${i.location}` : ""})</p>
               ))}
               <ol className="relative ml-2 space-y-2 border-l border-border pl-4">
                 {events.map((e) => (

@@ -4,7 +4,7 @@ import { ArrowLeft, BriefcaseBusiness, Handshake, ShieldCheck } from "lucide-rea
 import { Logo } from "@/components/layout/logo";
 
 const PROMISES = [
-  { icon: ShieldCheck, title: "Des compétences démontrées", text: "Évaluations, projets et certifications : vos preuves, pas seulement vos déclarations." },
+  { icon: ShieldCheck, title: "Des compétences démontrées", text: "Entretiens, projets et certifications : vos preuves, pas seulement vos déclarations." },
   { icon: BriefcaseBusiness, title: "Des offres adaptées", text: "Stages, emplois et missions classés selon ce que vous savez réellement faire." },
   { icon: Handshake, title: "Un accompagnement YEN", text: "L'équipe YEN vous suit de l'inscription jusqu'à la mise en relation avec les partenaires." },
 ];

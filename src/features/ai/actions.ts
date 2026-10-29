@@ -137,7 +137,7 @@ export async function applyCvExtractionAction(values: Record<string, unknown>): 
     await refreshPipelineStatus(cid);
     revalidatePath("/candidat", "layout");
     const parts = [`Éléments ajoutés à votre profil.`];
-    if (known.length) parts.push(`${known.length} compétence(s) ajoutée(s) comme « déclarées » : passez une évaluation pour les démontrer.`);
+    if (known.length) parts.push(`${known.length} compétence(s) ajoutée(s) comme « déclarées » : passez un entretien pour les démontrer.`);
     if (unknown.length) parts.push(`Non reconnues dans le catalogue : ${unknown.join(", ")}.`);
     if (errors.length) parts.push(`Points à vérifier : ${errors.join(", ")}.`);
     return { ok: true, message: parts.join(" ") };

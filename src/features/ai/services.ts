@@ -241,7 +241,7 @@ export async function analyzeProfile(candidateId: string, actorId: string): Prom
     const { output, report } = enforceTraceability(filtered, known);
     const proof = enforceDemonstratedEvidence(output.demonstrated_skills, sources);
     // une compétence « démontrée » sans preuve validée reste au mieux « à confirmer »
-    const toConfirm = proof.dropped.map((d) => ({ skill: d.skill, reason: "Citée comme démontrée sans évaluation, retour ou projet vérifié à l'appui.", source_ids: d.source_ids }));
+    const toConfirm = proof.dropped.map((d) => ({ skill: d.skill, reason: "Citée comme démontrée sans entretien, retour ou projet vérifié à l'appui.", source_ids: d.source_ids }));
     const security_warnings = injectionWarnings(sources);
     return {
       output: { ...output, demonstrated_skills: proof.kept, skills_to_confirm: [...output.skills_to_confirm, ...toConfirm], traceability: { ...report, unproven_demonstrated: proof.dropped.length }, security_warnings },

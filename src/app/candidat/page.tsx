@@ -53,7 +53,7 @@ export default async function CandidateDashboard() {
           <h1 className="text-2xl font-bold tracking-tight text-navy-900">Tableau de bord</h1>
           <p className="mt-1 text-xs text-muted">Identifiant YEN : <span className="font-mono font-semibold text-navy-800">{bundle.candidate.public_code}</span></p>
         </div>
-        <ButtonLink href="/candidat/evaluations" variant="secondary"><ClipboardCheck className="size-4" aria-hidden /> Passer une évaluation</ButtonLink>
+        <ButtonLink href="/candidat/evaluations" variant="secondary"><ClipboardCheck className="size-4" aria-hidden /> Passer un entretien</ButtonLink>
       </div>
 
       {(infoReqs.data ?? []).map((r) => (
@@ -72,7 +72,7 @@ export default async function CandidateDashboard() {
             <p className="mt-1 text-2xs text-muted">Mesure le renseignement du profil, pas vos compétences.</p>
           </div>
         </Card>
-        <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par une évaluation, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="gold" />
+        <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par un entretien, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="gold" />
         <StatCard label="Compétences à évaluer" value={toEvaluate.length} hint="Déclarées mais pas encore démontrées" icon={Target} tone="amber" />
         <StatCard label="Dernière analyse" value={lastAnalysis.data ? formatDate(lastAnalysis.data.created_at) : "—"} hint={lastAnalysis.data ? "Analyse IA du profil" : "Aucune analyse réalisée"} icon={CalendarClock} tone="navy" />
       </div>
@@ -117,13 +117,13 @@ export default async function CandidateDashboard() {
           <CardHeader icon={Sparkles} title="Principales recommandations" action={<Link href="/candidat/progression" className="text-sm text-electric-700 hover:underline">Plan</Link>} />
           <CardBody className="space-y-3">
             {(recs.data ?? []).length === 0 ? (
-              <p className="text-sm text-muted">Passez une évaluation ou lancez l&apos;analyse de votre profil pour recevoir des recommandations.</p>
+              <p className="text-sm text-muted">Passez un entretien ou lancez l&apos;analyse de votre profil pour recevoir des recommandations.</p>
             ) : (
               recs.data!.map((r) => (
                 <div key={r.id} className="rounded-lg bg-slate-50 p-3">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-navy-900">{r.title}</p>
-                    <Badge tone={r.origin === "ia" ? "purple" : "blue"}>{r.origin === "ia" ? "IA" : "Évaluation"}</Badge>
+                    <Badge tone={r.origin === "ia" ? "purple" : "blue"}>{r.origin === "ia" ? "IA" : "Entretien"}</Badge>
                   </div>
                   <p className="mt-1 line-clamp-3 text-xs text-slate-600">{r.body}</p>
                 </div>
@@ -157,7 +157,7 @@ export default async function CandidateDashboard() {
         <Card>
           <CardHeader title="Évolution de vos compétences" description="Compétences démontrées cumulées" />
           <CardBody>
-            {evolution.length === 0 ? <p className="text-sm text-muted">Votre progression apparaîtra après votre première évaluation réussie.</p> : <SingleLineChart data={evolution} xKey="mois" yKey="competences" label="Compétences démontrées" height={180} />}
+            {evolution.length === 0 ? <p className="text-sm text-muted">Votre progression apparaîtra après votre premier entretien réussi.</p> : <SingleLineChart data={evolution} xKey="mois" yKey="competences" label="Compétences démontrées" height={180} />}
           </CardBody>
         </Card>
       </div>

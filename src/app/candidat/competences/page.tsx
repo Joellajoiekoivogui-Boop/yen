@@ -36,10 +36,10 @@ export default async function SkillsPage() {
       <PageHeader title="Mes compétences" description="Les compétences déclarées et celles démontrées sont toujours distinguées. Une compétence mentionnée dans un CV n'est jamais considérée comme démontrée." />
 
       <Card>
-        <CardHeader icon={CheckCircle2} title="Compétences démontrées" description="Preuves : évaluations, projets vérifiés, évaluateurs YEN" />
+        <CardHeader icon={CheckCircle2} title="Compétences démontrées" description="Preuves : entretiens, projets vérifiés, évaluateurs YEN" />
         <CardBody>
           {Object.keys(demonstrated).length === 0 ? (
-            <EmptyState icon={CheckCircle2} title="Aucune compétence démontrée pour l'instant" description="Passez une évaluation de votre domaine pour faire reconnaître vos compétences." />
+            <EmptyState icon={CheckCircle2} title="Aucune compétence démontrée pour l'instant" description="Passez un entretien de votre domaine pour faire reconnaître vos compétences." />
           ) : (
             <Table>
               <thead><tr><Th>Compétence</Th><Th>Niveau démontré</Th><Th>Meilleur score</Th><Th>Preuves</Th></tr></thead>
@@ -92,9 +92,9 @@ export default async function SkillsPage() {
                     <li key={d.id} className="rounded-lg border border-border p-3">
                       <p className="font-medium text-navy-900">{d.skills?.name}</p>
                       {list.length ? (
-                        <p className="mt-1 text-sm">Évaluation disponible : {list.map((a, i) => <span key={a.id}>{i > 0 && ", "}<Link className="text-electric-700 hover:underline" href={`/candidat/evaluations/${a.id}`}>{a.title}</Link></span>)}</p>
+                        <p className="mt-1 text-sm">Entretien disponible : {list.map((a, i) => <span key={a.id}>{i > 0 && ", "}<Link className="text-electric-700 hover:underline" href={`/candidat/evaluations/${a.id}`}>{a.title}</Link></span>)}</p>
                       ) : (
-                        <p className="mt-1 text-sm text-muted">Pas encore d&apos;évaluation en ligne : documentez un projet ou demandez une évaluation par un formateur YEN.</p>
+                        <p className="mt-1 text-sm text-muted">Pas encore d&apos;entretien en ligne : documentez un projet ou demandez un entretien avec un formateur YEN.</p>
                       )}
                     </li>
                   );

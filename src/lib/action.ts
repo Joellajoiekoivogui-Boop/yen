@@ -39,6 +39,18 @@ export function parseInput<S extends z.ZodType>(schema: S, input: unknown): z.in
 export const DB_OUTDATED_MESSAGE =
   "La base de données de la plateforme n'est pas à jour : l'administrateur doit exécuter le script supabase/installation/4-MISE-A-JOUR.sql dans Supabase (SQL Editor).";
 
+/**
+ * Messages des fonctions SQL rédigés quand les entretiens s'appelaient « évaluations » : reformulés
+ * ici pour que le site parle partout d'entretiens, sans mise à jour de la base.
+ */
+const DB_WORDING: [RegExp, string][] = [
+  [/Cette évaluation n'est pas disponible/g, "Cet entretien n'est pas disponible"],
+  [/repasser cette évaluation/g, "repasser cet entretien"],
+  [/Cette évaluation ne contient aucune question/g, "Cet entretien ne contient aucune question"],
+  [/Évaluations invalides/g, "Entretiens invalides"],
+];
+const reword = (message: string) => DB_WORDING.reduce((m, [from, to]) => m.replace(from, to), message);
+
 export function dbErrorMessage(err: { code?: string; message?: string } | null | undefined, fallback = "L'opération n'a pas pu être enregistrée."): string {
   if (!err) return fallback;
   // fonction, table ou colonne absente : mise à jour SQL non appliquée
@@ -48,9 +60,9 @@ export function dbErrorMessage(err: { code?: string; message?: string } | null |
   }
   if (err.code === "42501") {
     // Les messages des triggers de protection sont rédigés pour l'utilisateur
-    return err.message && /[éèàç]|autoris|réserv|consent|valid/i.test(err.message) ? err.message : "Action non autorisée.";
+    return err.message && /[éèàç]|autoris|réserv|consent|valid/i.test(err.message) ? reword(err.message) : "Action non autorisée.";
   }
-  if (err.code === "P0001" && err.message) return err.message;
+  if (err.code === "P0001" && err.message) return reword(err.message);
   if (err.code === "23505") return "Cet élément existe déjà.";
   if (err.code === "23503") return "Un élément lié est introuvable.";
   if (err.code === "23514") return "Une valeur ne respecte pas les règles attendues.";

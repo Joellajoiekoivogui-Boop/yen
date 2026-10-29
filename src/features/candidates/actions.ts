@@ -111,7 +111,7 @@ export async function saveDeclaredSkillAction(values: Record<string, unknown>): 
     await touch(ctx.candidateId!);
     await refreshPipelineStatus(ctx.candidateId!);
     revalidatePath("/candidat", "layout");
-    return { ok: true, message: "Compétence déclarée. Passez une évaluation pour la démontrer." };
+    return { ok: true, message: "Compétence déclarée. Passez un entretien pour la démontrer." };
   });
 }
 

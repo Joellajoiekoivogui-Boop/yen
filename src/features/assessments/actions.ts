@@ -13,7 +13,7 @@ import { notifyCandidate, notifyDomainCandidates } from "@/features/notification
  */
 export async function startAttemptAction(assessmentId: string): Promise<ActionResult<{ attemptId: string }>> {
   return runAction<{ attemptId: string }>({ requireCandidate: true }, async () => {
-    if (!isUuid(assessmentId)) return fail("Évaluation invalide.");
+    if (!isUuid(assessmentId)) return fail("Entretien invalide.");
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("start_assessment_attempt", { p_assessment: assessmentId });
     if (error || !data) return fail(dbErrorMessage(error, "La tentative n'a pas pu démarrer."));
@@ -46,7 +46,7 @@ export async function submitAttemptAction(values: Record<string, unknown>): Prom
     if (status === "en_correction") {
       return { ok: true, message: "Réponses envoyées. Certaines questions seront corrigées par un évaluateur YEN : vous serez notifié du résultat.", data: { status: "en_correction" } };
     }
-    return { ok: true, message: "Évaluation corrigée.", data: { status: "corrige" } };
+    return { ok: true, message: "Entretien corrigé.", data: { status: "corrige" } };
   });
 }
 
@@ -220,7 +220,7 @@ export async function saveAssessmentAction(values: Record<string, unknown>): Pro
     await supabase.from("assessment_skills").delete().eq("assessment_id", res.data.id);
     if (skill_ids.length) await supabase.from("assessment_skills").insert(skill_ids.map((skill_id) => ({ assessment_id: res.data.id, skill_id })));
     revalidatePath("/admin/evaluations");
-    return { ok: true, message: "Évaluation enregistrée.", data: { id: res.data.id } };
+    return { ok: true, message: "Entretien enregistré.", data: { id: res.data.id } };
   });
 }
 
@@ -266,7 +266,7 @@ export async function deleteQuestionAction(questionId: string, assessmentId: str
     if (!isUuid(questionId) || !isUuid(assessmentId)) return fail("Paramètres invalides.");
     const supabase = await createClient();
     const { count: used } = await supabase.from("assessment_answers").select("id", { count: "exact", head: true }).eq("question_id", questionId);
-    if (used) return fail("Cette question a déjà reçu des réponses : archivez l'évaluation et créez-en une nouvelle version plutôt que de la supprimer.");
+    if (used) return fail("Cette question a déjà reçu des réponses : archivez l'entretien et créez-en une nouvelle version plutôt que de la supprimer.");
     const { error } = await supabase.from("assessment_questions").delete().eq("id", questionId).eq("assessment_id", assessmentId);
     if (error) return fail(dbErrorMessage(error));
     await bumpVersionIfPublished(assessmentId);
@@ -294,7 +294,7 @@ export async function setAssessmentStatusAction(assessmentId: string, status: "b
     if (status === "publie") {
       // Information des candidats du domaine (notification interne)
       const { data: a } = await supabase.from("assessments").select("title, domain_id").eq("id", assessmentId).single();
-      if (a?.domain_id) await notifyDomainCandidates(a.domain_id, null, { category: "evaluation", title: `Nouvelle évaluation : ${a.title}`, link: `/candidat/evaluations/${assessmentId}` });
+      if (a?.domain_id) await notifyDomainCandidates(a.domain_id, null, { category: "evaluation", title: `Nouvel entretien : ${a.title}`, link: `/candidat/evaluations/${assessmentId}` });
     }
     revalidatePath("/admin/evaluations");
     return { ok: true, message: "Statut mis à jour." };

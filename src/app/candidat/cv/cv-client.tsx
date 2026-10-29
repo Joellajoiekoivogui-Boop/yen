@@ -153,7 +153,7 @@ export function ExtractionReview({ analysisId, data }: { analysisId: string; dat
 
   return (
     <div className="space-y-3">
-      <Alert tone="info">Cochez uniquement les informations exactes. Les compétences ajoutées seront « déclarées » : elles ne deviennent « démontrées » qu&apos;après une évaluation.</Alert>
+      <Alert tone="info">Cochez uniquement les informations exactes. Les compétences ajoutées seront « déclarées » : elles ne deviennent « démontrées » qu&apos;après un entretien.</Alert>
       {data.warnings.length > 0 && <Alert tone="warning" title="Points d'attention">{data.warnings.join(" ")}</Alert>}
       {data.summary && (
         <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm">

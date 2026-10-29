@@ -47,12 +47,12 @@ export const PIPELINE_STATUSES: PipelineStatus[] = [
 ];
 export const pipelineLabel: Record<PipelineStatus, string> = {
   profil_incomplet: "Profil incomplet",
-  en_evaluation: "En cours d'évaluation",
+  en_evaluation: "En cours d'entretien",
   pret_preselection: "Prêt pour la présélection",
   preselectionne: "Présélectionné",
   proposition_envoyee: "Proposition envoyée au partenaire",
   candidature_transmise: "Candidature transmise",
-  entretien_programme: "Entretien programmé",
+  entretien_programme: "Entretien de recrutement programmé",
   attente_decision: "En attente de décision",
   stage_obtenu: "Stage obtenu",
   emploi_obtenu: "Emploi obtenu",
@@ -72,7 +72,7 @@ export const applicationStatusLabel: Record<ApplicationStatus, string> = {
   en_revue: "En revue par YEN",
   preselectionnee: "Présélectionnée",
   proposee_partenaire: "Proposée au partenaire",
-  entretien_programme: "Entretien programmé",
+  entretien_programme: "Entretien de recrutement programmé",
   attente_decision: "En attente de décision",
   acceptee: "Acceptée",
   refusee: "Refusée",

@@ -16,8 +16,8 @@ export default function TermsPage() {
           <li>Les informations saisies doivent être exactes. Il est interdit de déclarer des diplômes, expériences ou certifications fictifs.</li>
           <li>Les comptes partenaires sont activés par YEN après validation de l&apos;organisation.</li>
         </ul>
-        <h2>Évaluations</h2>
-        <p>Les évaluations doivent être réalisées personnellement et sans aide extérieure non autorisée. YEN peut invalider un résultat en cas de fraude.</p>
+        <h2>Entretiens</h2>
+        <p>Les entretiens doivent être réalisés personnellement et sans aide extérieure non autorisée. YEN peut invalider un résultat en cas de fraude.</p>
         <h2>Usage par les partenaires</h2>
         <p>Les informations consultées par un partenaire ne peuvent être utilisées que pour le recrutement concerné, et ne doivent pas être copiées ni transmises à des tiers.</p>
         <h2>Recommandations et scores</h2>

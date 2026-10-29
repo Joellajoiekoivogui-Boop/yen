@@ -73,13 +73,13 @@ export default async function ProgressPage() {
       <Card>
         <CardHeader title="Recommandations" />
         <CardBody className="space-y-2">
-          {(recs.data ?? []).length === 0 && <EmptyState title="Aucune recommandation" description="Passez une évaluation : vos résultats proposeront ici les compétences à renforcer en priorité." />}
+          {(recs.data ?? []).length === 0 && <EmptyState title="Aucune recommandation" description="Passez un entretien : vos résultats proposeront ici les compétences à renforcer en priorité." />}
           {(recs.data ?? []).map((r) => (
             <div key={r.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border p-3">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-medium text-navy-900">{r.title}</p>
-                  <Badge tone={r.origin === "ia" ? "purple" : "blue"}>{r.origin === "ia" ? "IA" : r.origin === "regles" ? "Évaluation" : "Évaluateur"}</Badge>
+                  <Badge tone={r.origin === "ia" ? "purple" : "blue"}>{r.origin === "ia" ? "IA" : r.origin === "regles" ? "Entretien" : "Évaluateur"}</Badge>
                   {r.status === "terminee" && <Badge tone="green">Terminée</Badge>}
                 </div>
                 <p className="mt-1 text-xs text-slate-600">{r.body}</p>

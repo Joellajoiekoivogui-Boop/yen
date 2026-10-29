@@ -13,7 +13,7 @@ export default async function AssistantPage() {
   const { data: consent } = await supabase.from("candidate_consents").select("granted").eq("candidate_id", ctx.candidateId).eq("consent_type", "traitement_ia").maybeSingle();
   return (
     <div className="space-y-4">
-      <PageHeader title="Assistant IA" description="Explications de résultats, amélioration du CV, préparation d'entretien, plan d'apprentissage. L'assistant n'utilise que votre propre profil et n'invente aucune expérience." />
+      <PageHeader title="Assistant IA" description="Explications de résultats, amélioration du CV, préparation aux entretiens de recrutement, plan d'apprentissage. L'assistant n'utilise que votre propre profil et n'invente aucune expérience." />
       {!isAIConfigured() ? (
         <Alert tone="info" title="Assistant indisponible">Le service d&apos;IA n&apos;est pas configuré sur la plateforme.</Alert>
       ) : !consent?.granted ? (

@@ -63,7 +63,7 @@ export default async function AdminHome(props: PageProps<"/admin">) {
         <StatCard label="Candidats inscrits" value={Number(s.candidates_total)} icon={Users} />
         <StatCard label="Profils complétés" value={Number(s.profiles_completed)} hint="Titre, résumé, domaine, compétences et formation renseignés" icon={UserCheck} tone="gold" />
         <StatCard label="CV disponibles" value={Number(s.cv_available)} icon={FileText} tone="navy" />
-        <StatCard label="Évaluations terminées" value={Number(s.assessments_completed)} hint={`${Number(s.pending_reviews)} en attente de correction`} icon={ClipboardCheck} tone="amber" />
+        <StatCard label="Entretiens terminés" value={Number(s.assessments_completed)} hint={`${Number(s.pending_reviews)} en attente de correction`} icon={ClipboardCheck} tone="amber" />
         <StatCard label="Prêts pour la présélection" value={Number(s.ready_for_shortlist)} icon={GraduationCap} tone="gold" />
         <StatCard label="Offres actives" value={Number(s.offers_active)} icon={Briefcase} />
         <StatCard label="Candidatures en cours" value={Number(s.applications_in_progress)} icon={Send} tone="navy" />

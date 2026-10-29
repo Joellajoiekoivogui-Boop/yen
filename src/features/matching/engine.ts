@@ -34,7 +34,7 @@ export const DEFAULT_WEIGHTS: Weights = {
 
 export const WEIGHT_LABELS: Record<keyof Weights, string> = {
   demonstrated_skills: "Compétences techniques démontrées",
-  assessments: "Résultats des évaluations",
+  assessments: "Résultats des entretiens",
   projects: "Projets et réalisations",
   education: "Formation et certifications",
   experience: "Expérience pertinente",
@@ -206,7 +206,7 @@ export function computeMatch(target: MatchTarget, ev: CandidateEvidence): MatchR
       explanation = "Aucune compétence requise n'est définie pour cette cible.";
       missingData.push("Compétences requises non définies");
     } else if (!hasAnyEvidence) {
-      explanation = "Aucune compétence n'a encore été démontrée (évaluation, projet vérifié ou évaluateur).";
+      explanation = "Aucune compétence n'a encore été démontrée (entretien, projet vérifié ou évaluateur).";
       missingData.push("Aucune compétence démontrée à ce jour");
     } else {
       let acc = 0;
@@ -229,8 +229,8 @@ export function computeMatch(target: MatchTarget, ev: CandidateEvidence): MatchR
     if (target.requirements.length === 0) {
       explanation = "Aucune compétence requise n'est définie.";
     } else if (assessed.length === 0) {
-      explanation = "Aucune évaluation passée sur les compétences requises.";
-      missingData.push("Pas de résultat d'évaluation sur les compétences requises");
+      explanation = "Aucun entretien passé sur les compétences requises.";
+      missingData.push("Pas de résultat d'entretien sur les compétences requises");
     } else {
       let acc = 0;
       let wsum = 0;

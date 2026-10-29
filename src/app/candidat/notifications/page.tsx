@@ -18,7 +18,7 @@ export default async function NotificationsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Notifications" description="Centre de notifications interne." actions={unread > 0 ? <ActionButton action={markNotificationsReadAction.bind(null, undefined)}>Tout marquer comme lu</ActionButton> : undefined} />
-      {(data ?? []).length === 0 ? <EmptyState icon={Bell} title="Aucune notification" description="Vous serez prévenu ici des réponses à vos candidatures, des résultats de vos évaluations et des messages de l'équipe YEN." /> : (
+      {(data ?? []).length === 0 ? <EmptyState icon={Bell} title="Aucune notification" description="Vous serez prévenu ici des réponses à vos candidatures, des résultats de vos entretiens et des messages de l'équipe YEN." /> : (
         <Card className="divide-y divide-border">
           {(data ?? []).map((n) => (
             <div key={n.id} className={`flex items-start gap-3 px-5 py-4 ${n.read_at ? "" : "bg-electric-50/40"}`}>

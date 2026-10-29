@@ -110,7 +110,7 @@ export function OfferForm({
           <legend className="px-1 text-sm font-semibold text-navy-900">Pondération du score de compatibilité (facultatif)</legend>
           <p className="mb-3 text-xs text-muted">Laissez vide pour utiliser la pondération du métier ou de la plateforme. Sinon, renseignez les 5 valeurs (somme = 100).</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-            {([["w_demonstrated_skills", "Compétences démontrées"], ["w_assessments", "Évaluations"], ["w_projects", "Projets"], ["w_education", "Formation"], ["w_experience", "Expérience"]] as const).map(([k, l]) => (
+            {([["w_demonstrated_skills", "Compétences démontrées"], ["w_assessments", "Entretiens"], ["w_projects", "Projets"], ["w_education", "Formation"], ["w_experience", "Expérience"]] as const).map(([k, l]) => (
               <div key={k}>
                 <label htmlFor={`o-${k}`} className="mb-1 block text-xs font-medium text-muted">{l}</label>
                 <input id={`o-${k}`} type="number" min={0} max={100} className="field-input" {...register(k, { setValueAs: (v) => (v === "" || v == null ? null : Number(v)) })} />

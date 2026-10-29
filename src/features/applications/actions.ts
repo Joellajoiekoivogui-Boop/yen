@@ -257,7 +257,7 @@ export async function partnerFeedbackAction(values: Record<string, unknown>): Pr
     if (v.skill_ratings.length) {
       // preuves « en attente » : validées ou écartées ensuite par un évaluateur YEN
       const fb = await supabase.rpc("add_partner_skill_feedback", { p_application: v.applicationId, p_context: v.context, p_ratings: v.skill_ratings });
-      if (fb.error) return fail(dbErrorMessage(fb.error, "Retour enregistré, mais les évaluations de compétences n'ont pas pu être transmises."));
+      if (fb.error) return fail(dbErrorMessage(fb.error, "Retour enregistré, mais les appréciations des compétences n'ont pas pu être transmises."));
     }
     await notifyEvent("partner_feedback", feedback.id);
     revalidatePath(`/partenaire/candidatures/${v.applicationId}`);

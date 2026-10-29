@@ -939,12 +939,13 @@ html[data-scrolled-far] .back-to-top {
    affichée dans le barillet. --turn : angle de la roue ; --point : direction de l'arc (en bas sur
    téléphone, à droite sur ordinateur) ; --s : place de la carte (-1 au-dessus, 0 au centre,
    1 en dessous, ±2 cachée). Seuls transform et opacity s'animent.
+   Barillet : trois rangées de même hauteur, toutes les cartes posées dans celle du milieu ; la plus
+   haute fixe la hauteur des rangées, si bien qu'aucun titre n'est coupé, quelle que soit la largeur.
    ----------------------------------------------------------------------------- */
 .orbit-stage {
   --size: min(300px, 100%);
   --point: 90deg;
   --node: 2.5rem;
-  --card-h: 9.5rem;
   --card-gap: 0.625rem;
   position: relative;
   overflow: hidden;
@@ -964,7 +965,6 @@ html[data-scrolled-far] .back-to-top {
     --size: 360px;
     --point: 0deg;
     --node: 2.875rem;
-    --card-h: 7.75rem;
     --card-gap: 0.75rem;
     padding: 2rem;
   }
@@ -1122,26 +1122,26 @@ html[data-scrolled-far] .back-to-top {
   color: var(--color-navy-200);
 }
 .orbit-drum {
-  position: relative;
-  height: calc(3 * var(--card-h) + 2 * var(--card-gap));
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  row-gap: var(--card-gap);
   perspective: 900px;
 }
 .orbit-card {
   --scale: 0.86;
-  position: absolute;
-  inset: 0 0 auto;
-  height: var(--card-h);
+  position: relative;
+  grid-area: 2 / 1;
   display: grid;
   grid-template-columns: 2.75rem minmax(0, 1fr);
   align-items: start;
   gap: 0.875rem;
   overflow: hidden;
-  padding: 1rem 1.25rem;
+  padding: 0.875rem 1rem;
   border: 1px solid var(--color-navy-600);
   border-radius: 1rem;
   background: color-mix(in srgb, var(--color-navy-800) 72%, transparent);
   opacity: 0;
-  transform: translateY(calc((var(--s) + 1) * (var(--card-h) + var(--card-gap)))) rotateX(calc(var(--s) * -14deg)) scale(var(--scale));
+  transform: translateY(calc(var(--s) * (100% + var(--card-gap)))) rotateX(calc(var(--s) * -14deg)) scale(var(--scale));
   transition: transform 0.75s var(--ease-out-expo), opacity 0.5s ease;
 }
 .orbit-card::after {
@@ -1169,10 +1169,14 @@ html[data-scrolled-far] .back-to-top {
 .orbit-card[data-slot="0"]::after {
   opacity: 1;
 }
+@media (min-width: 640px) {
+  .orbit-card {
+    padding: 1rem 1.25rem;
+  }
+}
 /* liste filtrée de moins de quatre domaines : cartes posées les unes sous les autres */
 .orbit-card.orbit-card-static {
-  position: relative;
-  height: auto;
+  grid-area: auto;
   transform: none;
 }
 .orbit-stage:is([data-paused], :not([data-inview])) :is(.orbit-track, .orbit-comet) {

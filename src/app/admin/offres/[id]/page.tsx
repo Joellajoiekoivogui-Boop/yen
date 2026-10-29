@@ -147,7 +147,7 @@ export default async function AdminOfferPage(props: PageProps<"/admin/offres/[id
                       <div className="flex flex-wrap gap-1">
                         {["soumise", "en_revue", "preselectionnee"].includes(st) && <ActionButton action={updateApplicationStatusAction.bind(null, { applicationId: a.id, status: "proposee_partenaire" })}>Proposer au partenaire</ActionButton>}
                         {st === "soumise" && <ActionButton variant="ghost" action={updateApplicationStatusAction.bind(null, { applicationId: a.id, status: "preselectionnee" })}>Présélectionner</ActionButton>}
-                        <Link href={`/admin/talents/${c.id}?onglet=candidatures`} className="px-2 text-xs text-electric-700 hover:underline">Décision / entretien</Link>
+                        <Link href={`/admin/talents/${c.id}?onglet=candidatures`} className="px-2 text-xs text-electric-700 hover:underline">Décision / entretien de recrutement</Link>
                       </div>
                     </Td>
                   </tr>

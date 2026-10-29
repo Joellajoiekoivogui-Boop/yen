@@ -163,7 +163,7 @@ export function DomainOrbit({
         <DomainIcon name={d.icon} className="size-5" />
       </span>
       <span className="relative grid min-w-0 gap-0.5">
-        <Heading className="line-clamp-2 text-sm leading-snug font-semibold text-white sm:text-base">{d.name}</Heading>
+        <Heading className="text-sm leading-snug font-semibold text-white sm:text-base">{d.name}</Heading>
         <span className="line-clamp-2 text-sm leading-snug text-navy-200">{d.short_description}</span>
         <span className="mt-1 text-xs font-medium text-gold-200">
           {d.occupationCount} métiers · {d.skillCount} compétences

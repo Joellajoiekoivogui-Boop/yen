@@ -114,7 +114,7 @@ export function InterviewForm({ applicationId }: { applicationId: string }) {
       schema={z.object({ scheduled_at: z.string().min(10, "Date requise."), duration_minutes: z.number().int().min(5).max(600), mode: z.enum(["presentiel", "visio", "telephone"]), location: z.string().max(300).optional(), interviewers: z.string().max(300).optional() })}
       defaultValues={{ duration_minutes: 45, mode: "presentiel" }}
       resetOnSuccess
-      submitLabel="Programmer l'entretien"
+      submitLabel="Programmer l'entretien de recrutement"
       action={(v) => scheduleInterviewAction({ ...v, applicationId })}
       fields={[
         { name: "scheduled_at", label: "Date et heure", type: "datetime-local", required: true },
@@ -138,7 +138,7 @@ export function EvidenceForm({ candidateId, skills, projects }: { candidateId: s
       fields={[
         { name: "skill_id", label: "Compétence", type: "select", options: skills, required: true, colSpan: 2 },
         { name: "level", label: "Niveau observé", type: "select", options: levels },
-        { name: "source", label: "Source", type: "select", options: [{ value: "evaluateur", label: "Évaluation par un formateur" }, { value: "exercice", label: "Exercice pratique" }, { value: "projet", label: "Projet" }] },
+        { name: "source", label: "Source", type: "select", options: [{ value: "evaluateur", label: "Entretien avec un formateur" }, { value: "exercice", label: "Exercice pratique" }, { value: "projet", label: "Projet" }] },
         { name: "project_id", label: "Projet lié (facultatif)", type: "select", options: projects },
         { name: "confidence", label: "Confiance", type: "select", options: [{ value: "faible", label: "Faible" }, { value: "moyenne", label: "Moyenne" }, { value: "elevee", label: "Élevée" }] },
         { name: "notes", label: "Preuve observée (critères observables)", type: "textarea", rows: 3, required: true },

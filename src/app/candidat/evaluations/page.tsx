@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { attemptStatusLabel, levelLabel, type SkillLevel } from "@/lib/labels";
 import { formatDateTime, param } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Mes évaluations" };
+export const metadata: Metadata = { title: "Mes entretiens" };
 
 export default async function AssessmentsPage(props: PageProps<"/candidat/evaluations">) {
   const sp = await props.searchParams;
@@ -27,7 +27,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Mes évaluations" description="Questionnaires, études de cas et exercices par domaine. Chaque évaluation affiche son barème. Un questionnaire ne peut jamais attribuer le niveau expert." />
+      <PageHeader title="Mes entretiens" description="Questionnaires, études de cas et exercices par domaine. Chaque entretien affiche son barème. Un questionnaire ne peut jamais attribuer le niveau expert." />
 
       <Form action="/candidat/evaluations" className="flex flex-wrap items-end gap-3">
         <div>
@@ -42,7 +42,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
       </Form>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {(assessments.data ?? []).length === 0 && <div className="md:col-span-3"><EmptyState icon={ClipboardCheck} title="Aucune évaluation publiée pour ce domaine" description="Choisissez un autre domaine dans la liste ci-dessus : l'équipe YEN publie régulièrement de nouvelles évaluations." /></div>}
+        {(assessments.data ?? []).length === 0 && <div className="md:col-span-3"><EmptyState icon={ClipboardCheck} title="Aucun entretien publié pour ce domaine" description="Choisissez un autre domaine dans la liste ci-dessus : l'équipe YEN publie régulièrement de nouveaux entretiens." /></div>}
         {(assessments.data ?? []).map((a) => (
           <Link key={a.id} href={`/candidat/evaluations/${a.id}`} className="block">
             <Card className="h-full p-5 transition hover:border-electric-300 hover:shadow-md">
@@ -62,7 +62,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
         <CardHeader title="Historique de mes tentatives" />
         <CardBody>
           <Table>
-            <thead><tr><Th>Évaluation</Th><Th>Démarrée</Th><Th>Statut</Th><Th>Résultat</Th><Th /></tr></thead>
+            <thead><tr><Th>Entretien</Th><Th>Démarré</Th><Th>Statut</Th><Th>Résultat</Th><Th /></tr></thead>
             <tbody>
               {(attempts.data ?? []).map((t) => (
                 <tr key={t.id}>

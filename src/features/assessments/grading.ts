@@ -171,7 +171,7 @@ export function progressRecommendations(bySkill: SkillBreakdown[], skillNames: R
     .map((s) => ({
       skillId: s.skillId,
       title: `Renforcer : ${skillNames[s.skillId] ?? "compétence"}`,
-      body: `Résultat de ${s.percent.toFixed(0)} % sur ${s.questionCount} question(s) (seuil ${passingScore} %). Revoyez les explications des questions manquées, puis réalisez un petit projet pratique mobilisant cette compétence avant de repasser l'évaluation.`,
+      body: `Résultat de ${s.percent.toFixed(0)} % sur ${s.questionCount} question(s) (seuil ${passingScore} %). Revoyez les explications des questions manquées, puis réalisez un petit projet pratique mobilisant cette compétence avant de repasser l'entretien.`,
     }));
 }
 
