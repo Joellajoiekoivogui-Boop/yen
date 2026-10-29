@@ -1,5 +1,5 @@
 import { z } from "@/lib/zod";
-import { phoneSchema } from "@/features/auth/schemas";
+import { citySchema, phoneSchema } from "@/features/auth/schemas";
 
 /** Chaîne optionnelle : "" devient null. */
 export const optText = (max: number) =>
@@ -19,7 +19,7 @@ export const profileSchema = z.object({
   first_name: reqText("Prénom", 100),
   last_name: reqText("Nom", 100),
   phone: phoneSchema,
-  city: reqText("Ville", 100),
+  city: citySchema,
   country: reqText("Pays", 100),
   institution: optText(200),
   yen_program: optText(200),

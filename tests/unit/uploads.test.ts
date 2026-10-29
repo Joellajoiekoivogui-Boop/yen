@@ -34,7 +34,7 @@ describe("mot de passe", () => {
     expect(passwordStrength("Conakry-2025!")).toBe(4);
   });
   it("inscription candidat : quelques champs seulement, mots de passe identiques", () => {
-    const base = { first_name: "Aïssatou", last_name: "Bah", email: "a@b.test", phone: "+224 620 00 00 00", password: "conakry2025", accepted_terms: true };
+    const base = { first_name: "Aïssatou", last_name: "Bah", email: "a@b.test", phone: "+224 620 00 00 00", city: "Conakry", password: "conakry2025", accepted_terms: true };
     expect(candidateSignUpSchema.safeParse({ ...base, password_confirm: "conakry2025" }).success).toBe(true);
     const r = candidateSignUpSchema.safeParse({ ...base, password_confirm: "conakry2026" });
     expect(r.error?.issues[0].path).toEqual(["password_confirm"]);

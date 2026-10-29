@@ -1,5 +1,5 @@
 import { AppShell, type NavItem, type NavSection } from "@/components/layout/app-shell";
-import { requireStaff } from "@/lib/auth/session";
+import { requireStaff, requireContactDetails } from "@/lib/auth/session";
 import type { Permission } from "@/lib/auth/permissions";
 import { roleLabel } from "@/lib/labels";
 import { deferredCount } from "@/lib/supabase/count";
@@ -8,6 +8,8 @@ import { fullName } from "@/lib/utils";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireStaff();
+  // pas d'accès à l'espace sans coordonnées complètes
+  requireContactDetails(ctx);
   const supabase = await createClient();
   // compteurs des pastilles : chargés en parallèle de la page, sans la retarder
   const unread = deferredCount(supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null));

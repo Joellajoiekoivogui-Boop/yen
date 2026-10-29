@@ -22,6 +22,17 @@ async function login(page: Page, email: string, password: string) {
   await page.getByRole("textbox", { name: "Mot de passe" }).fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.waitForURL((u) => !u.pathname.startsWith("/connexion"), { timeout: 20_000 });
+  // compte du personnel sans coordonnées (premier passage) : elles sont exigées avant l'administration
+  if (new URL(page.url()).pathname === "/coordonnees") {
+    await page.getByRole("textbox", { name: "Téléphone" }).fill("+224 620 99 88 77");
+    await page.getByRole("textbox", { name: "Ville" }).fill("Conakry");
+    for (const [name, value] of [["Prénom", "Admin"], ["Nom", "E2E"]] as const) {
+      const box = page.getByRole("textbox", { name, exact: true });
+      if (!(await box.inputValue())) await box.fill(value);
+    }
+    await page.getByRole("button", { name: /^Accéder/ }).click();
+    await page.waitForURL((u) => u.pathname !== "/coordonnees", { timeout: 20_000 });
+  }
 }
 
 async function logout(page: Page) {
@@ -51,7 +62,9 @@ test("un candidat crée son compte et se connecte", async ({ page }) => {
   await f("Adresse e-mail", candidate.email);
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page.getByText("Numéro de téléphone requis.")).toBeVisible();
+  await expect(page.getByText("Ville requise.")).toBeVisible();
   await f("Téléphone", "+224 620 11 22 33");
+  await f("Ville", "Conakry");
   // mot de passe trop courant refusé, puis mots de passe différents signalés
   await f("Mot de passe", "12345678");
   await f("Retapez le mot de passe", "12345678");
@@ -77,7 +90,7 @@ test("un candidat crée son compte et se connecte", async ({ page }) => {
 test("le candidat complète son profil, ses consentements et ses compétences", async ({ page }) => {
   await login(page, candidate.email, candidate.password);
   await page.goto("/candidat/profil");
-  // informations retirées de l'inscription : complétées dans le profil
+  // parcours complété dans le profil (la ville, donnée à l'inscription, s'y modifie aussi)
   await page.getByRole("textbox", { name: "Ville", exact: true }).first().fill("Conakry");
   await page.getByRole("textbox", { name: "Établissement de formation" }).fill("Université fictive");
   await page.getByRole("textbox", { name: "Formation suivie chez YEN" }).fill("Développement web full-stack");

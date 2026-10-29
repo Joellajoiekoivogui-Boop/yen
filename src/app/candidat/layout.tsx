@@ -1,13 +1,15 @@
 import { FlaskConical, PhoneCall } from "lucide-react";
 import { AppShell, type NavSection } from "@/components/layout/app-shell";
 import { ButtonLink } from "@/components/ui";
-import { requireCandidate } from "@/lib/auth/session";
+import { requireCandidate, requireContactDetails } from "@/lib/auth/session";
 import { deferredCount } from "@/lib/supabase/count";
 import { createClient } from "@/lib/supabase/server";
 import { fullName } from "@/lib/utils";
 
 export default async function CandidateLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireCandidate();
+  // pas d'accès à l'espace sans coordonnées complètes
+  requireContactDetails(ctx);
   const supabase = await createClient();
   // compteur de la pastille : chargé en parallèle de la page, sans la retarder
   const unread = deferredCount(supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null));

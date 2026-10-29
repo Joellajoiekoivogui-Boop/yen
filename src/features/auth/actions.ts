@@ -1,6 +1,7 @@
 "use server";
 
-import { clientIp, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
+import { revalidatePath } from "next/cache";
+import { clientIp, dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
 import { clearLoginFailures, loginRetryAfter, recordLoginFailure, takeEmailRequest } from "@/lib/security/attempts";
 import { safeInternalPath } from "@/lib/utils";
 import { getSession, homePathFor } from "@/lib/auth/session";
@@ -8,7 +9,7 @@ import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { EMAIL_NOT_CONFIRMED_MESSAGE, signUpErrorMessage } from "./errors";
-import { candidateSignUpSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
+import { candidateSignUpSchema, contactDetailsSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
 const minutes = (seconds: number) => Math.max(1, Math.ceil(seconds / 60));
@@ -103,6 +104,19 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
       ok: true,
       message: "Demande enregistrée. Confirmez votre adresse e-mail grâce au lien reçu ; l'équipe YEN validera ensuite votre organisation avant d'activer votre espace partenaire.",
     };
+  });
+}
+
+/** Coordonnées exigées avant d'entrer dans l'espace candidat ou l'administration (page « Vos coordonnées »). */
+export async function saveContactDetailsAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
+  return runAction<{ redirectTo: string }>({}, async (ctx) => {
+    const input = parseInput(contactDetailsSchema, values);
+    const supabase = await createClient();
+    // client lié à la session : la politique RLS limite la mise à jour au profil de l'utilisateur
+    const { error } = await supabase.from("profiles").update(input).eq("id", ctx.userId);
+    if (error) return fail(dbErrorMessage(error));
+    revalidatePath("/", "layout");
+    return { ok: true, message: "Coordonnées enregistrées.", data: { redirectTo: homePathFor({ ...ctx, profile: { ...ctx.profile, ...input } }) } };
   });
 }
 

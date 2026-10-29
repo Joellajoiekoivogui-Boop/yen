@@ -96,6 +96,7 @@ export function SignUpForms({ initialType, google = false }: { initialType: "can
             { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name" },
             { name: "last_name", label: "Nom", required: true, autoComplete: "family-name" },
             { name: "phone", label: "Téléphone", type: "tel", required: true, autoComplete: "tel", placeholder: "+224 620 00 00 00", help: "L'équipe YEN vous appelle pour les opportunités." },
+            { name: "city", label: "Ville", required: true, autoComplete: "address-level2" },
             { name: "email", label: "Adresse e-mail", type: "email", required: true, autoComplete: "email" },
             { name: "password", label: "Mot de passe", type: "password", required: true, autoComplete: "new-password", help: PASSWORD_HELP },
             { name: "password_confirm", label: "Retapez le mot de passe", type: "password", required: true, autoComplete: "new-password" },

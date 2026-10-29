@@ -141,7 +141,7 @@ test("mot de passe oublié : même réponse que le compte existe ou non", async 
 test("récupération de compte : le lien reçu permet de choisir un nouveau mot de passe", async ({ page, context }) => {
   // compte de test créé pour l'occasion (adresse synthétique)
   const email = `recuperation.${Date.now()}.${randomUUID().slice(0, 6)}@example.test`;
-  await authAdmin("users", { email, password: "Ancien-mot-2026", email_confirm: true, user_metadata: { first_name: "Test", last_name: "Recuperation", phone: "+224 620 00 00 01", account_type: "candidate", accepted_terms: "true" } });
+  await authAdmin("users", { email, password: "Ancien-mot-2026", email_confirm: true, user_metadata: { first_name: "Test", last_name: "Recuperation", phone: "+224 620 00 00 01", city: "Conakry", account_type: "candidate", accepted_terms: "true" } });
   const link = await authAdmin("generate_link", { type: "recovery", email });
   const hashed: string = link.hashed_token ?? link.properties?.hashed_token;
   expect(hashed).toBeTruthy();
@@ -166,7 +166,7 @@ test("récupération de compte : le lien reçu permet de choisir un nouveau mot 
 
 test("changement de mot de passe depuis les paramètres : le mot de passe actuel est exigé", async ({ page, context }) => {
   const email = `parametres.${Date.now()}.${randomUUID().slice(0, 6)}@example.test`;
-  await authAdmin("users", { email, password: "Actuel-mot-2026", email_confirm: true, user_metadata: { first_name: "Test", last_name: "Parametres", phone: "+224 620 00 00 03", account_type: "candidate", accepted_terms: "true" } });
+  await authAdmin("users", { email, password: "Actuel-mot-2026", email_confirm: true, user_metadata: { first_name: "Test", last_name: "Parametres", phone: "+224 620 00 00 03", city: "Conakry", account_type: "candidate", accepted_terms: "true" } });
   await page.goto("/connexion");
   await fillLogin(page, email, "Actuel-mot-2026");
   await page.waitForURL(/\/candidat/);
@@ -202,6 +202,7 @@ test("inscription : données invalides refusées avant tout envoi", async ({ pag
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page.getByText("Adresse e-mail invalide.")).toBeVisible();
   await expect(page.getByText("Numéro de téléphone requis.")).toBeVisible();
+  await expect(page.getByText("Ville requise.")).toBeVisible();
   await expect(page.getByText(/Ce mot de passe est trop courant/)).toBeVisible();
   await expect(page.getByText("Vous devez accepter les conditions d'utilisation.")).toBeVisible();
   // une faute de frappe connue dans l'adresse est signalée, avec la correction
@@ -210,10 +211,36 @@ test("inscription : données invalides refusées avant tout envoi", async ({ pag
   await expect(page.getByText("Adresse probablement mal écrite : vouliez-vous dire massaseredou86@gmail.com ?")).toBeVisible();
   // une fois les champs corrigés, la confirmation différente est signalée à son tour
   await page.getByRole("textbox", { name: "Téléphone" }).fill("+224 620 00 00 02");
+  await page.getByRole("textbox", { name: "Ville" }).fill("Conakry");
   await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(`invalide.${Date.now()}@example.test`);
   await page.getByRole("textbox", { name: "Mot de passe", exact: true }).fill("Solide-mot-2026");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page.getByText("Les deux mots de passe ne sont pas identiques.")).toBeVisible();
   expect(actions).toBe(0);
+});
+
+test("coordonnées obligatoires : l'espace candidat reste fermé tant qu'elles manquent", async ({ page }) => {
+  // compte comme après une inscription avec Google : nom connu, ni téléphone ni ville
+  const email = `coordonnees.${Date.now()}.${randomUUID().slice(0, 6)}@example.test`;
+  await authAdmin("users", { email, password: "Coordonnees-2026", email_confirm: true, user_metadata: { first_name: "Awa", last_name: "Coordonnees", account_type: "candidate", accepted_terms: "true" } });
+  await page.goto("/connexion");
+  await fillLogin(page, email, "Coordonnees-2026");
+  await page.waitForURL(/\/coordonnees$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Vos coordonnées" })).toBeVisible();
+  // aucune page de l'espace n'est accessible en attendant
+  await page.goto("/candidat/offres");
+  await expect(page).toHaveURL(/\/coordonnees$/);
+  await expect(page.getByRole("textbox", { name: "Prénom" })).toHaveValue("Awa");
+  await page.getByRole("button", { name: "Accéder à mon espace" }).click();
+  await expect(page.getByText("Numéro de téléphone requis.")).toBeVisible();
+  await expect(page.getByText("Ville requise.")).toBeVisible();
+  await page.getByRole("textbox", { name: "Téléphone" }).fill("+224 620 44 55 66");
+  await page.getByRole("textbox", { name: "Ville" }).fill("Kankan");
+  await page.getByRole("button", { name: "Accéder à mon espace" }).click();
+  await page.waitForURL(/\/candidat$/);
+  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
+  // une fois renseignées, la page ne se présente plus
+  await page.goto("/coordonnees");
+  await expect(page).toHaveURL(/\/candidat$/);
 });

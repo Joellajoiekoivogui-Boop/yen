@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import { hasContactDetails } from "@/features/auth/contact";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { STAFF_ROLES, type AppRole } from "@/lib/labels";
@@ -78,8 +79,18 @@ export const getSession = cache(async (): Promise<SessionContext | null> => {
   };
 });
 
+/**
+ * Coordonnées à compléter avant d'entrer dans l'espace candidat ou l'administration
+ * (prénom, nom, téléphone, ville, pays). Les comptes de démonstration, aux données fictives,
+ * en sont dispensés ; les partenaires renseignent les leurs avec leur organisation.
+ */
+export function mustCompleteContact(ctx: SessionContext): boolean {
+  return (ctx.isStaff || Boolean(ctx.candidateId)) && !ctx.profile.is_demo && !hasContactDetails(ctx.profile);
+}
+
 /** Espace d'accueil selon les rôles de l'utilisateur. */
 export function homePathFor(ctx: SessionContext): string {
+  if (mustCompleteContact(ctx)) return "/coordonnees";
   if (ctx.isStaff) return "/admin";
   if (ctx.candidateId) return "/candidat";
   if (ctx.partnerOrganizationIds.length > 0) return "/partenaire";
@@ -92,6 +103,11 @@ export async function requireUser(): Promise<SessionContext> {
   if (!ctx) redirect("/connexion");
   if (!ctx.profile.is_active) redirect("/compte-desactive");
   return ctx;
+}
+
+/** Entrée d'un espace (layouts candidat et administration) : coordonnées complètes exigées. */
+export function requireContactDetails(ctx: SessionContext) {
+  if (mustCompleteContact(ctx)) redirect("/coordonnees");
 }
 
 export async function requireCandidate(): Promise<SessionContext & { candidateId: string }> {
