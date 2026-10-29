@@ -197,7 +197,7 @@ export function EntityForm({ schema, fields, defaultValues, action, submitLabel 
           "flex flex-wrap items-center gap-3",
           stacked && "flex-col items-stretch text-center",
           // au-dessus du menu du bas sur téléphone, collée au bas de l'écran sur ordinateur
-          stickySubmit && "sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-10 -mx-5 border-t border-border bg-white px-5 py-3 lg:bottom-0",
+          stickySubmit && "sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-10 -mx-5 border-t border-border bg-white px-5 py-3 lg:bottom-0 [@media(max-height:500px)]:bottom-0",
         )}
       >
         <Button type="submit" variant="secondary" size={stacked ? "lg" : "md"} disabled={pending} aria-busy={pending || undefined}>

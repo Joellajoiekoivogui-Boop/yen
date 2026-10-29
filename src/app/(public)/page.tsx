@@ -185,7 +185,7 @@ export default async function HomePage() {
               </span>
               Youth Engineers Network · Guinée
             </p>
-            <h1 className="mt-5 text-[2.1rem] leading-[1.15] font-bold tracking-tight sm:text-5xl lg:text-[3.4rem]">
+            <h1 className="hero-title mt-5 text-[2.1rem] leading-[1.15] font-bold tracking-tight sm:text-5xl lg:text-[3.4rem]">
               Identifier les talents, renforcer les compétences,{" "}
               <span className="sr-only">ouvrir l&apos;accès au stage et à l&apos;emploi.</span>
               <span aria-hidden className="text-gold-300">

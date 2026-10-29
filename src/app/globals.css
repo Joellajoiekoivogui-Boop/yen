@@ -252,6 +252,18 @@
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
   }
+  /* Grands écrans : tout (textes, marges, largeur des pages, en rem) grandit légèrement
+     au lieu de laisser une colonne étroite au milieu d'un écran Full HD ou plus. */
+  @media (min-width: 1920px) {
+    html {
+      font-size: 106.25%;
+    }
+  }
+  @media (min-width: 2400px) {
+    html {
+      font-size: 112.5%;
+    }
+  }
   body {
     @apply bg-canvas text-navy-950 antialiased;
     /* aucun défilement horizontal pendant les animations (clip ne casse pas position: sticky) */
@@ -1189,6 +1201,23 @@ html[data-scrolled-far] .back-to-top {
 @media (prefers-reduced-motion: reduce) {
   .orbit-comet {
     opacity: 0;
+  }
+}
+
+/* Écrans tactiles : toute commande isolée fait au moins 24 × 24 px (WCAG 2.2, critère 2.5.8).
+   Les liens au fil du texte (display: inline) ne sont pas concernés : min-height ne s'y applique pas.
+   :where() garde une spécificité nulle, les classes des composants restent prioritaires. */
+@media (pointer: coarse) {
+  :where(a[href], button, summary, select, [role="button"], [role="tab"]) {
+    min-height: 24px;
+    min-width: 24px;
+  }
+}
+
+/* Téléphone en paysage (écran très bas) : grand titre de l'accueil réduit pour laisser voir la suite */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-title {
+    font-size: 2.25rem;
   }
 }
 

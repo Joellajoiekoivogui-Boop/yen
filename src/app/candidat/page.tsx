@@ -87,8 +87,8 @@ export default async function CandidateDashboard() {
               topOffers.map(({ target, match }) => (
                 <Link key={target.id} href={`/candidat/offres/${target.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-slate-50">
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-navy-900">{target.title}</p>
-                    <p className="truncate text-xs text-muted">{match.gaps[0] ?? match.strengths[0] ?? "Voir le détail de la compatibilité"}</p>
+                    <p className="line-clamp-2 font-medium text-navy-900">{target.title}</p>
+                    <p className="line-clamp-2 text-xs text-muted">{match.gaps[0] ?? match.strengths[0] ?? "Voir le détail de la compatibilité"}</p>
                   </div>
                   <ScorePill score={match.score} confidence={match.confidenceLabel} />
                 </Link>
@@ -143,7 +143,7 @@ export default async function CandidateDashboard() {
                 return (
                   <div key={a.id} className="flex items-start justify-between gap-2 border-b border-border pb-2 last:border-0">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-navy-900">{o.title}</p>
+                      <p className="line-clamp-2 text-sm font-medium text-navy-900">{o.title}</p>
                       <p className="text-xs text-muted">{orgs.get(o.organization_id)?.name}</p>
                     </div>
                     <ApplicationStatusBadge status={a.status} />

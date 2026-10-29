@@ -121,7 +121,7 @@ export default async function TalentsPage(props: PageProps<"/admin/talents">) {
               <div className="mt-2 flex flex-wrap gap-1">{r.is_demo && <Badge tone="purple">Démo</Badge>}{r.review_flag && <Badge tone="amber"><Flag className="size-3" aria-hidden /> À vérifier</Badge>}</div>
               <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
                 <div className="col-span-2"><dt className="sr-only">Téléphone</dt><dd>{r.phone ? <a href={`tel:${r.phone.replace(/[^+\d]/g, "")}`} className="inline-flex items-center gap-1.5 font-medium text-navy-800 tabular-nums"><Phone className="size-3.5" aria-hidden />{r.phone}</a> : <Badge tone="red">Téléphone manquant</Badge>}</dd></div>
-                <div className="col-span-2 min-w-0"><dt className="text-xs text-muted">Domaine</dt><dd className="truncate">{r.domain ?? "—"}</dd></div>
+                <div className="col-span-2 min-w-0"><dt className="text-xs text-muted">Domaine</dt><dd className="line-clamp-2">{r.domain ?? "—"}</dd></div>
                 <div><dt className="text-xs text-muted">Compétences évaluées</dt><dd className="tabular-nums">{r.evaluatedSkills}</dd></div>
                 <div><dt className="text-xs text-muted">Complétion</dt><dd className="tabular-nums">{r.completion} %</dd></div>
                 <div><dt className="text-xs text-muted">Disponibilité</dt><dd>{availabilityLabel[r.availability as Availability]}</dd></div>

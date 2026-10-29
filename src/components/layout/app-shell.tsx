@@ -296,7 +296,7 @@ export function AppShell({
 
       <MobileDrawer sections={sections} homeHref={homeHref} dark={dark} sidebarCls={sidebarCls} userBox={userBox} />
 
-      <main id="contenu" data-app className={cn("mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8", bottomItems.length > 0 && "pb-28 lg:pb-8")}>
+      <main id="contenu" data-app className={cn("mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8", bottomItems.length > 0 && "pb-28 lg:pb-8 [@media(max-height:500px)]:pb-8")}>
         {topBanner}
         {children}
       </main>
@@ -306,7 +306,8 @@ export function AppShell({
         <nav
           aria-label="Navigation rapide"
           className={cn(
-            "fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] lg:hidden",
+            // téléphone en paysage (écran très bas) : barre masquée, le menu de l'en-tête suffit
+            "fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] lg:hidden [@media(max-height:500px)]:hidden",
             dark ? "border-white/10 bg-navy-900" : "border-border/70 bg-white/[0.97]",
           )}
         >
