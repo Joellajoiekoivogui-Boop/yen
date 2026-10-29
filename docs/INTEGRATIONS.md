@@ -41,5 +41,5 @@ trace chaque tentative. Un envoi externe n'a lieu que si (1) un fournisseur est 
 candidat a donné le consentement `notifications_externes`. Variables réservées : `EMAIL_PROVIDER`, `SMS_PROVIDER`,
 `WHATSAPP_PROVIDER`.
 
-Les e-mails d'authentification (confirmation, réinitialisation) sont envoyés par Supabase Auth : configurer le SMTP
-dans Supabase pour la production.
+Les e-mails d'authentification (code de vérification à l'inscription, lien de réinitialisation) sont générés et
+envoyés par Supabase Auth, par le SMTP de Resend configuré dans Supabase : voir `docs/EMAILS-RESEND.md`.

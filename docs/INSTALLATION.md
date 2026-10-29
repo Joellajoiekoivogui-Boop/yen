@@ -56,10 +56,12 @@ critères observables par niveau, 47 métiers, 16 évaluations publiées (67 que
 ### 2.4 Authentification (Supabase → *Authentication*)
 
 - **URL Configuration** : *Site URL* = URL publique de l'application ; *Redirect URLs* : `https://votre-domaine/auth/callback`.
-- **Email** : activer *Confirm email* (vérification de l'adresse). Configurer un SMTP (*Settings → SMTP*) pour la production.
+- **Email** : activer *Confirm email* (vérification de l'adresse par code). SMTP de production : Resend, voir
+  `docs/EMAILS-RESEND.md` (domaine, DNS, SMTP, modèle d'e-mail, longueur et durée du code).
 - **Password** : longueur minimale 10, exigences « lettres minuscules, majuscules et chiffres » (aligné sur l'application).
 - **Rate limits** : conserver les limites par défaut (l'application ajoute sa propre limitation par IP et par e-mail).
-- Modèles d'e-mail : les liens par défaut fonctionnent (`/auth/callback` gère le flux PKCE et `token_hash`).
+- Modèles d'e-mail : *Confirm signup* = code de vérification (`supabase/templates/confirmation.html`, saisi sur
+  `/verification`) ; *Reset password* = lien vers `/auth/callback` (flux PKCE et `token_hash`).
 
 ### 2.5 Stockage
 

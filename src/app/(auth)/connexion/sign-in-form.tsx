@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { EntityForm } from "@/components/forms/entity-form";
+import { ButtonLink } from "@/components/ui";
 import { signInAction } from "@/features/auth/actions";
 import { EMAIL_NOT_CONFIRMED_MESSAGE } from "@/features/auth/errors";
 import { signInSchema } from "@/features/auth/schemas";
-import { ResendConfirmation } from "../resend-confirmation";
 
 export function SignInForm({ next }: { next?: string }) {
-  // adresse en attente de confirmation : proposer le renvoi de l'e-mail
-  const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
+  // adresse pas encore vérifiée : mener à la saisie du code (l'adresse est retenue côté serveur)
+  const [unconfirmed, setUnconfirmed] = useState(false);
   return (
     <>
       <EntityForm
@@ -23,7 +23,7 @@ export function SignInForm({ next }: { next?: string }) {
         ]}
         action={async (v) => {
           const r = await signInAction({ ...v, next });
-          setUnconfirmed(!r.ok && r.error === EMAIL_NOT_CONFIRMED_MESSAGE ? String(v.email ?? "") : null);
+          setUnconfirmed(!r.ok && r.error === EMAIL_NOT_CONFIRMED_MESSAGE);
           return r;
         }}
         onSuccess={(r) => {
@@ -32,7 +32,11 @@ export function SignInForm({ next }: { next?: string }) {
         }}
         footer={<Link href="/mot-de-passe-oublie" className="mx-auto text-sm font-medium text-electric-700 hover:underline">Mot de passe oublié ?</Link>}
       />
-      {unconfirmed && <ResendConfirmation email={unconfirmed} />}
+      {unconfirmed && (
+        <ButtonLink href="/verification" variant="outline" className="mt-3 w-full animate-slide-down">
+          Saisir mon code de vérification
+        </ButtonLink>
+      )}
     </>
   );
 }

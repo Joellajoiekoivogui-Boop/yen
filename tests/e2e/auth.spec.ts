@@ -5,6 +5,8 @@
  */
 import { createHmac, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import pg from "pg";
+import { mailbox, verificationCode, wrongCode } from "./mailbox";
 
 test.skip(!process.env.E2E_STACK, "Pile Supabase locale requise (E2E_STACK=1)");
 
@@ -243,4 +245,143 @@ test("coordonnées obligatoires : l'espace candidat reste fermé tant qu'elles m
   // une fois renseignées, la page ne se présente plus
   await page.goto("/coordonnees");
   await expect(page).toHaveURL(/\/candidat$/);
+});
+
+/* -----------------------------------------------------------------------------
+   Vérification de l'adresse par code (Supabase Auth génère, envoie et vérifie le code ;
+   en production l'e-mail part par Resend, ici dans la boîte de test locale)
+   ----------------------------------------------------------------------------- */
+
+const DB_URL = process.env.E2E_DB_URL ?? "postgres://postgres@localhost:54329/yen_e2e";
+const freshEmail = (label: string) => `${label}.${Date.now()}.${randomUUID().slice(0, 6)}@example.test`;
+
+async function signUp(page: Page, email: string, password = "Inscription-2026") {
+  await page.goto("/inscription");
+  const f = (name: string, value: string) => page.getByRole("textbox", { name, exact: true }).fill(value);
+  await f("Prénom", "Test");
+  await f("Nom", "Verification");
+  await f("Téléphone", "+224 620 55 66 77");
+  await f("Ville", "Conakry");
+  await f("Adresse e-mail", email);
+  await f("Mot de passe", password);
+  await f("Retapez le mot de passe", password);
+  await page.getByRole("checkbox", { name: /J'accepte/ }).check();
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await page.waitForURL(/\/verification$/, { timeout: 20_000 });
+}
+
+async function enterCode(page: Page, code: string) {
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(code);
+  await page.getByRole("button", { name: "Vérifier mon adresse" }).click();
+}
+
+test("inscription : le code reçu par e-mail active le compte, un code faux est refusé", async ({ page, context }) => {
+  const email = freshEmail("code");
+  await signUp(page, email);
+  await expect(page.getByRole("heading", { level: 1, name: "Vérifiez votre adresse e-mail" })).toBeVisible();
+  // l'adresse vient d'un cookie httpOnly, jamais de l'adresse de la page
+  await expect(page.getByText(email)).toBeVisible();
+  expect(page.url()).not.toContain("example.test");
+  const code = await verificationCode(email);
+  const [mail] = await mailbox(email);
+  expect(mail.subject).toBe("Votre code de vérification YEN Career Bridge");
+
+  // pas de session avant la vérification
+  await page.goto("/candidat");
+  await expect(page).toHaveURL(/\/connexion/);
+  await page.goto("/verification");
+
+  await enterCode(page, wrongCode(code));
+  await expect(page.getByText(/Code incorrect ou expiré\. Vérifiez le dernier e-mail/)).toBeVisible();
+  await enterCode(page, code);
+  await page.waitForURL(/\/candidat$/);
+  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
+
+  // un code ne sert qu'une fois ; ensuite la connexion se fait avec le mot de passe
+  await context.clearCookies();
+  await page.goto("/verification");
+  await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(email);
+  await enterCode(page, code);
+  await expect(page.getByText(/Code incorrect ou expiré/).first()).toBeVisible();
+  await page.goto("/connexion");
+  await fillLogin(page, email, "Inscription-2026");
+  await page.waitForURL(/\/candidat$/);
+});
+
+test("renvoi du code : après le délai, le nouveau code remplace l'ancien", async ({ page }) => {
+  const email = freshEmail("renvoi");
+  await signUp(page, email);
+  const first = await verificationCode(email, 1);
+  const resend = page.getByRole("button", { name: /Renvoyer un code/ });
+  // délai avant de pouvoir redemander un code (intervalle minimal de Supabase)
+  await expect(resend).toBeDisabled();
+  await expect(resend).toHaveText(/dans \d+ s/);
+  await expect(resend).toBeEnabled({ timeout: 70_000 });
+  await resend.click();
+  await expect(page.getByText(/un nouveau code vient d'être envoyé/)).toBeVisible();
+  const second = await verificationCode(email, 2);
+  expect(second).not.toBe(first);
+  await expect(resend).toBeDisabled();
+
+  await enterCode(page, first);
+  await expect(page.getByText(/Code incorrect ou expiré/).first()).toBeVisible();
+  await enterCode(page, second);
+  await page.waitForURL(/\/candidat$/);
+});
+
+test("code expiré : refusé avec un message clair", async ({ page }) => {
+  const email = freshEmail("expire");
+  await signUp(page, email);
+  const code = await verificationCode(email);
+  // simulation de l'expiration : l'envoi date d'il y a deux heures (validité réglée à une heure)
+  const db = new pg.Client({ connectionString: DB_URL });
+  await db.connect();
+  try {
+    await db.query("update auth.users set confirmation_sent_at = now() - interval '2 hours' where email = $1", [email]);
+  } finally {
+    await db.end();
+  }
+  await enterCode(page, code);
+  await expect(page.getByText(/Code incorrect ou expiré\. Vérifiez le dernier e-mail reçu/)).toBeVisible();
+  await page.goto("/candidat");
+  await expect(page).toHaveURL(/\/connexion/);
+});
+
+test("codes erronés répétés : la vérification est suspendue pour ce compte", async ({ page }) => {
+  const email = freshEmail("tentatives");
+  await signUp(page, email);
+  const code = await verificationCode(email);
+  const wrong = wrongCode(code);
+  for (let i = 0; i < 5; i++) {
+    await enterCode(page, wrong);
+    await expect(page.getByText(/Code incorrect ou expiré/).first()).toBeVisible();
+  }
+  // même le bon code attend la fin de la suspension
+  await enterCode(page, code);
+  await expect(page.getByText(/Trop de codes erronés\. Réessayez dans \d+ minute/)).toBeVisible();
+  await page.goto("/candidat");
+  await expect(page).toHaveURL(/\/connexion/);
+});
+
+test("connexion avant vérification : le site mène à la saisie du code", async ({ page, context }) => {
+  const email = freshEmail("non-verifie");
+  await signUp(page, email, "Avant-code-2026");
+  const code = await verificationCode(email);
+  await context.clearCookies();
+  await page.goto("/connexion");
+  await fillLogin(page, email, "Avant-code-2026");
+  await expect(page.getByText("Votre adresse e-mail n'est pas encore vérifiée : saisissez le code reçu par e-mail lors de l'inscription.")).toBeVisible();
+  await page.getByRole("link", { name: "Saisir mon code de vérification" }).click();
+  await page.waitForURL(/\/verification$/);
+  await expect(page.getByText(email)).toBeVisible();
+  await enterCode(page, code);
+  await page.waitForURL(/\/candidat$/);
+});
+
+test("adresse déjà inscrite : même page de vérification, aucun e-mail envoyé (pas d'énumération)", async ({ page }) => {
+  const before = (await mailbox(DEMO.email)).length;
+  await signUp(page, DEMO.email, "Tentative-2026x");
+  await expect(page.getByRole("heading", { level: 1, name: "Vérifiez votre adresse e-mail" })).toBeVisible();
+  await page.waitForTimeout(2000);
+  expect((await mailbox(DEMO.email)).length).toBe(before);
 });

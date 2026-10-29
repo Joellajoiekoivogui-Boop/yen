@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 /**
  * Premier passage avec Google : prénom et nom repris du compte Google s'ils manquent, et
  * acceptation des conditions d'utilisation (affichées sous le bouton) enregistrée pour un
- * nouveau candidat. Le téléphone, obligatoire, est demandé ensuite dans « Mon profil ».
+ * nouveau candidat. Le téléphone et la ville, obligatoires, sont demandés ensuite (page « Vos coordonnées »).
  */
 async function completeGoogleProfile(
   supabase: Awaited<ReturnType<typeof createClient>>,

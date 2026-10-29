@@ -16,14 +16,16 @@ suppriment. N'importe quel PostgreSQL 16 accessible avec un superutilisateur con
 ## Pile Supabase locale sans Docker (parcours complet)
 
 `tests/e2e-stack/start.sh` démarre GoTrue (auth) et PostgREST (binaries officiels), une passerelle Node qui reproduit le
-routage Supabase et émule le stockage en appliquant les politiques RLS de `storage.objects`, puis affiche les clés :
+routage Supabase et émule le stockage en appliquant les politiques RLS de `storage.objects`, une boîte aux lettres
+locale (`mail-sink.mjs`, à la place de Resend : SMTP 54325, consultation HTTP 54326) qui reçoit les codes de
+vérification envoyés par GoTrue, puis affiche les clés :
 
 ```bash
 BIN_DIR=/chemin/vers/binaires PG_ADMIN_URL=postgres://postgres@localhost:5432/postgres ./tests/e2e-stack/start.sh
 # reporter les clés affichées dans .env.local (URL http://localhost:54321), puis :
 ADMIN_PASSWORD=... npm run admin:create -- --email admin@yen.test --role super_admin
 DEMO_PASSWORD=... npm run seed:demo
-npm run build && npm start
+npm run build && AUTH_RESEND_DELAY_S=5 npm start   # même délai de renvoi que la pile de test (5 s au lieu de 60)
 E2E_ADMIN_PASSWORD=... E2E_DEMO_PASSWORD=... npm run test:e2e:parcours
 ./tests/e2e-stack/reset-rate-limits.sh   # entre deux exécutions (la limitation anti-force brute s'applique)
 ```

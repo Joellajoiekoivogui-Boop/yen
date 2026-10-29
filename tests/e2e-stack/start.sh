@@ -22,10 +22,14 @@ $PSQL "$DB_URL" -f "$ROOT/supabase/seed.sql"
 $PSQL "$DB_URL" -c "grant usage on schema public to anon, authenticated, service_role; grant all on all tables in schema public to service_role; grant all on all sequences in schema public to service_role, authenticated;"
 
 mkdir -p "$BIN_DIR/logs"
+# e-mails de Supabase Auth (codes de vérification) : boîte de test locale à la place de Resend
+nohup node "$HERE/mail-sink.mjs" > "$BIN_DIR/logs/mail-sink.log" 2>&1 &
 GOTRUE_API_HOST=127.0.0.1 PORT=9999 GOTRUE_DB_DRIVER=postgres DATABASE_URL="${DB_URL/postgres:\/\/postgres@/postgres://supabase_auth_admin@}?search_path=auth" \
   API_EXTERNAL_URL=http://localhost:54321/auth/v1 GOTRUE_SITE_URL=http://localhost:3000 GOTRUE_URI_ALLOW_LIST="http://localhost:3000/**" \
   GOTRUE_JWT_SECRET="$JWT_SECRET" GOTRUE_JWT_EXP=3600 GOTRUE_JWT_AUD=authenticated GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated GOTRUE_JWT_ADMIN_ROLES=service_role \
-  GOTRUE_DISABLE_SIGNUP=false GOTRUE_EXTERNAL_EMAIL_ENABLED=true GOTRUE_MAILER_AUTOCONFIRM=true GOTRUE_RATE_LIMIT_EMAIL_SENT=1000 GOTRUE_LOG_LEVEL=warn \
+  GOTRUE_DISABLE_SIGNUP=false GOTRUE_EXTERNAL_EMAIL_ENABLED=true \
+  GOTRUE_MAILER_AUTOCONFIRM=false GOTRUE_SMTP_HOST=127.0.0.1 GOTRUE_SMTP_PORT=54325 GOTRUE_SMTP_ADMIN_EMAIL=no-reply@yen.test GOTRUE_SMTP_SENDER_NAME="YEN Career Bridge" GOTRUE_SMTP_MAX_FREQUENCY=5s GOTRUE_RATE_LIMIT_VERIFY=1000 GOTRUE_MAILER_OTP_EXP=3600 GOTRUE_MAILER_OTP_LENGTH=6 GOTRUE_MAILER_SUBJECTS_CONFIRMATION="Votre code de vérification YEN Career Bridge" GOTRUE_MAILER_TEMPLATES_CONFIRMATION=http://127.0.0.1:54326/templates/confirmation.html \
+  GOTRUE_RATE_LIMIT_EMAIL_SENT=1000 GOTRUE_LOG_LEVEL=warn \
   GOTRUE_EXTERNAL_GOOGLE_ENABLED=true GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID=e2e-google-client GOTRUE_EXTERNAL_GOOGLE_SECRET=e2e-google-secret-non-utilise \
   GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI=http://localhost:54321/auth/v1/callback \
   nohup "$BIN_DIR/auth" serve > "$BIN_DIR/logs/gotrue.log" 2>&1 &

@@ -6,6 +6,7 @@
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import { verificationCode } from "./mailbox";
 
 test.skip(!process.env.E2E_STACK, "Pile Supabase locale requise (E2E_STACK=1)");
 test.describe.configure({ mode: "serial" });
@@ -77,8 +78,11 @@ test("un candidat crée son compte et se connecte", async ({ page }) => {
   await expect(page.getByText("Les deux mots de passe ne sont pas identiques.")).toBeVisible();
   await f("Retapez le mot de passe", candidate.password);
   await page.getByRole("button", { name: "Créer mon compte" }).click();
-  // Selon la configuration Supabase : message de confirmation par e-mail, ou session ouverte directement
-  await expect(page.getByText("Vérifiez votre boîte de réception").or(page.getByRole("heading", { name: "Tableau de bord" }))).toBeVisible({ timeout: 20_000 });
+  // code de vérification envoyé par Supabase Auth (boîte de test locale à la place de Resend)
+  await page.waitForURL(/\/verification$/, { timeout: 20_000 });
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(await verificationCode(candidate.email));
+  await page.getByRole("button", { name: "Vérifier mon adresse" }).click();
+  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible({ timeout: 20_000 });
   await logout(page);
 
   await login(page, candidate.email, candidate.password);
@@ -346,7 +350,12 @@ async function signUpPartner(page: Page, tag: string) {
   await f("Retapez le mot de passe", partner.password);
   await page.getByRole("checkbox", { name: /J'accepte/ }).check();
   await page.getByRole("button", { name: "Demander un espace partenaire" }).click();
-  await expect(page.getByText(/Demande enregistrée/).or(page.getByText("Demande en cours de validation"))).toBeVisible({ timeout: 20_000 });
+  // adresse vérifiée par le code reçu, puis attente de la validation par YEN
+  await page.waitForURL(/\/verification$/, { timeout: 20_000 });
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(await verificationCode(partner.email));
+  await page.getByRole("button", { name: "Vérifier mon adresse" }).click();
+  await page.waitForURL(/\/partenaire\/en-attente$/, { timeout: 20_000 });
+  await expect(page.getByText("Demande en cours de validation")).toBeVisible();
   await logout(page);
   return partner;
 }

@@ -2,14 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { clientIp, dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
-import { clearLoginFailures, loginRetryAfter, recordLoginFailure, takeEmailRequest } from "@/lib/security/attempts";
+import { clearLoginFailures, clearOtpFailures, loginRetryAfter, otpRetryAfter, recordLoginFailure, recordOtpFailure, takeEmailRequest } from "@/lib/security/attempts";
 import { safeInternalPath } from "@/lib/utils";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { EMAIL_NOT_CONFIRMED_MESSAGE, signUpErrorMessage } from "./errors";
-import { candidateSignUpSchema, contactDetailsSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema } from "./schemas";
+import { candidateSignUpSchema, contactDetailsSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema, verifySignupSchema } from "./schemas";
+import { forgetPendingEmail, rememberPendingEmail } from "./verification-cookie";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
 const minutes = (seconds: number) => Math.max(1, Math.ceil(seconds / 60));
@@ -28,7 +29,11 @@ export async function signInAction(values: Record<string, unknown>): Promise<Act
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
     if (error) {
-      if (error.code === "email_not_confirmed") return fail(EMAIL_NOT_CONFIRMED_MESSAGE);
+      if (error.code === "email_not_confirmed") {
+        // mot de passe correct mais adresse non vérifiée : la page de vérification connaîtra l'adresse
+        await rememberPendingEmail(input.email, false);
+        return fail(EMAIL_NOT_CONFIRMED_MESSAGE);
+      }
       if (isRateLimited(error)) return fail("Trop de connexions en même temps sur la plateforme. Patientez une minute puis réessayez.");
       if (error.code === "invalid_credentials" || error.code === "invalid_grant" || error.status === 400) {
         recordLoginFailure(ip, input.email);
@@ -74,8 +79,9 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
     }
     // Si la confirmation d'e-mail est désactivée côté Supabase, une session est ouverte immédiatement
     if (data?.session) return { ok: true, message: "Compte créé : bienvenue !", data: { redirectTo: "/candidat" } };
-    // message identique si l'adresse a déjà un compte (pas d'énumération), avec la marche à suivre dans ce cas
-    return { ok: true, message: "Votre compte est créé. Ouvrez l'e-mail que nous venons de vous envoyer et cliquez sur le lien : vous pourrez ensuite vous connecter avec votre adresse e-mail et le mot de passe choisi. Si vous aviez déjà un compte avec cette adresse, connectez-vous ou utilisez « Mot de passe oublié »." };
+    // Supabase a envoyé un code de vérification ; même suite si l'adresse a déjà un compte (pas d'énumération)
+    await rememberPendingEmail(email, true);
+    return { ok: true, data: { redirectTo: "/verification" } };
   });
 }
 
@@ -100,10 +106,9 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
     }
     // Sans confirmation d'e-mail côté Supabase, la session est ouverte immédiatement
     if (data?.session) return { ok: true, message: "Demande enregistrée.", data: { redirectTo: "/partenaire/en-attente" } };
-    return {
-      ok: true,
-      message: "Demande enregistrée. Confirmez votre adresse e-mail grâce au lien reçu ; l'équipe YEN validera ensuite votre organisation avant d'activer votre espace partenaire.",
-    };
+    // code de vérification envoyé ; l'équipe YEN validera ensuite l'organisation
+    await rememberPendingEmail(email, true);
+    return { ok: true, data: { redirectTo: "/verification" } };
   });
 }
 
@@ -120,18 +125,54 @@ export async function saveContactDetailsAction(values: Record<string, unknown>):
   });
 }
 
-/** Renvoie l'e-mail de confirmation d'inscription (réponse identique que le compte existe ou non). */
+/**
+ * Vérification de l'adresse e-mail par le code reçu à l'inscription. Le code est généré, envoyé
+ * (SMTP du projet, Resend) et vérifié par Supabase Auth ; un code valide ouvre la session.
+ * Échecs limités par compte et par adresse IP, en plus de la limite de Supabase.
+ */
+export async function verifySignupCodeAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
+  return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
+    if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
+    const input = parseInput(verifySignupSchema, values);
+    const ip = await clientIp();
+    const wait = otpRetryAfter(ip, input.email);
+    if (wait) return fail(`Trop de codes erronés. Réessayez dans ${minutes(wait)} minute(s), ou demandez un nouveau code.`);
+    const supabase = await createClient();
+    // type « signup » : confirmation d'inscription (différent du code de connexion « email »)
+    const { error } = await supabase.auth.verifyOtp({ email: input.email, token: input.code, type: "signup" });
+    if (error) {
+      if (isRateLimited(error)) return fail("Trop de vérifications en même temps sur la plateforme. Patientez une minute puis réessayez.");
+      if (error.code === "otp_expired" || error.status === 403) {
+        recordOtpFailure(ip, input.email);
+        return fail("Code incorrect ou expiré. Vérifiez le dernier e-mail reçu (un nouveau code remplace le précédent) ou demandez un nouveau code.");
+      }
+      console.error("[vérification] refus Supabase Auth", error.code, error.status);
+      return fail("La vérification n'a pas pu aboutir. Réessayez dans un instant.");
+    }
+    clearOtpFailures(ip, input.email);
+    await forgetPendingEmail();
+    const ctx = await getSession();
+    if (ctx && !ctx.profile.is_active) {
+      await supabase.auth.signOut();
+      return fail("Ce compte est désactivé. Contactez l'équipe YEN.");
+    }
+    return { ok: true, message: "Adresse e-mail vérifiée : bienvenue !", data: { redirectTo: ctx ? homePathFor(ctx) : "/connexion?confirme=1" } };
+  });
+}
+
+/** Renvoie un code de vérification d'inscription (réponse identique que le compte existe ou non). */
 export async function resendConfirmationAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
     const input = parseInput(resetRequestSchema, values);
     const wait = takeEmailRequest(await clientIp(), input.email);
-    if (wait) return fail(`Trop de demandes d'e-mail. Réessayez dans ${minutes(wait)} minute(s).`);
+    if (wait) return fail(`Trop de demandes de code. Réessayez dans ${minutes(wait)} minute(s).`);
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({ type: "signup", email: input.email, options: { emailRedirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/candidat` } });
-    if (error?.code === "over_email_send_rate_limit" || error?.code === "over_request_rate_limit") return fail("Un e-mail vient déjà d'être envoyé. Patientez quelques minutes avant de réessayer.");
-    if (error) console.error("[inscription] renvoi de l'e-mail refusé", error.code, error.status);
-    return { ok: true, message: "Si un compte en attente correspond à cette adresse, un nouvel e-mail de confirmation vient d'être envoyé. Pensez à vérifier les courriers indésirables (spams)." };
+    if (error?.code === "over_email_send_rate_limit" || error?.code === "over_request_rate_limit") return fail("Un code vient déjà d'être envoyé. Patientez une minute avant d'en demander un nouveau.");
+    if (error) console.error("[inscription] renvoi du code refusé", error.code, error.status);
+    await rememberPendingEmail(input.email, true);
+    return { ok: true, message: "Si une inscription est en attente pour cette adresse, un nouveau code vient d'être envoyé. Il remplace le précédent. Pensez à vérifier les courriers indésirables (spams)." };
   });
 }
 

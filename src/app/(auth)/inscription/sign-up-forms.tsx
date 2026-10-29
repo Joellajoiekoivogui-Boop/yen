@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { MailCheck } from "lucide-react";
+import { useState } from "react";
 import { AuthDivider, GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { GoogleTermsNote } from "@/components/auth/google-terms-note";
 import { EntityForm } from "@/components/forms/entity-form";
@@ -10,7 +9,6 @@ import { signUpCandidateAction, signUpPartnerAction } from "@/features/auth/acti
 import { MIN_PASSWORD_LENGTH } from "@/features/auth/password-rules";
 import { candidateSignUpSchema, partnerSignUpSchema } from "@/features/auth/schemas";
 import { cn } from "@/lib/utils";
-import { ResendConfirmation } from "../resend-confirmation";
 
 const PASSWORD_HELP = `${MIN_PASSWORD_LENGTH} caractères minimum. Notez-le bien : c'est lui qui vous servira à vous connecter.`;
 const terms = (
@@ -23,28 +21,11 @@ const terms = (
 /** Inscription en une étape : quelques champs seulement, le reste se complète ensuite dans le profil. */
 export function SignUpForms({ initialType, google = false }: { initialType: "candidat" | "partenaire"; google?: boolean }) {
   const [type, setType] = useState(initialType);
-  const [done, setDone] = useState<{ message: string; email: string } | null>(null);
-  // adresse saisie, pour le renvoi de l'e-mail de confirmation (référence : lue après l'envoi)
-  const email = useRef("");
-
-  if (done)
-    return (
-      <div role="status" className="flex flex-col items-center py-6 text-center">
-        <span className="relative grid size-16 place-items-center">
-          <span aria-hidden className="absolute inset-0 animate-ping-slow rounded-full bg-emerald-200" />
-          <span className="relative grid size-16 animate-pop-in place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
-            <MailCheck className="size-7" aria-hidden />
-          </span>
-        </span>
-        <p className="mt-5 font-heading text-lg font-semibold text-navy-900">Vérifiez votre boîte de réception</p>
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{done.message}</p>
-        {done.email && <p className="mt-2 text-sm font-medium text-navy-900">{done.email}</p>}
-        {done.email && <ResendConfirmation email={done.email} />}
-        <Link href="/connexion" className="mt-4 text-sm font-medium text-electric-700 hover:underline">
-          J&apos;ai confirmé mon adresse : me connecter
-        </Link>
-      </div>
-    );
+  // après l'envoi : page de saisie du code de vérification (ou espace, si Supabase ne demande pas de vérification)
+  const goTo = (r: { ok: boolean; data?: unknown }) => {
+    const to = r.ok ? (r.data as { redirectTo?: string } | undefined)?.redirectTo : undefined;
+    if (to) window.location.assign(to);
+  };
 
   return (
     <div>
@@ -83,15 +64,8 @@ export function SignUpForms({ initialType, google = false }: { initialType: "can
           schema={candidateSignUpSchema}
           submitLabel="Créer mon compte"
           stacked
-          action={(v) => {
-            email.current = String(v.email ?? "");
-            return signUpCandidateAction(v);
-          }}
-          onSuccess={(r) => {
-            const to = r.ok ? (r.data as { redirectTo?: string } | undefined)?.redirectTo : undefined;
-            if (to) window.location.assign(to);
-            else if (r.ok) setDone({ message: r.message ?? "Compte créé.", email: email.current });
-          }}
+          action={signUpCandidateAction}
+          onSuccess={goTo}
           fields={[
             { name: "first_name", label: "Prénom", required: true, autoComplete: "given-name" },
             { name: "last_name", label: "Nom", required: true, autoComplete: "family-name" },
@@ -109,15 +83,8 @@ export function SignUpForms({ initialType, google = false }: { initialType: "can
           schema={partnerSignUpSchema}
           submitLabel="Demander un espace partenaire"
           stacked
-          action={(v) => {
-            email.current = String(v.email ?? "");
-            return signUpPartnerAction(v);
-          }}
-          onSuccess={(r) => {
-            const to = r.ok ? (r.data as { redirectTo?: string } | undefined)?.redirectTo : undefined;
-            if (to) window.location.assign(to);
-            else if (r.ok) setDone({ message: r.message ?? "Demande enregistrée.", email: email.current });
-          }}
+          action={signUpPartnerAction}
+          onSuccess={goTo}
           fields={[
             { name: "organization_name", label: "Nom de l'organisation", required: true, autoComplete: "organization", colSpan: 2 },
             { name: "first_name", label: "Prénom du contact", required: true, autoComplete: "given-name" },

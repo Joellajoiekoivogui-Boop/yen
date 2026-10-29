@@ -72,16 +72,14 @@ Dans le tableau de bord Supabase (*Authentication*) :
 1. **URL Configuration** : Site URL = `https://yen-b3vs.vercel.app` ; Redirect URLs :
    `https://yen-b3vs.vercel.app/auth/callback**` (et `http://localhost:3000/auth/callback**` en développement).
 2. **E-mails** : l'expéditeur intégré de Supabase est réservé aux essais (2 e-mails par heure, uniquement vers
-   les membres de l'équipe Supabase). Service retenu : **Brevo** (gratuit, 300 e-mails par jour, fonctionne sans
-   nom de domaine). *Emails › SMTP Settings* › *Enable custom SMTP* : hôte `smtp-relay.brevo.com`, port `587`,
-   identifiant et **clé SMTP** de Brevo (*SMTP et API › SMTP*, jamais la clé API), expéditeur validé dans Brevo
-   (*Expéditeurs*), nom « YEN Career Bridge ». Puis *Rate Limits* › e-mails envoyés : 100 par heure.
-   Pour éviter les spams : adresse d'expédition au nom de domaine de YEN, domaine authentifié dans Brevo (SPF, DKIM).
-3. **Modèles d'e-mail** (*Emails › Templates*, en français) : liens construits sur l'adresse du site, valables
-   aussi ouverts sur un autre appareil que celui de la demande et indépendants des *Redirect URLs* :
-   - *Confirm signup* : `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email`
-     (après confirmation, le compte arrive dans son espace : candidat, ou attente de validation partenaire)
-   - *Reset password* : `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&suivant=/reinitialiser-mot-de-passe`
+   les membres de l'équipe Supabase). Service retenu : **Resend**, branché comme SMTP personnalisé de Supabase
+   (domaine d'envoi vérifié obligatoire). Marche à suivre complète : **`docs/EMAILS-RESEND.md`**.
+3. **Modèles d'e-mail** (*Emails › Templates*, en français) :
+   - *Confirm signup* : code de vérification, contenu de `supabase/templates/confirmation.html` (sujet « Votre code
+     de vérification YEN Career Bridge »). Le code se saisit sur `/verification` ; après vérification, le compte
+     arrive dans son espace (candidat, ou attente de validation partenaire).
+   - *Reset password* (lien construit sur l'adresse du site, valable aussi ouvert sur un autre appareil) :
+     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&suivant=/reinitialiser-mot-de-passe`
 4. **Mot de passe** : longueur minimale 8 (comme le site) ; protection contre les mots de passe divulgués si
    l'offre le permet.
 5. **Rate Limits** : les connexions passent par le serveur, Supabase voit donc les adresses de Vercel. Si des
@@ -93,7 +91,8 @@ Dans le tableau de bord Supabase (*Authentication*) :
 ## Check-list de mise en production
 
 - [ ] Migrations appliquées, catalogue chargé, bucket `candidate-documents` privé
-- [ ] Confirmation des e-mails + SMTP configurés, modèles d'e-mail à `token_hash`, URL de redirection exactes
+- [ ] Confirmation des e-mails activée, SMTP Resend configuré (domaine vérifié), modèle « Confirm signup » à code,
+      modèle « Reset password » à `token_hash`, URL de redirection exactes (`docs/EMAILS-RESEND.md`)
 - [ ] Premier `super_admin` créé, rôles du personnel attribués
 - [ ] Données de démonstration absentes (ou supprimées avec `npm run seed:demo:reset`)
 - [ ] Politique de confidentialité et CGU validées par YEN

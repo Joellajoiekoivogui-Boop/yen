@@ -42,3 +42,23 @@ double_confirm_changes = true
 enable_confirmations = true
 secure_password_change = true
 max_frequency = "60s"
+# Code de vérification envoyé à l'inscription (généré et vérifié par Supabase Auth)
+otp_length = 6
+otp_expiry = 3600
+
+[auth.email.template.confirmation]
+subject = "Votre code de vérification YEN Career Bridge"
+content_path = "./supabase/templates/confirmation.html"
+
+# Envoi par Resend (SMTP). En production, ces réglages se saisissent dans le tableau de bord
+# Supabase (Authentication › Emails › SMTP Settings) : voir docs/EMAILS-RESEND.md.
+# Pour le développement avec la CLI, décommenter et définir RESEND_API_KEY dans l'environnement
+# (jamais dans ce fichier) :
+# [auth.email.smtp]
+# enabled = true
+# host = "smtp.resend.com"
+# port = 465
+# user = "resend"
+# pass = "env(RESEND_API_KEY)"
+# admin_email = "no-reply@votre-domaine.org"
+# sender_name = "YEN Career Bridge"

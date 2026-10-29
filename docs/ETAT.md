@@ -25,12 +25,12 @@ PostgREST locale) et par un balayage de toutes les pages des trois espaces sans 
 |---|---|
 | Services IA (extraction de CV/OCR, analyse de profil, amélioration de CV, plan, synthèse, aide à la correction, assistant) | Code complet, typé contre le SDK, traçabilité testée unitairement, mais **jamais appelé avec une vraie clé API** dans cet environnement. À valider dès la configuration de `ANTHROPIC_API_KEY`. |
 | Stockage Supabase | Testé via une passerelle qui émule l'API Storage et applique les vraies politiques RLS ; à revérifier sur un projet Supabase réel. |
-| E-mails d'authentification | Les tests utilisent la confirmation automatique ; le parcours avec e-mail réel (lien `/auth/callback`) dépend du SMTP configuré dans Supabase. |
+| E-mails d'authentification | Parcours par code testé de bout en bout avec le vrai serveur d'authentification de Supabase (GoTrue) et une boîte aux lettres locale ; l'envoi réel par Resend dépend de la configuration du tableau de bord Supabase (`docs/EMAILS-RESEND.md`), non vérifiée ici. |
 | Antivirus ClamAV | Client implémenté ; aucun service ClamAV disponible pour le tester. |
 
 ## Intégrations nécessitant une configuration manuelle
 
-1. Projet Supabase (URL, clés), migrations, catalogue, SMTP, URL de redirection — obligatoire.
+1. Projet Supabase (URL, clés), migrations, catalogue, SMTP Resend (`docs/EMAILS-RESEND.md`), URL de redirection — obligatoire.
 2. `ANTHROPIC_API_KEY` + `AI_PROVIDER=anthropic` — pour toutes les fonctions IA.
 3. `CLAMAV_SCAN_URL` — antivirus des CV (recommandé).
 4. Fournisseurs e-mail / SMS / WhatsApp — architecture prête (`ExternalChannel`), aucun fournisseur branché.

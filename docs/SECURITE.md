@@ -100,6 +100,11 @@ Supabase Auth (`@supabase/ssr`), entièrement côté serveur : aucun client Supa
   jamais « mot de passe incorrect ». Compteurs en mémoire par instance : une protection d'appoint.
 - **Demandes d'e-mail** (réinitialisation, renvoi de confirmation) : 3 par adresse e-mail et 10 par adresse IP en
   15 minutes, pour préserver le quota d'envoi du projet ; réponse identique que le compte existe ou non.
+- **Vérification de l'adresse par code** : code généré, envoyé et vérifié par Supabase Auth
+  (`verifyOtp`, type `signup`), jamais par le site ; codes erronés limités (5 par compte depuis une même adresse
+  IP, 10 par compte toutes adresses confondues, 30 par adresse IP en 15 minutes) ; renvoi après le délai minimal de
+  Supabase ; adresse en attente gardée dans un cookie httpOnly d'une heure (jamais dans l'URL) ; pas de lien dans
+  l'e-mail (les analyseurs de liens des messageries ne peuvent pas consommer le code).
 - **Inscription** : validation identique côté navigateur et serveur (Zod) ; compte existant jamais signalé ;
   profil créé en base par déclencheur à partir de l'identifiant Auth ; rôle « candidat » ou demande partenaire
   uniquement (aucun rôle privilégié attribuable par l'utilisateur).

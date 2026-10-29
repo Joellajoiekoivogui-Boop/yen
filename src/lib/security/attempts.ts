@@ -11,7 +11,10 @@ import { createHash } from "node:crypto";
  *    le titulaire du compte qui se connecte depuis une autre adresse ;
  *  - les échecs par adresse IP, avec un plafond plus large (essais sur de nombreux comptes) ;
  *  - les demandes d'e-mail (réinitialisation, renvoi) par adresse IP, pour préserver le quota
- *    d'envoi du projet.
+ *    d'envoi du projet ;
+ *  - les codes de vérification erronés, par couple (adresse IP, compte), par compte toutes
+ *    adresses confondues (un code à 6 chiffres ne doit pas pouvoir être essayé en masse depuis
+ *    de nombreuses adresses) et par adresse IP.
  * Compteurs en mémoire, par instance du serveur : une protection d'appoint, en plus de celles
  * de Supabase Auth (limites et CAPTCHA réglables dans le tableau de bord).
  */
@@ -33,6 +36,12 @@ export const LIMITS = {
   emailPerAccount: 3,
   /** demandes d'e-mail depuis une même adresse IP */
   emailPerIp: 10,
+  /** codes de vérification erronés pour un compte depuis une même adresse IP */
+  otpPerAccount: 5,
+  /** codes de vérification erronés pour un compte, toutes adresses IP confondues */
+  otpPerAccountAnyIp: 10,
+  /** codes de vérification erronés depuis une même adresse IP, tous comptes confondus */
+  otpPerIp: 30,
 } as const;
 
 // identifiants hachés : ni adresse e-mail ni IP en clair en mémoire
@@ -93,6 +102,27 @@ export function recordLoginFailure(ip: string, email: string, now = Date.now()) 
 /** Connexion réussie : les échecs de ce compte depuis cette adresse sont oubliés. */
 export function clearLoginFailures(ip: string, email: string) {
   buckets.delete(loginKeys(ip, email)[0][0]);
+}
+
+const otpKeys = (ip: string, email: string): [string, number][] => [
+  [key("code", ip, normalizeEmail(email)), LIMITS.otpPerAccount],
+  [key("code-compte", normalizeEmail(email)), LIMITS.otpPerAccountAnyIp],
+  [key("code-ip", ip), LIMITS.otpPerIp],
+];
+
+/** Vérification de code bloquée ? Nombre de secondes à attendre, ou 0. */
+export function otpRetryAfter(ip: string, email: string, now = Date.now()): number {
+  return retryAfter(otpKeys(ip, email), now);
+}
+
+/** Code refusé : compté pour le couple (IP, compte), pour le compte et pour l'IP. */
+export function recordOtpFailure(ip: string, email: string, now = Date.now()) {
+  for (const [k] of otpKeys(ip, email)) increment(k, now);
+}
+
+/** Code accepté : les échecs de ce compte sont oubliés. */
+export function clearOtpFailures(ip: string, email: string) {
+  for (const [k] of otpKeys(ip, email).slice(0, 2)) buckets.delete(k);
 }
 
 /**

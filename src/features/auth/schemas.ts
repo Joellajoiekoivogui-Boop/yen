@@ -76,6 +76,21 @@ export const partnerSignUpSchema = z
 
 export const resetRequestSchema = z.object({ email: z.email("Adresse e-mail invalide.").trim().toLowerCase() });
 
+/**
+ * Code de vérification reçu par e-mail (généré et vérifié par Supabase Auth) : chiffres uniquement,
+ * espaces tolérés au collage ; 6 chiffres par défaut, jusqu'à 10 selon le réglage du projet Supabase.
+ */
+export const otpCodeSchema = z
+  .string({ error: "Saisissez le code reçu par e-mail." })
+  .transform((v) => v.replace(/[\s-]/g, ""))
+  .pipe(z.string().min(1, "Saisissez le code reçu par e-mail.").regex(/^\d{6,10}$/, "Code invalide : saisissez les chiffres reçus par e-mail (6 chiffres)."));
+
+export const verifySignupSchema = z.object({
+  // espaces retirés avant le contrôle du format (adresse collée depuis un e-mail)
+  email: z.string({ error: "Adresse e-mail invalide." }).trim().toLowerCase().pipe(z.email("Adresse e-mail invalide.")),
+  code: otpCodeSchema,
+});
+
 export const newPasswordSchema = z
   .object({ password: passwordSchema, password_confirm: z.string() })
   .refine((v) => v.password === v.password_confirm, { path: ["password_confirm"], message: "Les deux mots de passe ne sont pas identiques." });
