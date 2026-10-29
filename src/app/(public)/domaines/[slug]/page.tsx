@@ -26,7 +26,7 @@ export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
         <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-navy-800 text-gold-300 sm:size-14"><DomainIcon name={d.icon} className="size-6 sm:size-7" /></span>
         {/* min-w-0 + césure : un nom long (« contrôle-commande ») passe à la ligne au lieu de déborder */}
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-balance hyphens-auto text-navy-900 sm:text-3xl">{d.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-balance break-words hyphens-auto text-navy-900 sm:text-3xl">{d.name}</h1>
           <p className="mt-2 max-w-3xl text-slate-600">{d.description}</p>
         </div>
       </div>
@@ -65,9 +65,10 @@ export default async function DomainPage(props: PageProps<"/domaines/[slug]">) {
                     </summary>
                     <ul className="mt-3 space-y-2 text-sm">
                       {SKILL_LEVELS.map((l) => (
-                        <li key={l} className="grid grid-cols-[110px_1fr] gap-2">
+                        // téléphone : niveau au-dessus de son critère (la colonne de texte serait trop étroite)
+                        <li key={l} className="grid gap-0.5 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-2">
                           <span className="font-medium text-electric-700">{levelLabel[l]}</span>
-                          <span className="text-slate-600">{s.level_criteria?.[l] ?? "—"}</span>
+                          <span className="hyphens-auto break-words text-slate-600">{s.level_criteria?.[l] ?? "—"}</span>
                         </li>
                       ))}
                     </ul>

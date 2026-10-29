@@ -109,7 +109,7 @@ export default async function TalentDetailPage(props: PageProps<"/admin/talents/
                   <ProgressBar value={completion.percent} className="mt-1 max-w-sm" label="Complétion" />
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {Object.entries(consentLabel).map(([k, v]) => <Badge key={k} tone={b!.consents[k] ? "green" : "neutral"}>{b!.consents[k] ? "✓" : "✗"} {v.title}</Badge>)}
+                  {Object.entries(consentLabel).map(([k, v]) => <Badge key={k} tone={b!.consents[k] ? "green" : "neutral"} className="max-w-full rounded-lg whitespace-normal">{b!.consents[k] ? "✓" : "✗"} {v.title}</Badge>)}
                 </div>
               </CardBody>
             </Card>
