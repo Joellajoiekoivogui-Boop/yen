@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-type Particle = { x: number; y: number; vx: number; vy: number; r: number; gold: boolean };
+type Particle = { x: number; y: number; vx: number; vy: number; r: number };
 type Ring = { x: number; y: number; t0: number };
 
 const LINK = 110; // distance max entre deux points reliés (px)
@@ -11,7 +11,7 @@ const REACH = 170; // portée du pointeur (px)
 const RING_MS = 900;
 
 /**
- * Constellation interactive en fond du héros (canvas décoratif) : des points dorés et bleus
+ * Constellation interactive en fond du héros (canvas décoratif) : des points d'une seule teinte
  * flottent et se relient ; ils se tendent vers la souris, et un clic ou un toucher lance
  * une onde qui les écarte.
  * Démarre une fois la page au repos (n'affecte pas l'affichage initial), s'arrête hors de
@@ -51,7 +51,7 @@ export function Constellation({ className }: { className?: string }) {
       particles = Array.from({ length: n }, () => {
         const a = Math.random() * Math.PI * 2;
         const s = 0.12 + Math.random() * 0.28;
-        return { x: Math.random() * w, y: Math.random() * h, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 0.9 + Math.random() * 1.6, gold: Math.random() < 0.32 };
+        return { x: Math.random() * w, y: Math.random() * h, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 0.9 + Math.random() * 1.6 };
       });
     };
     const resize = () => {
@@ -113,7 +113,7 @@ export function Constellation({ className }: { className?: string }) {
         if (pointer.active) {
           const d = Math.hypot(a.x - pointer.x, a.y - pointer.y);
           if (d < REACH) {
-            ctx.strokeStyle = `rgb(247 203 69 / ${(0.65 * (1 - d / REACH)).toFixed(3)})`;
+            ctx.strokeStyle = `rgb(214 223 242 / ${(0.45 * (1 - d / REACH)).toFixed(3)})`;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(pointer.x, pointer.y);
@@ -122,13 +122,9 @@ export function Constellation({ className }: { className?: string }) {
         }
       }
 
+      // points d'une seule teinte, sans halo : une constellation discrète, pas un feu d'artifice
+      ctx.fillStyle = "rgb(214 223 242 / 0.7)";
       for (const p of particles) {
-        // halo en disque transparent (pas d'ombre floue, coûteuse à dessiner)
-        ctx.fillStyle = p.gold ? "rgb(247 203 69 / 0.16)" : "rgb(143 174 247 / 0.14)";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r * 3.2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = p.gold ? "rgb(253 224 138 / 0.95)" : "rgb(214 223 242 / 0.85)";
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -141,7 +137,7 @@ export function Constellation({ className }: { className?: string }) {
           continue;
         }
         const e = 1 - Math.pow(1 - k, 3);
-        ctx.strokeStyle = `rgb(247 203 69 / ${(0.7 * (1 - k)).toFixed(3)})`;
+        ctx.strokeStyle = `rgb(214 223 242 / ${(0.5 * (1 - k)).toFixed(3)})`;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(rings[i].x, rings[i].y, 12 + e * 220, 0, Math.PI * 2);

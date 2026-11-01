@@ -33,7 +33,7 @@ export function SignUpForms({ initialType, google = false }: { initialType: "can
         <span
           aria-hidden
           className={cn(
-            "absolute inset-y-1 left-1 w-[calc(50%-0.375rem)] rounded-lg bg-white shadow-md shadow-navy-900/10 transition-transform duration-500 ease-spring",
+            "absolute inset-y-1 left-1 w-[calc(50%-0.375rem)] rounded-lg bg-white shadow-md transition-transform duration-500 ease-spring",
             type === "partenaire" && "translate-x-[calc(100%+0.25rem)]",
           )}
         />

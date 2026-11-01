@@ -83,7 +83,7 @@ export default async function OffersPage(props: PageProps<"/candidat/offres">) {
             const m = scores.get(o.id);
             return (
               <Link key={o.id} href={`/candidat/offres/${o.id}`}>
-                <Card className="h-full p-5 transition hover:border-electric-300 hover:shadow-md">
+                <Card className="h-full p-5 transition hover:border-navy-200 hover:shadow-md">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-wrap gap-1.5">
                       <Badge tone="blue">{opportunityLabel[o.offer_type as OpportunityType]}</Badge>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ArrowRight, Lock, ShieldCheck, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
-import { EdgeBeam } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
 import { SectionTitle } from "@/components/public/section-title";
 import { DEFAULT_WEIGHTS, WEIGHT_LABELS, type Weights } from "@/features/matching/engine";
@@ -28,7 +27,7 @@ export default function HowItWorksPage() {
         photoAlt="Étudiante concentrée sur son ordinateur portable dans un amphithéâtre, entourée d'autres participants"
         caption="Chaque compétence démontrée repose sur une preuve"
       >
-        <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+        <ButtonLink href="/inscription" variant="accent" size="lg" className="group w-full sm:w-auto">
           Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </ButtonLink>
       </PageHero>
@@ -38,23 +37,19 @@ export default function HowItWorksPage() {
         <SectionTitle eyebrow="Le parcours du candidat" title={<>Six étapes, dans l&apos;ordre</>} />
         <ol className="relative mt-12 space-y-6">
           <span aria-hidden className="absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-navy-100 sm:left-[1.625rem]" />
-          <span aria-hidden className="timeline-fill absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-gradient-to-b from-gold-400 via-electric-500 to-navy-700 sm:left-[1.625rem]" />
-          {/* comète qui file le long du parcours */}
-          <span aria-hidden className="comet-track pointer-events-none absolute top-2 bottom-2 left-[1.375rem] w-0.5 sm:left-[1.625rem]">
-            <span className="comet-y" />
-          </span>
+          <span aria-hidden className="timeline-fill absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-navy-700 sm:left-[1.625rem]" />
           {STEPS.map(({ t, d, icon: Icon }, i) => (
             <li key={t} data-reveal="up" className="group relative flex gap-5 sm:gap-6">
               {/* numéro bleu au repos ; la pastille allumée (même numéro, en blanc) apparaît au défilement */}
               <span className="relative z-10 grid size-11 shrink-0 place-items-center rounded-full bg-white text-sm font-bold text-navy-800 ring-2 ring-navy-100 sm:size-[3.25rem]">
                 {i + 1}
-                <span aria-hidden className="step-light absolute inset-0 grid place-items-center rounded-full bg-gradient-to-br from-navy-800 to-electric-600 text-white shadow-lg shadow-electric-500/30">
+                <span aria-hidden className="step-light absolute inset-0 grid place-items-center rounded-full bg-navy-800 text-white shadow-lg">
                   {i + 1}
                 </span>
               </span>
-              <div data-tilt className="min-w-0 flex-1 rounded-2xl border border-border bg-white p-5 transition duration-500 ease-out-expo group-hover:-translate-y-1 group-hover:border-electric-200 group-hover:shadow-xl group-hover:shadow-electric-500/10 sm:p-6">
+              <div className="min-w-0 flex-1 rounded-2xl border border-border bg-white p-5 transition duration-500 ease-out-expo group-hover:-translate-y-1 group-hover:border-navy-200 group-hover:shadow-md sm:p-6">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-9 place-items-center rounded-lg bg-gold-50 text-gold-700 ring-1 ring-gold-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
+                  <span className="grid size-9 place-items-center rounded-lg bg-gold-50 text-gold-700 ring-1 ring-gold-100">
                     <Icon className="size-4" aria-hidden />
                   </span>
                   <h3 className="text-lg font-semibold text-navy-900">{t}</h3>
@@ -79,7 +74,6 @@ export default function HowItWorksPage() {
             </p>
           </SectionTitle>
           <div data-reveal="up" className="relative min-w-0 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-            <EdgeBeam />
             <p className="text-sm font-semibold text-navy-900">Pondération par défaut</p>
             <p className="text-xs text-muted">Ajustable par l&apos;équipe YEN</p>
             <ul className="mt-6 space-y-5">
@@ -90,7 +84,7 @@ export default function HowItWorksPage() {
                     <span className="font-semibold text-navy-900 tabular-nums">{value}&nbsp;%</span>
                   </div>
                   <div className="mt-2 h-2.5 overflow-clip rounded-full bg-navy-50">
-                    <span className="bar-grow block h-full rounded-full bg-gradient-to-r from-navy-700 via-electric-500 to-gold-400" style={{ width: `${value * 2}%` }} />
+                    <span className="bar-grow block h-full rounded-full bg-navy-700" style={{ width: `${value * 2}%` }} />
                   </div>
                 </li>
               ))}
@@ -104,8 +98,8 @@ export default function HowItWorksPage() {
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div data-reveal-children className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {HUMAN.map(({ icon: Icon, t, d }) => (
-            <div key={t} data-spotlight data-tilt className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-xl hover:shadow-navy-900/5">
-              <span className="grid size-11 place-items-center rounded-xl bg-navy-900 text-gold-300 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:rotate-6">
+            <div key={t} className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-md">
+              <span className="grid size-11 place-items-center rounded-xl bg-navy-900 text-gold-300">
                 <Icon className="size-5" aria-hidden />
               </span>
               <h3 className="mt-4 font-semibold text-navy-900">{t}</h3>
@@ -115,11 +109,9 @@ export default function HowItWorksPage() {
         </div>
         <div data-reveal="up" className="mt-12 flex flex-col items-center gap-4 text-center">
           <p className="text-lg font-semibold text-navy-900">Prêt à commencer&nbsp;?</p>
-          <span className="glow-ring">
-            <ButtonLink href="/inscription" variant="secondary" size="lg" data-magnetic data-sparkle className="btn-gleam group">
+          <ButtonLink href="/inscription" variant="secondary" size="lg" className="group">
               Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
             </ButtonLink>
-          </span>
         </div>
       </section>
     </>

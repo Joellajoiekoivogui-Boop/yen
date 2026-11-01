@@ -3,7 +3,6 @@
 import { useId, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { setMotionPaused, useMotionPaused } from "@/components/motion/motion-toggle";
-import { EdgeBeam } from "@/components/motion/sky";
 import { HOW_IT_WORKS_STEPS } from "@/lib/content/how-it-works";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
@@ -58,7 +57,6 @@ export function HowItWorksStepper() {
               id={`${baseId}-tab-${i}`}
               type="button"
               role="tab"
-              data-sparkle
               aria-selected={selected}
               aria-controls={`${baseId}-panel`}
               tabIndex={selected ? 0 : -1}
@@ -76,7 +74,7 @@ export function HowItWorksStepper() {
               }}
               className={cn(
                 "group relative overflow-hidden rounded-2xl border px-4 py-3 text-left transition-all duration-300",
-                selected ? "border-navy-200 bg-white shadow-lg shadow-navy-900/10" : "border-transparent hover:border-border hover:bg-white/70",
+                selected ? "border-navy-200 bg-white shadow-lg" : "border-transparent hover:border-border hover:bg-white/70",
               )}
             >
               <span className="flex items-center gap-3">
@@ -94,7 +92,7 @@ export function HowItWorksStepper() {
               <span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-transparent">
                 {selected && (
                   <span
-                    className={cn("block h-full origin-left bg-gradient-to-r from-navy-700 to-gold-400", auto ? "step-progress" : "w-full")}
+                    className={cn("block h-full origin-left bg-navy-700", auto ? "step-progress" : "w-full")}
                     style={auto ? { animationDuration: `${STEP_MS}ms`, animationPlayState: paused ? "paused" : "running" } : undefined}
                     onAnimationEnd={() => {
                       if (auto) select(active + 1);
@@ -113,14 +111,11 @@ export function HowItWorksStepper() {
         aria-labelledby={`${baseId}-tab-${active}`}
         className="relative overflow-hidden rounded-3xl bg-navy-950 p-8 text-white sm:p-10"
       >
-        <EdgeBeam />
-        <div aria-hidden className="pointer-events-none absolute -top-40 -right-40 size-[26rem] animate-blob glow-blob glow-gold opacity-20" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-44 -left-36 size-[26rem] animate-blob glow-blob glow-electric opacity-25 [animation-delay:-8s]" />
         <div key={active} className="relative">
           <p className="animate-slide-down text-sm font-semibold tracking-wide text-gold-300 uppercase">
             Étape {active + 1} sur {steps.length}
           </p>
-          <span className="mt-5 grid size-16 animate-pop-in place-items-center rounded-2xl bg-gold-400 text-navy-950 shadow-lg shadow-gold-500/30">
+          <span className="mt-5 grid size-16 animate-pop-in place-items-center rounded-2xl bg-gold-400 text-navy-950">
             <CurrentIcon className="size-8" aria-hidden />
           </span>
           <h3 className="mt-6 animate-[reveal-up_0.7s_var(--ease-out-expo)_0.1s_backwards] text-2xl font-bold sm:text-3xl">{current.t}</h3>

@@ -18,7 +18,7 @@ export function Logo({ href = "/", inverted = false, compact = false, className 
         width={88}
         height={40}
         priority
-        className="h-10 w-auto transition-transform duration-500 ease-spring group-hover:scale-105"
+        className="h-10 w-auto"
       />
       <span
         aria-hidden

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { buttonClass } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { PUBLIC_NAV } from "./public-nav-links";
@@ -29,9 +30,11 @@ export function PublicNav() {
 }
 
 /**
- * Menu hamburger du site public (téléphone et tablette). Le panneau est déjà dans la page,
- * invisible : l'ouvrir ne fait que le glisser (transform) et éclaircir le fond (opacité).
- * Échap ou un toucher hors du panneau le ferme ; il se ferme aussi au changement de page.
+ * Menu hamburger du site public (téléphone et tablette) : une feuille plein écran sous l'en-tête,
+ * grands liens séparés par de fines lignes, boutons de connexion en bas. Le panneau est déjà dans
+ * la page, invisible : l'ouvrir ne fait que le fondre (opacité) et monter légèrement les liens.
+ * Échap le ferme (le focus revient au bouton) ; il se ferme aussi au changement de page. La page
+ * ne défile pas derrière tant qu'il est ouvert.
  */
 export function PublicMobileMenu({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname();
@@ -48,10 +51,18 @@ export function PublicMobileMenu({ signedIn }: { signedIn: boolean }) {
       buttonRef.current?.focus();
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const root = document.documentElement;
+    root.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      root.style.overflow = "";
+    };
   }, [open]);
 
   const close = () => setOpenOn(null);
+  // les éléments montent l'un après l'autre à l'ouverture, et disparaissent ensemble à la fermeture
+  const stagger = (i: number) => ({ transitionDelay: open ? `${60 + i * 35}ms` : "0ms" });
+  const item = cn("transition-[translate,opacity] duration-500 ease-out-expo", open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0");
 
   return (
     <>
@@ -64,63 +75,55 @@ export function PublicMobileMenu({ signedIn }: { signedIn: boolean }) {
         aria-expanded={open}
         aria-controls="menu-public"
       >
-        {/* trois traits qui se croisent en « ✕ » à l'ouverture */}
-        <span aria-hidden className="relative block h-4 w-5">
-          <span className={cn("absolute top-0 left-0 h-0.5 w-5 rounded-full bg-current transition-[translate,rotate] duration-300 ease-out-expo", open && "translate-y-[7px] rotate-45")} />
-          <span className={cn("absolute top-[7px] left-0 h-0.5 w-5 rounded-full bg-current transition-[opacity,scale] duration-200", open && "scale-x-0 opacity-0")} />
-          <span className={cn("absolute top-[14px] left-0 h-0.5 w-5 rounded-full bg-current transition-[translate,rotate] duration-300 ease-out-expo", open && "-translate-y-[7px] -rotate-45")} />
+        {/* deux traits qui se croisent en « ✕ » à l'ouverture */}
+        <span aria-hidden className="relative block h-3 w-5">
+          <span className={cn("absolute top-0 left-0 h-0.5 w-5 rounded-full bg-current transition-[translate,rotate] duration-300 ease-out-expo", open && "translate-y-[5px] rotate-45")} />
+          <span className={cn("absolute top-[10px] left-0 h-0.5 w-5 rounded-full bg-current transition-[translate,rotate] duration-300 ease-out-expo", open && "-translate-y-[5px] -rotate-45")} />
         </span>
       </button>
-      {/* fermé : invisible (ni focus ni lecteur d'écran), une fois le glissement terminé */}
-      <div id="menu-public" className={cn("absolute inset-x-0 top-full lg:hidden", open ? "visible" : "invisible [transition:visibility_0s_linear_200ms]")}>
-        <div aria-hidden className={cn("absolute inset-x-0 top-0 h-dvh bg-navy-950/40 transition-opacity duration-200", open ? "opacity-100" : "opacity-0")} onClick={close} />
-        <nav
-          aria-label="Navigation publique (mobile)"
-          className={cn(
-            "relative border-b border-border bg-white px-4 pt-3 pb-5 shadow-xl transition-[translate,opacity] duration-300 ease-out-expo sm:px-6",
-            open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0",
-          )}
-        >
-          <ul className="space-y-1">
+      {/* fermé : invisible (ni focus ni lecteur d'écran), une fois le fondu terminé */}
+      <div
+        id="menu-public"
+        className={cn(
+          "fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-white transition-opacity duration-300 ease-out lg:hidden",
+          open ? "visible opacity-100" : "invisible opacity-0 [transition:opacity_200ms_ease-out,visibility_0s_linear_200ms]",
+        )}
+      >
+        <nav aria-label="Navigation publique (mobile)" className="mx-auto flex min-h-full max-w-2xl flex-col px-6 pt-4 pb-8 sm:px-8">
+          <ul>
             {PUBLIC_NAV.map((n, i) => {
               const active = isActive(pathname, n.href);
               return (
-                // les liens arrivent l'un après l'autre à l'ouverture
-                <li key={n.href} className={cn("transition-[translate,opacity] duration-300 ease-out-expo", open ? "translate-x-0 opacity-100" : "-translate-x-3 opacity-0")} style={{ transitionDelay: open ? `${80 + i * 45}ms` : "0ms" }}>
+                <li key={n.href} className={cn("border-b border-border/80", item)} style={stagger(i)}>
                   <Link
                     href={n.href}
                     onClick={close}
                     aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "relative flex items-center rounded-xl px-4 py-3 text-base font-medium transition-colors",
-                      "before:absolute before:top-1/2 before:left-0 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-gold-400 before:transition-transform",
-                      active ? "bg-navy-50 text-navy-900 before:scale-y-100" : "text-slate-700 before:scale-y-0 active:bg-navy-50",
-                    )}
+                    className="group flex items-center justify-between py-5 font-heading text-2xl font-semibold tracking-tight text-navy-950"
                   >
-                    {n.label}
+                    <span className={cn("underline-offset-8", active ? "underline decoration-gold-400 decoration-2" : "group-active:text-navy-700")}>{n.label}</span>
+                    <ArrowRight className="size-5 text-slate-400 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                   </Link>
                 </li>
               );
             })}
           </ul>
-          <div
-            className={cn("mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 transition-[translate,opacity] duration-300 ease-out-expo", open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0")}
-            style={{ transitionDelay: open ? `${80 + PUBLIC_NAV.length * 45}ms` : "0ms" }}
-          >
+          <div className={cn("mt-auto grid gap-3 pt-10", item)} style={stagger(PUBLIC_NAV.length)}>
             {signedIn ? (
-              <Link href="/connexion" onClick={close} className={buttonClass("secondary", "md", "col-span-2")}>
+              <Link href="/connexion" onClick={close} className={buttonClass("secondary", "lg")}>
                 Mon espace
               </Link>
             ) : (
               <>
-                <Link href="/connexion" onClick={close} className={buttonClass("outline", "md")}>
-                  Connexion
-                </Link>
-                <Link href="/inscription" onClick={close} className={buttonClass("secondary", "md")}>
+                <Link href="/inscription" onClick={close} className={buttonClass("secondary", "lg")}>
                   Créer un compte
+                </Link>
+                <Link href="/connexion" onClick={close} className={buttonClass("outline", "lg")}>
+                  Connexion
                 </Link>
               </>
             )}
+            <p className="pt-3 text-center text-sm text-muted">Youth Engineers Network · Guinée</p>
           </div>
         </nav>
       </div>

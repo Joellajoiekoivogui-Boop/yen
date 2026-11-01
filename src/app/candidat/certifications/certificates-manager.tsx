@@ -276,7 +276,7 @@ function CertificateForm({ item, maxBytes, onDone, onCancel }: { item?: Certific
 
       {progress !== null && (
         <div role="progressbar" aria-label="Envoi du certificat" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} className="h-2 overflow-hidden rounded-full bg-white">
-          <div className="h-full rounded-full bg-gradient-to-r from-electric-500 to-gold-400 transition-[width] duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full rounded-full bg-navy-700 transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
       )}
       {formError && (

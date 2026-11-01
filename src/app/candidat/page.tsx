@@ -64,7 +64,7 @@ export default async function CandidateDashboard() {
       ))}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card data-spotlight className="group flex items-center gap-4 p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg hover:shadow-navy-900/10">
+        <Card className="group flex items-center gap-4 p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg">
           <ProgressRing value={completion.percent} label="Complétion du profil" />
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted">Complétion du profil</p>

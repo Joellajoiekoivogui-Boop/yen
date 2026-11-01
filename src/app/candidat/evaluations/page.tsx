@@ -45,7 +45,7 @@ export default async function AssessmentsPage(props: PageProps<"/candidat/evalua
         {(assessments.data ?? []).length === 0 && <div className="md:col-span-3"><EmptyState icon={ClipboardCheck} title="Aucun entretien publié pour ce domaine" description="Choisissez un autre domaine dans la liste ci-dessus : l'équipe YEN publie régulièrement de nouveaux entretiens." /></div>}
         {(assessments.data ?? []).map((a) => (
           <Link key={a.id} href={`/candidat/evaluations/${a.id}`} className="block">
-            <Card className="h-full p-5 transition hover:border-electric-300 hover:shadow-md">
+            <Card className="h-full p-5 transition hover:border-navy-200 hover:shadow-md">
               <div className="flex flex-wrap gap-1.5">
                 <Badge tone="blue">{levelLabel[a.level as SkillLevel]}</Badge>
                 <Badge><Clock className="size-3" aria-hidden /> {a.duration_minutes} min</Badge>

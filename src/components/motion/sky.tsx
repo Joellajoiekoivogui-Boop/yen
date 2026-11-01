@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,43 +39,6 @@ export function NightSky({ stars = 3, twinkles = 4, className }: { stars?: numbe
           className={cn("twinkle", i >= 3 && "max-sm:hidden")}
           style={{ left: `${t.x}%`, top: `${t.y}%`, "--size": `${t.size}px`, "--dur": `${t.dur}s`, "--delay": `${t.delay}s` } as CSSProperties}
         />
-      ))}
-    </div>
-  );
-}
-
-/** Bordure lumineuse : à placer en premier enfant d'une carte arrondie en position relative. */
-export function EdgeBeam({ className }: { className?: string }) {
-  return (
-    <span aria-hidden className={cn("edge-beam", className)}>
-      <i />
-      <i />
-    </span>
-  );
-}
-
-/**
- * Pictos en bulles qui flottent et suivent légèrement la souris ([data-depth], moteur d'animation).
- * Chaque entrée : icône, position (%), taille (px), profondeur (amplitude du suivi, px).
- */
-export function FloatingIcons({
-  items,
-  className,
-}: {
-  items: { icon: LucideIcon; x: number; y: number; size?: number; depth?: number; dur?: number; delay?: number; className?: string }[];
-  className?: string;
-}) {
-  return (
-    <div aria-hidden className={cn("pointer-events-none absolute inset-0", className)}>
-      {items.map(({ icon: Icon, x, y, size = 56, depth = 18, dur = 7, delay = 0, className: itemClass }, i) => (
-        <span
-          key={i}
-          data-depth={depth}
-          className={cn("float-icon", itemClass)}
-          style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, "--dur": `${dur}s`, "--delay": `${-delay}s`, "--r0": `${i % 2 ? 6 : -6}deg`, "--r1": `${i % 2 ? -4 : 4}deg` } as CSSProperties}
-        >
-          <Icon style={{ width: size * 0.44, height: size * 0.44 }} />
-        </span>
       ))}
     </div>
   );

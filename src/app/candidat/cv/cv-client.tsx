@@ -93,7 +93,7 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
         }}
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition duration-300",
-          dragging ? "scale-[1.01] border-gold-400 bg-gold-50" : "border-border bg-slate-50 hover:border-electric-300 hover:bg-white",
+          dragging ? "scale-[1.01] border-gold-400 bg-gold-50" : "border-border bg-slate-50 hover:border-navy-200 hover:bg-white",
         )}
       >
         {chosen ? <FileText className="size-7 text-red-600" aria-hidden /> : <UploadCloud className={cn("size-7 text-electric-600", dragging && "animate-bounce-soft")} aria-hidden />}
@@ -104,7 +104,7 @@ export function CvUploadForm({ maxMb }: { maxMb: number }) {
       </label>
       {progress !== null && (
         <div role="progressbar" aria-label="Envoi du CV" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} className="h-2 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-gradient-to-r from-electric-500 to-gold-400 transition-[width] duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full rounded-full bg-navy-700 transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
       )}
       {msg && <Alert tone={msg.ok ? "success" : "error"}>{msg.text}</Alert>}

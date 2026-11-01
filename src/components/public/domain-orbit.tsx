@@ -29,7 +29,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * Orbite des domaines d'ingénierie : chaque domaine est un picto sur un anneau, et seuls les trois
  * qui passent sous l'arc doré ont leur carte affichée (jamais plus de trois à la fois).
  * Animations : la roue tourne avec un léger rebond, les pictos restent droits, les cartes roulent
- * comme un barillet, une traînée dorée file autour de l'anneau, le picto central pulse.
+ * comme un barillet.
  * Contrôles : clic sur un picto, flèches, flèches du clavier, roue attrapée à la souris, glissement
  * du doigt. La rotation automatique (facultative) ne s'arrête pas quand le visiteur fait tourner la
  * roue : elle repart du cran choisi. Elle attend seulement le temps qu'on survole les cartes (pour
@@ -159,7 +159,7 @@ export function DomainOrbit({
       <span aria-hidden className="pointer-events-none absolute -right-1 -bottom-4 font-heading text-6xl font-bold text-navy-700/60">
         {pad(i + 1)}
       </span>
-      <span className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-gold-300 to-gold-400 text-navy-950">
+      <span className="grid size-11 place-items-center rounded-xl bg-gold-300 text-navy-950">
         <DomainIcon name={d.icon} className="size-5" />
       </span>
       <span className="relative grid min-w-0 gap-0.5">
@@ -226,7 +226,6 @@ export function DomainOrbit({
               </g>
             </svg>
           </div>
-          <div className="orbit-comet" aria-hidden />
           <div className="orbit-ring" role="group" aria-label="Choisir un domaine" style={{ "--turn": `${angle}deg` } as CSSProperties}>
             {domains.map((d, i) => {
               const off = Math.abs(ringOffset(i, center, count));
@@ -302,7 +301,7 @@ export function DomainOrbit({
               {auto && (
                 <span
                   key={turn}
-                  className="step-progress block h-full origin-left rounded-full bg-gradient-to-r from-gold-300 to-gold-400"
+                  className="step-progress block h-full origin-left rounded-full bg-gold-400"
                   style={{ animationDuration: `${AUTO_MS}ms`, animationPlayState: hold ? "paused" : "running" }}
                   onAnimationEnd={(e) => {
                     if (e.animationName === "step-progress") go(turn + 1, false);

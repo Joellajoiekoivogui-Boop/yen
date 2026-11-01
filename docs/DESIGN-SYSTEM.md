@@ -63,11 +63,24 @@ est réservé aux icônes décoratives et aux textes d'exemple des champs.
 | `ease-out-expo` | Entrées et transitions principales |
 | `ease-spring` | Petits rebonds (icônes, pastilles) |
 | `animate-*` (float, blob, pop-in, slide-down…) | Animations prêtes à l'emploi |
-| `data-reveal`, `data-reveal-children` | Apparition au défilement |
-| `data-spotlight`, `data-tilt`, `data-magnetic`, `data-depth`, `data-sparkle` | Effets liés au pointeur (moteur `components/motion/motion-engine.tsx`) |
+| `data-reveal`, `data-reveal-children` | Apparition au défilement (moteur `components/motion/motion-engine.tsx`) |
 
 Toute animation continue s'arrête avec le bouton pause (`[data-motion-paused]`). Rien ne bouge si
-l'appareil demande à réduire les animations.
+l'appareil demande à réduire les animations. Aucun effet ne suit le pointeur (halo, inclinaison 3D,
+bouton « magnétique », étincelles) : ils faisaient « généré par IA » et occupaient le processeur.
+
+### Principes visuels (sobriété)
+
+| ✅ À faire | ❌ À éviter |
+|---|---|
+| Bleu nuit pour les fonds et les titres, **jaune en accent unique** : bouton d'appel principal, un mot clé | Mélanger jaune et bleu dans un même dégradé (fonds, bordures, textes) |
+| Couleurs **unies** (barres de progression, pastilles d'icônes, traits) | Texte en dégradé, halos colorés, bordures lumineuses |
+| Ombres **neutres** et légères : `shadow-sm` au repos, `shadow-md` au survol | Ombres colorées (`shadow-gold-…`, `shadow-electric-…`), `shadow-2xl` |
+| Survol discret : bordure `navy-200`, léger soulèvement (`-translate-y-1`) | Rotation ou grossissement d'icônes, reflets qui balaient les boutons |
+| Fond sombre uni ; seuls décors : étoiles blanches discrètes (`NightSky`) et constellation du héros | Grilles animées, particules, anneaux tournants, étiquettes flottantes sur les photos |
+| Voile sombre sous une légende de photo (lisibilité) | Dégradé décoratif |
+
+Le bleu vif (`electric`) est réservé aux liens et au focus clavier.
 
 ## 2. Composants (`src/components/ui`)
 
@@ -76,7 +89,7 @@ l'appareil demande à réduire les animations.
 | Variante | Quand l'utiliser |
 |---|---|
 | `primary` | Action principale d'un écran d'espace connecté (« Enregistrer », « Filtrer ») |
-| `secondary` | Action importante sur fond clair, en complément du principal |
+| `secondary` | Action importante sur fond clair (bleu nuit foncé) : connexion, inscription |
 | `accent` | Appel à l'action du site public (« Créer mon profil ») |
 | `outline` | Action secondaire, pagination, filtres légers |
 | `ghost` | Action discrète (lien d'annulation, barre d'outils) |
@@ -138,7 +151,7 @@ l'appareil demande à réduire les animations.
 | `PageHero` | Bandeau d'ouverture des pages : titre, description, photo facultative, décor animé, bouton pause |
 | `SectionTitle` | Titre de section : surtitre doré, titre, trait animé, description ; `inverted` sur fond sombre |
 | `DomainOrbit` | Orbite des domaines : pictos sur un anneau, trois cartes affichées à la fois (accueil, page Domaines) |
-| Décor (`components/motion/sky.tsx`) | `NightSky` (étoiles filantes et scintillements), `FloatingIcons` (pictos flottants), `EdgeBeam` (traits lumineux sur les bords) |
+| Décor (`components/motion/sky.tsx`) | `NightSky` : quelques étoiles filantes et scintillements blancs, discrets (coût mesuré nul) |
 
 ## 3. Règles de contribution
 
@@ -151,4 +164,7 @@ l'appareil demande à réduire les animations.
 5. Animations :
    - uniquement `transform` et `opacity` ;
    - toujours arrêtables avec le bouton pause ;
-   - désactivées si l'appareil demande moins d'animations.
+   - désactivées si l'appareil demande moins d'animations ;
+   - jamais sur le titre principal d'une page (il doit s'afficher immédiatement).
+6. Sobriété : appliquer les « Principes visuels » ci-dessus ; un effet décoratif s'ajoute seulement
+   si son coût est mesuré et qu'il sert le contenu.

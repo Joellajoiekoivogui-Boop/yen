@@ -12,12 +12,12 @@ type Variant = "primary" | "secondary" | "accent" | "ghost" | "danger" | "outlin
 type Size = "sm" | "md" | "lg";
 
 const variantClass: Record<Variant, string> = {
-  primary: "btn-shine bg-navy-800 text-white hover:bg-navy-700 shadow-sm hover:shadow-md hover:shadow-navy-900/20",
-  secondary: "btn-shine bg-electric-600 text-white hover:bg-electric-700 shadow-sm hover:shadow-md hover:shadow-electric-600/30",
-  accent: "btn-shine bg-gold-400 text-navy-950 hover:bg-gold-300 shadow-sm hover:shadow-md hover:shadow-gold-500/30",
+  primary: "bg-navy-800 text-white hover:bg-navy-700 shadow-sm",
+  secondary: "bg-navy-900 text-white hover:bg-navy-800 shadow-sm",
+  accent: "bg-gold-400 text-navy-950 hover:bg-gold-300 shadow-sm",
   ghost: "text-navy-700 hover:bg-navy-50",
-  danger: "btn-shine bg-red-600 text-white hover:bg-red-700 shadow-sm hover:shadow-md hover:shadow-red-600/30",
-  outline: "border border-border bg-white text-navy-800 hover:border-electric-200 hover:bg-navy-50",
+  danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
+  outline: "border border-border bg-white text-navy-800 hover:border-navy-200 hover:bg-navy-50",
 };
 const sizeClass: Record<Size, string> = {
   sm: "h-8 px-3 text-xs gap-1.5",
@@ -155,7 +155,7 @@ export function Alert({ tone = "info", title, children, className }: { tone?: ke
 export function EmptyState({ icon: Icon = Info, title, description, action }: { icon?: LucideIcon; title: string; description?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-white/60 px-6 py-10 text-center">
-      <span className="animate-float rounded-full bg-navy-50 p-3 text-navy-500">
+      <span className="rounded-full bg-navy-50 p-3 text-navy-500">
         <Icon className="size-6" aria-hidden />
       </span>
       <p className="mt-3 font-semibold text-navy-900">{title}</p>
@@ -171,7 +171,7 @@ export function EmptyState({ icon: Icon = Info, title, description, action }: { 
 export function StatCard({ label, value, hint, icon: Icon, tone = "blue" }: { label: string; value: ReactNode; hint?: ReactNode; icon?: LucideIcon; tone?: "blue" | "gold" | "navy" | "amber" }) {
   const iconTone = { blue: "bg-electric-50 text-electric-600", gold: "bg-gold-50 text-gold-600", navy: "bg-navy-50 text-navy-700", amber: "bg-amber-50 text-amber-700" }[tone];
   return (
-    <Card data-spotlight className="group p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg hover:shadow-electric-500/10">
+    <Card className="group p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted">{label}</p>
@@ -179,7 +179,7 @@ export function StatCard({ label, value, hint, icon: Icon, tone = "blue" }: { la
           {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
         </div>
         {Icon && (
-          <span className={cn("rounded-lg p-2 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6", iconTone)}>
+          <span className={cn("rounded-lg p-2", iconTone)}>
             <Icon className="size-5" aria-hidden />
           </span>
         )}
@@ -289,7 +289,7 @@ export function TabLinks({ tabs, active }: { tabs: { key: string; label: string;
           aria-current={t.key === active ? "page" : undefined}
           className={cn(
             "mx-1 border-b-2 px-2 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-300",
-            t.key === active ? "border-electric-600 text-electric-700" : "border-transparent text-slate-500 hover:border-electric-200 hover:text-navy-800",
+            t.key === active ? "border-electric-600 text-electric-700" : "border-transparent text-slate-500 hover:border-navy-200 hover:text-navy-800",
           )}
         >
           {t.label}

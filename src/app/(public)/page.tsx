@@ -1,15 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
-import { ArrowRight, BadgeCheck, Briefcase, ClipboardCheck, FileText, GraduationCap, Handshake, LineChart, Lock, Rocket, Scale, Search, Sparkles, UserCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Handshake, LineChart, Lock, Scale, Search, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { DomainIcon } from "@/components/domain-icon";
 import { HowItWorksStepper } from "@/components/how-it-works-stepper";
 import { Constellation } from "@/components/motion/constellation";
 import { CountUp } from "@/components/motion/count-up";
-import { animationDelay, revealDelay } from "@/components/motion/delay";
+import { revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
-import { EdgeBeam, FloatingIcons, NightSky } from "@/components/motion/sky";
+import { NightSky } from "@/components/motion/sky";
 import { DomainOrbit } from "@/components/public/domain-orbit";
 import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
@@ -24,14 +23,6 @@ import partenairesPhoto from "@/assets/photos/partenaires.jpg";
 import priseDeParolePhoto from "@/assets/photos/prise-de-parole.jpg";
 import rencontresPhoto from "@/assets/photos/rencontres.jpg";
 import tropheesPhoto from "@/assets/photos/trophees.jpg";
-
-/** Étiquettes posées sur la photo du héros, placées hors des visages (positions en % de la photo). */
-const HERO_TAGS = [
-  { icon: FileText, t: "Profil complet", d: "CV, projets, certifications", pos: "left-[9%] top-[46%] sm:-left-4 sm:top-[49%]" },
-  { icon: ClipboardCheck, t: "Compétences démontrées", d: "prouvées, pas seulement déclarées", pos: "right-[9%] top-[66%] sm:-right-3 sm:top-[63%] lg:right-[5%]" },
-  // sur téléphone, deux étiquettes seulement : la troisième couvrirait les personnes
-  { icon: Briefcase, t: "Opportunités adaptées", d: "stages, emplois, missions", pos: "left-[14%] bottom-[7%] max-sm:hidden" },
-];
 
 const SPACES = [
   {
@@ -112,33 +103,6 @@ const GALLERY = [
   },
 ];
 
-/** Bulles flottantes posées sur la photo de l'appel à l'action (ordinateur) */
-const CTA_FLOATING = [
-  { icon: GraduationCap, x: 62, y: 16, size: 60, depth: 24, dur: 7.2, className: "bg-navy-950/45" },
-  { icon: BadgeCheck, x: 86, y: 26, size: 52, depth: 16, dur: 6.4, delay: 2, className: "bg-navy-950/45" },
-  { icon: Rocket, x: 74, y: 66, size: 56, depth: 28, dur: 8, delay: 3.4, className: "bg-navy-950/45" },
-  { icon: Sparkles, x: 92, y: 74, size: 44, depth: 12, dur: 6.8, delay: 1.2, className: "bg-navy-950/45" },
-];
-
-/** Mots qui défilent dans le titre (le dernier répète le premier pour une boucle sans saut). */
-const ROTATING_WORDS = ["au stage", "à l'emploi", "à l'alternance", "aux missions"];
-
-/** Particules du héros : positions fixes pour un rendu identique serveur / navigateur. */
-const PARTICLES = [
-  { left: 6, top: 78, size: 3, delay: 0, duration: 7 },
-  { left: 14, top: 40, size: 2, delay: 2.4, duration: 9 },
-  { left: 22, top: 88, size: 4, delay: 4.1, duration: 8 },
-  { left: 31, top: 62, size: 2, delay: 1.2, duration: 10 },
-  { left: 39, top: 92, size: 3, delay: 5.5, duration: 7.5 },
-  { left: 47, top: 70, size: 2, delay: 3.3, duration: 9.5 },
-  { left: 56, top: 85, size: 3, delay: 0.8, duration: 8.5 },
-  { left: 63, top: 55, size: 2, delay: 6.2, duration: 9 },
-  { left: 71, top: 90, size: 4, delay: 2, duration: 7 },
-  { left: 79, top: 66, size: 2, delay: 4.7, duration: 10 },
-  { left: 86, top: 82, size: 3, delay: 1.6, duration: 8 },
-  { left: 93, top: 48, size: 2, delay: 3.9, duration: 9 },
-];
-
 export default async function HomePage() {
   const domains = await listDomains().catch(() => referenceDomains());
   const totalOccupations = domains.reduce((n, d) => n + d.occupationCount, 0);
@@ -147,67 +111,28 @@ export default async function HomePage() {
   return (
     <>
       {/* Mission */}
-      <section
-        data-reveal="none"
-        data-spotlight
-        className="relative overflow-hidden bg-navy-950 text-white"
-        style={{ "--spot-color": "rgb(237 180 19 / 0.12)" } as CSSProperties}
-      >
+      <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
+        {/* décor discret : constellation et quelques étoiles, d'une seule teinte */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="hero-grid absolute inset-0" />
-          <div data-parallax="0.12" className="absolute -top-48 right-[-12%] size-[38rem]">
-            <div className="absolute -inset-16 animate-blob glow-blob glow-electric opacity-30" />
-          </div>
-          <div data-parallax="0.28" className="absolute bottom-[-14rem] left-[-10rem] size-[32rem]">
-            <div className="absolute -inset-16 animate-blob glow-blob glow-gold opacity-20 [animation-delay:-6s]" />
-          </div>
-          <div data-parallax="0.2" className="absolute top-1/4 left-1/3 size-[24rem]">
-            <div className="absolute -inset-16 animate-blob glow-blob glow-navy opacity-25 [animation-delay:-12s]" />
-          </div>
           <Constellation />
-          <NightSky stars={5} twinkles={6} />
-          {PARTICLES.map((p, i) => (
-            <span
-              key={i}
-              // une particule sur deux sur téléphone : chaque boucle d'animation sollicite le fil principal
-              className={cn("hero-particle", i % 2 === 1 && "max-sm:hidden")}
-              style={{ left: `${p.left}%`, top: `${p.top}%`, width: p.size, height: p.size, "--particle-delay": `${p.delay}s`, "--particle-duration": `${p.duration}s` } as CSSProperties}
-            />
-          ))}
+          <NightSky stars={3} twinkles={5} />
         </div>
 
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pt-20 pb-28 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8 lg:pt-28 lg:pb-36">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pt-16 pb-28 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr] lg:px-8 lg:pt-28 lg:pb-36">
           <div data-reveal-children>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gold-200 ring-1 ring-white/15">
-              <span className="relative flex size-2" aria-hidden>
-                <span className="absolute inline-flex size-full animate-ping-slow rounded-full bg-gold-300" />
-                <span className="relative inline-flex size-2 rounded-full bg-gold-300" />
-              </span>
-              Youth Engineers Network · Guinée
-            </p>
-            <h1 className="hero-title mt-5 text-[2.1rem] leading-[1.15] font-bold tracking-tight sm:text-5xl lg:text-[3.4rem]">
-              Identifier les talents, renforcer les compétences,{" "}
-              <span className="sr-only">ouvrir l&apos;accès au stage et à l&apos;emploi.</span>
-              <span aria-hidden className="text-gold-300">
-                ouvrir l&apos;accès{" "}
-                <span className="word-rotator">
-                  {ROTATING_WORDS.map((w, i) => (
-                    <span key={w} style={{ "--i": i } as CSSProperties}>
-                      <span className="text-shine">{w}</span>
-                    </span>
-                  ))}
-                </span>
-              </span>
+            {/* titre affiché d'emblée, sans animation d'entrée : c'est l'élément principal du premier écran */}
+            <h1 data-reveal="none" className="hero-title text-[2.1rem] leading-[1.12] font-bold tracking-tight text-balance sm:text-5xl lg:text-[3.4rem]">
+              Identifier les talents, renforcer les compétences, <span className="text-gold-300">ouvrir l&apos;accès au stage et à l&apos;emploi.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-navy-100">
               YEN Career Bridge réunit les profils, les preuves de compétences et les opportunités professionnelles des étudiants et diplômés accompagnés par YEN,
               pour des mises en relation fondées sur ce que chacun sait réellement faire.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+              <ButtonLink href="/inscription" variant="accent" size="lg" className="group w-full sm:w-auto">
                 Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
               </ButtonLink>
-              <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20 sm:w-auto">
+              <ButtonLink href="/fonctionnement" size="lg" className="w-full bg-transparent text-white ring-1 ring-white/25 hover:bg-white/10 sm:w-auto">
                 Comment ça marche
               </ButtonLink>
             </div>
@@ -222,7 +147,7 @@ export default async function HomePage() {
                   <div key={s.label} className="flex flex-col-reverse justify-end">
                     <dt className="mt-1 text-xs text-navy-200 sm:text-sm">{s.label}</dt>
                     <dd>
-                      <CountUp value={s.value} className="block font-heading text-3xl font-bold text-gold-300 tabular-nums sm:text-4xl" />
+                      <CountUp value={s.value} className="block font-heading text-3xl font-bold text-white tabular-nums sm:text-4xl" />
                     </dd>
                   </div>
                 ))}
@@ -230,17 +155,8 @@ export default async function HomePage() {
             )}
           </div>
 
-          {/* Photo posée sur le bas du héros, halo et orbites derrière, étiquettes devant */}
+          {/* Photo posée sur le bas du héros : l'image parle d'elle-même, sans étiquettes ni halo */}
           <div className="relative -mb-28 flex items-end justify-center self-end lg:-mb-36">
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto aspect-square w-full max-w-[34rem] rounded-full lg:max-w-[42rem] bg-[radial-gradient(closest-side,rgb(237_180_19/0.3),rgb(53_101_221/0.22)_55%,transparent)]" />
-            <div aria-hidden className="pointer-events-none absolute top-[42%] left-1/2 hidden size-[34rem] -translate-x-1/2 -translate-y-1/2 lg:block xl:size-[40rem]">
-              <div className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-white/10">
-                <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-gold-300 shadow-[0_0_18px_4px_rgb(237_180_19/0.6)]" />
-              </div>
-              <div className="absolute inset-16 animate-spin-reverse rounded-full border border-white/10">
-                <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-electric-300 shadow-[0_0_14px_3px_rgb(143_174_247/0.6)]" />
-              </div>
-            </div>
             {/* photo affichée sans animation d'entrée : c'est l'élément principal du premier écran (LCP) */}
             {/* plus large que sa colonne (toujours centrée) : d'un bord à l'autre sur téléphone, débordante sur ordinateur */}
             {/* profondeur : la photo glisse plus lentement que la page au défilement */}
@@ -253,21 +169,6 @@ export default async function HomePage() {
                 className="h-auto w-full select-none"
                 draggable={false}
               />
-              {HERO_TAGS.map(({ icon: Icon, t, d, pos }, i) => (
-                <div key={t} className={cn("absolute animate-hero-card", pos)} style={animationDelay(650 + i * 160)}>
-                  <div className="animate-float" style={animationDelay(-i * 1900)}>
-                    <div className="flex items-center gap-2 rounded-2xl bg-navy-950/80 py-1.5 pr-3 pl-1.5 shadow-xl shadow-navy-950/40 ring-1 ring-white/15 sm:gap-3 sm:py-2 sm:pr-4 sm:pl-2">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-gold-400 text-navy-950 sm:size-9">
-                        <Icon className="size-4" aria-hidden />
-                      </span>
-                      <span className="leading-tight">
-                        <span className="block text-xs font-semibold text-white sm:text-sm">{t}</span>
-                        <span className="hidden text-xs text-navy-200 sm:block">{d}</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -288,9 +189,9 @@ export default async function HomePage() {
                 <span
                   key={`${d.slug}-${i}`}
                   aria-hidden={i >= domains.length || undefined}
-                  className="mr-3 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm whitespace-nowrap text-navy-100 ring-1 ring-white/10"
+                  className="mr-8 inline-flex items-center gap-2 py-1 text-sm whitespace-nowrap text-navy-200"
                 >
-                  <DomainIcon name={d.icon} className="size-4 text-gold-300" />
+                  <DomainIcon name={d.icon} className="size-4 text-navy-300" />
                   {d.name}
                 </span>
               ))}
@@ -306,9 +207,7 @@ export default async function HomePage() {
           {SPACES.map(({ icon: Icon, t, photo, alt, items, cta }) => (
             <div
               key={t}
-              data-spotlight
-              data-tilt
-              className="group flex flex-col overflow-clip rounded-2xl border border-border bg-white transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
+              className="group flex flex-col overflow-clip rounded-2xl border border-border bg-white transition duration-300 ease-out-expo hover:-translate-y-1 hover:border-navy-200 hover:shadow-md"
             >
               <div className="photo-curtain relative aspect-[2/1] overflow-clip bg-navy-100 md:aspect-[16/10]">
                 {/* légère parallaxe au défilement ; le zoom au survol reste sur la photo */}
@@ -324,13 +223,13 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="flex flex-1 flex-col px-6 pb-6">
-                <span className="relative -mt-6 grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 shadow-lg shadow-navy-900/10 ring-4 ring-white transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
+                <span className="relative -mt-6 grid size-12 place-items-center rounded-xl bg-navy-50 text-navy-700 ring-4 ring-white">
                   <Icon className="size-5" aria-hidden />
                 </span>
                 <h3 className="mt-4 text-lg font-semibold text-navy-900">{t}</h3>
                 <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                  {items.map((item, j) => (
-                    <li key={item} className="flex animate-nav-item gap-2" style={animationDelay(350 + j * 90)}>
+                  {items.map((item) => (
+                    <li key={item} className="flex gap-2">
                       <BadgeCheck className="mt-0.5 size-4 shrink-0 text-gold-600" aria-hidden />
                       {item}
                     </li>
@@ -367,25 +266,14 @@ export default async function HomePage() {
       </section>
 
       {/* Engagements */}
-      <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
-        <NightSky stars={3} twinkles={4} />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <section data-reveal="none" className="bg-navy-950 text-white">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos engagements" title="Une plateforme digne de confiance" inverted />
           <div data-reveal-children className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {COMMITMENTS.map(({ icon: Icon, t, d }, i) => (
-              <div
-                key={t}
-                data-spotlight
-                data-tilt
-                className="group rounded-2xl bg-white/[0.05] p-6 ring-1 ring-white/10 transition duration-500 ease-out-expo hover:-translate-y-1 hover:bg-white/[0.08]"
-                style={{ "--spot-color": "rgb(237 180 19 / 0.1)" } as CSSProperties}
-              >
-                <span className="relative grid size-12 place-items-center">
-                  <span className="absolute inset-0 animate-ping-slow rounded-full bg-gold-400/25" style={animationDelay(i * 600)} aria-hidden />
-                  <span className="relative grid size-12 place-items-center rounded-full bg-gold-400/15 text-gold-300 transition-transform duration-500 ease-spring group-hover:scale-110">
-                    <Icon className="size-6" aria-hidden />
-                  </span>
+            {COMMITMENTS.map(({ icon: Icon, t, d }) => (
+              <div key={t} className="rounded-2xl p-6 ring-1 ring-white/10">
+                <span className="grid size-11 place-items-center rounded-xl text-gold-300 ring-1 ring-white/15">
+                  <Icon className="size-5" aria-hidden />
                 </span>
                 <h3 className="mt-4 font-semibold">{t}</h3>
                 <p className="mt-1 text-sm text-navy-200">{d}</p>
@@ -405,7 +293,7 @@ export default async function HomePage() {
           />
           <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
             {GALLERY.map(({ photo, caption, alt, cell, focus, sizes }, i) => (
-              <figure key={caption} data-reveal="curtain" data-tilt style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
+              <figure key={caption} data-reveal="curtain" style={revealDelay(i * 80)} className={cn("group relative overflow-clip rounded-2xl bg-navy-100", cell)}>
                 <div className="media-parallax absolute inset-0 [--ps:1.12] [--px:5%]">
                   <Image
                     src={photo}
@@ -454,23 +342,16 @@ export default async function HomePage() {
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
         <div data-reveal="zoom">
-          <div className="relative overflow-hidden rounded-3xl bg-navy-800 text-white">
-            <EdgeBeam />
-            <span aria-hidden className="absolute inset-y-0 left-0 w-[300%] animate-gradient-drift bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] [--drift:-66.667%]" />
-            <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
-            <span aria-hidden className="absolute -bottom-20 left-1/3 size-44 animate-float rounded-full bg-white/10 [animation-delay:-3s]" />
-            <span aria-hidden className="absolute top-8 left-8 hidden size-3 animate-ping-slow rounded-full bg-gold-300 sm:block" />
-            <div className="relative grid lg:grid-cols-[1.15fr_1fr]">
+          <div className="overflow-hidden rounded-3xl bg-navy-900 text-white">
+            <div className="grid lg:grid-cols-[1.15fr_1fr]">
               <div className="flex flex-col items-start justify-center gap-6 p-8 sm:p-12">
                 <div>
                   <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN&nbsp;?</h2>
                   <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
                 </div>
-                <span className="glow-ring">
-                  <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group">
-                    Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-                  </ButtonLink>
-                </span>
+                <ButtonLink href="/inscription" variant="accent" size="lg" className="group">
+                  Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                </ButtonLink>
               </div>
               <div className="relative order-first aspect-[16/9] sm:aspect-[21/9] lg:order-none lg:aspect-auto lg:min-h-72">
                 <Image
@@ -483,7 +364,6 @@ export default async function HomePage() {
                 />
               </div>
             </div>
-            <FloatingIcons items={CTA_FLOATING} className="max-lg:hidden" />
           </div>
         </div>
       </section>

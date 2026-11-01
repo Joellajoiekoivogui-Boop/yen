@@ -15,8 +15,8 @@ function RisingWords({ text }: { text: string }) {
 }
 
 /**
- * Titre de section du site public : surtitre doré, titre (mots qui montent l'un après l'autre),
- * trait animé et description facultative.
+ * Titre de section du site public : surtitre doré, titre (mots qui montent l'un après l'autre)
+ * et description facultative.
  * `inverted` pour les fonds sombres. Les enfants s'affichent sous le titre (paragraphes, chiffres)
  * et apparaissent l'un après l'autre comme le reste du bloc.
  */
@@ -42,10 +42,6 @@ export function SectionTitle({
       <h2 data-reveal="words" className={cn("mt-2 text-3xl font-bold tracking-tight text-balance sm:text-4xl", inverted ? "text-white" : "text-navy-900")}>
         {typeof title === "string" ? <RisingWords text={title} /> : title}
       </h2>
-      <span
-        aria-hidden
-        className={cn("mt-4 block h-1 w-16 origin-left animate-underline rounded-full bg-gradient-to-r", inverted ? "from-gold-300 to-electric-400" : "from-navy-700 to-gold-400")}
-      />
       {description && <p className={cn("mt-4 max-w-2xl", inverted ? "text-navy-200" : "text-muted")}>{description}</p>}
       {children}
     </div>

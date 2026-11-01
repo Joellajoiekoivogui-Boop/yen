@@ -57,7 +57,6 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
         <div className="flex flex-wrap gap-1 self-start rounded-xl bg-slate-100 p-1 sm:shrink-0 sm:flex-nowrap sm:self-auto" role="group" aria-label="Trier les domaines">
           {SORTS.map((s) => (
             <button
-              data-sparkle
               key={s.key}
               type="button"
               onClick={() => setSort(s.key)}
@@ -79,7 +78,7 @@ export function DomainExplorer({ domains }: { domains: DomainCard[] }) {
 
       {results.length === 0 ? (
         <div className="mt-6 flex animate-slide-down flex-col items-center rounded-2xl border border-dashed border-border bg-white px-6 py-12 text-center">
-          <span className="animate-float rounded-full bg-navy-50 p-3 text-navy-500">
+          <span className="rounded-full bg-navy-50 p-3 text-navy-500">
             <Search className="size-6" aria-hidden />
           </span>
           <p className="mt-3 font-semibold text-navy-900">Aucun domaine ne correspond à « {query} »</p>

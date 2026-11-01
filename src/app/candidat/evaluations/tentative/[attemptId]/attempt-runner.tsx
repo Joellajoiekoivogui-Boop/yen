@@ -102,7 +102,7 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
           </Button>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Questions répondues" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-          <div className="h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-300 transition-[width] duration-500 ease-out-expo" style={{ width: `${progress}%` }} />
+          <div className="h-full rounded-full bg-gold-400 transition-[width] duration-500 ease-out-expo" style={{ width: `${progress}%` }} />
         </div>
         {questions.length > 1 && (
           <nav aria-label="Accès aux questions" className="flex flex-wrap gap-1.5">

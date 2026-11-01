@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import type { CSSProperties } from "react";
 import { ArrowRight, BadgeCheck, Briefcase, ClipboardCheck, Compass, FolderLock, LineChart, Lock, Scale, Search, UserCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { CountUp } from "@/components/motion/count-up";
-import { animationDelay } from "@/components/motion/delay";
-import { EdgeBeam, NightSky } from "@/components/motion/sky";
 import { PageHero } from "@/components/public/page-hero";
 import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
@@ -50,10 +47,10 @@ export default async function PresentationPage() {
         photoAlt="Photo de groupe d'une quarantaine de jeunes participants, certificats et trophées en main"
         caption="Lauréats et participants de l'Africa Engineering Summit, une initiative de YEN"
       >
-        <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group w-full shadow-lg shadow-gold-500/30 sm:w-auto">
+        <ButtonLink href="/inscription" variant="accent" size="lg" className="group w-full sm:w-auto">
           Créer un compte <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
         </ButtonLink>
-        <ButtonLink href="/fonctionnement" size="lg" data-magnetic className="w-full bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20 sm:w-auto">
+        <ButtonLink href="/fonctionnement" size="lg" className="w-full bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20 sm:w-auto">
           Voir le fonctionnement
         </ButtonLink>
       </PageHero>
@@ -87,8 +84,7 @@ export default async function PresentationPage() {
           )}
         </SectionTitle>
         <div data-reveal="zoom" className="relative">
-          <div aria-hidden className="absolute -inset-4 rotate-2 rounded-[2rem] bg-gradient-to-br from-gold-100 via-navy-50 to-electric-100" />
-          <div data-tilt className="photo-curtain relative aspect-[4/3] overflow-clip rounded-3xl shadow-2xl shadow-navy-900/15">
+          <div className="photo-curtain relative aspect-[4/3] overflow-clip rounded-3xl shadow-md">
             <div className="media-parallax absolute inset-0">
               <Image
                 src={rencontresPhoto}
@@ -100,7 +96,7 @@ export default async function PresentationPage() {
               />
             </div>
           </div>
-          <p className="absolute -bottom-5 left-5 inline-flex animate-float items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-navy-900 shadow-xl shadow-navy-900/15 ring-1 ring-navy-100">
+          <p className="absolute -bottom-5 left-5 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-navy-900 shadow-md ring-1 ring-navy-100">
             <BadgeCheck className="size-4 shrink-0 text-gold-600" aria-hidden /> Compétences démontrées, pas seulement déclarées
           </p>
         </div>
@@ -114,11 +110,9 @@ export default async function PresentationPage() {
             {FEATURES.map(({ icon: Icon, t, d }) => (
               <div
                 key={t}
-                data-spotlight
-                data-tilt
-                className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1.5 hover:border-electric-200 hover:shadow-2xl hover:shadow-electric-500/10"
+                className="group rounded-2xl border border-border bg-white p-6 transition duration-500 ease-out-expo hover:-translate-y-1 hover:border-navy-200 hover:shadow-md"
               >
-                <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-navy-50 to-gold-50 text-navy-700 ring-1 ring-navy-100 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
+                <span className="grid size-12 place-items-center rounded-xl bg-navy-50 text-navy-700 ring-1 ring-navy-100">
                   <Icon className="size-5" aria-hidden />
                 </span>
                 <h3 className="mt-4 text-lg font-semibold text-navy-900">{t}</h3>
@@ -130,25 +124,14 @@ export default async function PresentationPage() {
       </section>
 
       {/* Principes */}
-      <section data-reveal="none" className="relative overflow-hidden bg-navy-950 text-white">
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[200%] animate-gradient-drift bg-[linear-gradient(120deg,rgb(53_101_221/0.2),transparent_40%,rgb(237_180_19/0.12))]" />
-        <NightSky stars={3} twinkles={4} />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <section data-reveal="none" className="bg-navy-950 text-white">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos principes" title="Une plateforme digne de confiance" inverted />
           <div data-reveal-children className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {PRINCIPLES.map(({ icon: Icon, t, d }, i) => (
-              <div
-                key={t}
-                data-spotlight
-                data-tilt
-                className="group rounded-2xl bg-white/[0.05] p-6 ring-1 ring-white/10 transition duration-500 ease-out-expo hover:-translate-y-1 hover:bg-white/[0.08]"
-                style={{ "--spot-color": "rgb(237 180 19 / 0.1)" } as CSSProperties}
-              >
-                <span className="relative grid size-12 place-items-center">
-                  <span className="absolute inset-0 animate-ping-slow rounded-full bg-gold-400/25" style={animationDelay(i * 500)} aria-hidden />
-                  <span className="relative grid size-12 place-items-center rounded-full bg-gold-400/15 text-gold-300 transition-transform duration-500 ease-spring group-hover:scale-110">
-                    <Icon className="size-6" aria-hidden />
-                  </span>
+            {PRINCIPLES.map(({ icon: Icon, t, d }) => (
+              <div key={t} className="rounded-2xl p-6 ring-1 ring-white/10">
+                <span className="grid size-11 place-items-center rounded-xl text-gold-300 ring-1 ring-white/15">
+                  <Icon className="size-5" aria-hidden />
                 </span>
                 <h3 className="mt-4 font-semibold">{t}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-navy-200">{d}</p>
@@ -160,21 +143,16 @@ export default async function PresentationPage() {
 
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div data-reveal="zoom" className="relative overflow-hidden rounded-3xl bg-navy-800 p-8 text-white sm:p-12">
-          <EdgeBeam />
-          <span aria-hidden className="absolute inset-y-0 left-0 w-[300%] animate-gradient-drift bg-[linear-gradient(115deg,var(--color-navy-800),var(--color-navy-600),var(--color-electric-600),var(--color-navy-700))] [--drift:-66.667%]" />
-          <span aria-hidden className="absolute -top-16 -right-10 size-56 animate-float-slow rounded-full bg-gold-400/15" />
-          <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+        <div data-reveal="zoom" className="rounded-3xl bg-navy-900 p-8 text-white sm:p-12">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
               <h2 className="text-2xl font-bold sm:text-3xl">Prêt à faire reconnaître vos compétences&nbsp;?</h2>
               <p className="mt-2 max-w-xl text-white/90">Créez votre profil en quelques minutes, puis passez vos premiers entretiens.</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <span className="glow-ring">
-                <ButtonLink href="/inscription" variant="accent" size="lg" data-magnetic data-sparkle className="btn-gleam group">
-                  Créer un compte <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-                </ButtonLink>
-              </span>
+              <ButtonLink href="/inscription" variant="accent" size="lg" className="group">
+                Créer un compte <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+              </ButtonLink>
               <ButtonLink href="/fonctionnement" size="lg" className="bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20">
                 Fonctionnement
               </ButtonLink>

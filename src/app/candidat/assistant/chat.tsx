@@ -42,7 +42,7 @@ export function AssistantChat() {
         {messages.length === 0 && (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {SUGGESTIONS.map((s) => (
-              <button key={s} type="button" onClick={() => send(s)} className="rounded-lg border border-border p-3 text-left text-sm text-slate-700 hover:border-electric-300 hover:bg-electric-50/40">{s}</button>
+              <button key={s} type="button" onClick={() => send(s)} className="rounded-lg border border-border p-3 text-left text-sm text-slate-700 hover:border-navy-200 hover:bg-electric-50/40">{s}</button>
             ))}
           </div>
         )}

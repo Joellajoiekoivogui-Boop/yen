@@ -22,13 +22,12 @@ export default async function PublicLayout({ children }: { children: React.React
               <>
                 {/* sur téléphone, « Connexion » est dans le menu */}
                 <ButtonLink href="/connexion" variant="ghost" size="sm" className="max-sm:hidden">Connexion</ButtonLink>
-                <ButtonLink href="/inscription" variant="secondary" size="sm" data-magnetic data-sparkle>Créer un compte</ButtonLink>
+                <ButtonLink href="/inscription" variant="secondary" size="sm">Créer un compte</ButtonLink>
               </>
             )}
             <PublicMobileMenu signedIn={signedIn} />
           </div>
         </div>
-        <div aria-hidden className="scroll-progress absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-navy-700 via-gold-400 to-navy-700" />
       </header>
       <main id="contenu" className="flex-1">{children}</main>
       <BackToTop />

@@ -17,7 +17,6 @@ export default async function VerificationPage() {
   return (
     <Card className="w-full max-w-md p-6 sm:p-8">
       <span className="relative grid size-14 place-items-center">
-        <span aria-hidden className="absolute inset-0 animate-ping-slow rounded-full bg-emerald-200" />
         <span className="relative grid size-14 animate-pop-in place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
           <MailCheck className="size-6" aria-hidden />
         </span>

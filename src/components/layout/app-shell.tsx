@@ -83,35 +83,31 @@ const isActiveItem = (pathname: string, item: NavItem) => (item.exact ? pathname
 /** Liens de navigation (barre latérale et tiroir) : ne se redessinent qu'au changement de page. */
 const NavList = memo(function NavList({ sections, dark, onNavigate }: { sections: NavSection[]; dark: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
-  // rang de chaque lien dans la navigation, pour l'apparition en cascade
-  const sectionOffsets = sections.map((_, i) => sections.slice(0, i).reduce((n, sec) => n + sec.items.length, 0));
   return (
     <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
       {sections.map((s, i) => (
         <div key={i}>
           {s.title && <p className={cn("mb-1.5 px-2 text-2xs font-semibold tracking-wider uppercase", dark ? "text-navy-300" : "text-slate-500")}>{s.title}</p>}
           <ul className="space-y-0.5">
-            {s.items.map((item, j) => {
+            {s.items.map((item) => {
               const active = isActiveItem(pathname, item);
               return (
-                <li key={item.href} className="animate-nav-item" style={{ animationDelay: `${40 + (sectionOffsets[i] + j) * 15}ms` }}>
+                <li key={item.href}>
                   <IntentLink
                     href={item.href}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-all duration-300",
-                      "before:absolute before:top-1/2 before:left-0 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:transition-transform before:duration-300",
-                      active ? "before:scale-y-100" : "before:scale-y-0",
-                      dark ? "before:bg-gold-300" : "before:bg-gold-400",
+                      // page courante : simple fond plein et texte plus appuyé (pas de barre de couleur)
+                      "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors duration-200",
                       dark
-                        ? active ? "bg-white/10 text-white" : "text-navy-100 hover:bg-white/5 hover:text-white"
-                        : active ? "bg-navy-50 text-navy-800" : "text-slate-600 hover:bg-slate-100 hover:text-navy-900",
+                        ? active ? "bg-white/10 font-semibold text-white" : "font-medium text-navy-100 hover:bg-white/5 hover:text-white"
+                        : active ? "bg-navy-50 font-semibold text-navy-950" : "font-medium text-slate-600 hover:bg-slate-100 hover:text-navy-900",
                     )}
                   >
                     <Icon
                       name={item.icon}
-                      className={cn("size-4 shrink-0 transition-transform duration-300 ease-spring group-hover:translate-x-0.5 group-hover:scale-110", active && !dark && "text-navy-700", active && dark && "text-gold-300")}
+                      className={cn("size-4 shrink-0", active ? (dark ? "text-white" : "text-navy-800") : "opacity-80")}
                     />
                     <span className="truncate">{item.label}</span>
                     <Badge value={item.badge} className={cn("ml-auto animate-pop-in rounded-full px-1.5 text-2xs font-semibold", dark ? "bg-gold-400 text-navy-950" : "bg-electric-600 text-white")} />
@@ -186,11 +182,19 @@ const MobileDrawer = memo(function MobileDrawer({ sections, homeHref, dark, side
       aria-modal="true"
       aria-label="Menu"
     >
-      <div className={cn("absolute inset-0 bg-navy-950/45 transition-opacity duration-200", open ? "opacity-100" : "opacity-0")} onClick={close} />
-      <div className={cn("absolute inset-y-0 left-0 shadow-xl transition-transform duration-200 ease-out", open ? "translate-x-0" : "-translate-x-full", sidebarCls)}>
+      <div className={cn("absolute inset-0 bg-navy-950/40 transition-opacity duration-300", open ? "opacity-100" : "opacity-0")} onClick={close} />
+      {/* panneau flottant détaché du bord, coins arrondis (la hauteur suit l'écran, marges de 8 px) */}
+      <div
+        className={cn(
+          sidebarCls,
+          "absolute inset-y-2 left-2 h-auto overflow-hidden rounded-2xl shadow-lg transition-[translate,opacity] duration-300 ease-out-expo",
+          open ? "translate-x-0 opacity-100" : "-translate-x-[105%] opacity-0",
+          !dark && "border border-border",
+        )}
+      >
         <div className={cn("flex h-14 items-center justify-between px-4", dark ? "border-b border-white/10" : "border-b border-border")}>
           <Logo href={homeHref} inverted={dark} />
-          <button ref={closeRef} type="button" onClick={close} className={cn("rounded-md p-2", dark ? "text-white" : "text-navy-800")} aria-label="Fermer le menu">
+          <button ref={closeRef} type="button" onClick={close} className={cn("rounded-lg p-2 transition-colors", dark ? "text-white hover:bg-white/10" : "text-navy-800 hover:bg-slate-100")} aria-label="Fermer le menu">
             <X className="size-5" />
           </button>
         </div>
@@ -233,7 +237,7 @@ export function AppShell({
   const userBox = (
     <div className={cn("border-t px-4 py-3", dark ? "border-white/10" : "border-border")}>
       <div className="flex items-center gap-3">
-        <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-navy-600 to-navy-800 text-xs font-bold text-gold-300 ring-2 ring-gold-400/60">
+        <span aria-hidden className={cn("grid size-9 shrink-0 place-items-center rounded-full text-xs font-semibold", dark ? "bg-white/10 text-white" : "bg-navy-800 text-white")}>
           {initials}
         </span>
         <div className="min-w-0">
@@ -268,7 +272,6 @@ export function AppShell({
 
   return (
     <div className="relative isolate min-h-dvh lg:pl-64">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-[radial-gradient(70%_100%_at_50%_0%,rgb(53_101_221/0.09),transparent_70%)] lg:left-64" />
       <CommandPalette sections={sections} renderIcon={(name) => <Icon name={name} className="size-4" />} />
       {/* Barre latérale fixe (ordinateur) */}
       <aside className={cn(sidebarCls, "fixed inset-y-0 left-0 z-30 hidden animate-sidebar-in lg:flex")}>
@@ -325,7 +328,7 @@ export function AppShell({
                     <span
                       className={cn(
                         "relative grid h-7 w-12 place-items-center rounded-full transition-all duration-300 ease-spring",
-                        active ? (dark ? "bg-gold-400 text-navy-950" : "bg-navy-800 text-gold-300") : "group-active:scale-90",
+                        active ? (dark ? "bg-white text-navy-950" : "bg-navy-900 text-white") : "group-active:scale-90",
                       )}
                     >
                       <Icon name={item.icon} className="size-[18px]" />
