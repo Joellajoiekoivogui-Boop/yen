@@ -75,9 +75,12 @@ Dans le tableau de bord Supabase (*Authentication*) :
    les membres de l'équipe Supabase). Service retenu : **Resend**, branché comme SMTP personnalisé de Supabase
    (domaine d'envoi vérifié obligatoire). Marche à suivre complète : **`docs/EMAILS-RESEND.md`**.
 3. **Modèles d'e-mail** (*Emails › Templates*, en français) :
-   - *Confirm signup* : code de vérification, contenu de `supabase/templates/confirmation.html` (sujet « Votre code
-     de vérification YEN Career Bridge »). Le code se saisit sur `/verification` ; après vérification, le compte
-     arrive dans son espace (candidat, ou attente de validation partenaire).
+   - *Confirm signup* : lien et code, contenu de `supabase/templates/confirmation.html` (sujet « Votre code de
+     vérification YEN Career Bridge »). Envoyé à la création d'un compte, avec ou sans mot de passe.
+   - *Magic Link* : lien et code de connexion sans mot de passe, contenu de `supabase/templates/magic-link.html`
+     (sujet « Votre lien de connexion YEN Career Bridge »).
+   - Le lien mène à `/auth/lien` (un clic sur « Continuer » ouvre la session) ; le code se saisit sur
+     `/verification`. Ensuite le compte arrive dans son espace (candidat, ou attente de validation partenaire).
    - *Reset password* (lien construit sur l'adresse du site, valable aussi ouvert sur un autre appareil) :
      `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&suivant=/reinitialiser-mot-de-passe`
 4. **Mot de passe** : longueur minimale 8 (comme le site) ; protection contre les mots de passe divulgués si
@@ -91,8 +94,9 @@ Dans le tableau de bord Supabase (*Authentication*) :
 ## Check-list de mise en production
 
 - [ ] Migrations appliquées, catalogue chargé, bucket `candidate-documents` privé
-- [ ] Confirmation des e-mails activée, SMTP Resend configuré (domaine vérifié), modèle « Confirm signup » à code,
-      modèle « Reset password » à `token_hash`, URL de redirection exactes (`docs/EMAILS-RESEND.md`)
+- [ ] Confirmation des e-mails activée, SMTP Resend configuré (domaine vérifié), modèles « Confirm signup » et
+      « Magic Link » du dépôt (lien + code), modèle « Reset password » à `token_hash`, URL de redirection exactes
+      (`docs/EMAILS-RESEND.md`)
 - [ ] Premier `super_admin` créé, rôles du personnel attribués
 - [ ] Données de démonstration absentes (ou supprimées avec `npm run seed:demo:reset`)
 - [ ] Politique de confidentialité et CGU validées par YEN

@@ -98,14 +98,30 @@ Supabase Auth (`@supabase/ssr`), entièrement côté serveur : aucun client Supa
   adresse IP et 40 par adresse IP en 15 minutes. Seuls les échecs comptent, et un attaquant ne bloque pas le
   titulaire du compte qui se connecte d'ailleurs. Une limite atteinte chez Supabase affiche un message dédié,
   jamais « mot de passe incorrect ». Compteurs en mémoire par instance : une protection d'appoint.
-- **Demandes d'e-mail** (réinitialisation, renvoi de confirmation) : 3 par adresse e-mail et 10 par adresse IP en
-  15 minutes, pour préserver le quota d'envoi du projet ; réponse identique que le compte existe ou non.
-- **Vérification de l'adresse par code** : code généré, envoyé et vérifié par Supabase Auth
-  (`verifyOtp`, type `signup`), jamais par le site ; codes erronés limités (5 par compte depuis une même adresse
-  IP, 10 par compte toutes adresses confondues, 30 par adresse IP en 15 minutes) ; renvoi après le délai minimal de
-  Supabase ; adresse en attente gardée dans un cookie httpOnly d'une heure (jamais dans l'URL) ; pas de lien dans
-  l'e-mail (les analyseurs de liens des messageries ne peuvent pas consommer le code).
-- **Inscription** : validation identique côté navigateur et serveur (Zod) ; compte existant jamais signalé ;
+- **Demandes d'e-mail** (lien de connexion, inscription sans mot de passe, renvoi, réinitialisation) : 3 par adresse
+  e-mail et 30 par adresse IP en 15 minutes (une salle de formation partage souvent une seule connexion), en plus
+  du quota d'envoi du projet Supabase ; réponse identique que le compte existe ou non.
+- **Connexion sans mot de passe (lien magique et code)** : un seul e-mail contient un lien et un code, générés,
+  envoyés et vérifiés par Supabase Auth (`signInWithOtp`, puis `verifyOtp`, type `email`), jamais par le site.
+  Une adresse inconnue ne reçoit rien et ne crée aucun compte (`shouldCreateUser: false`), avec le même écran
+  qu'une adresse connue. Le lien mène à `/auth/lien`, qui ne vérifie qu'au clic sur « Continuer » : une
+  messagerie qui ouvre les liens pour les analyser ne consomme pas la connexion. Lien et code à usage unique,
+  valables une heure au plus, remplacés par tout nouvel envoi.
+- **Vérification de l'adresse** (obligatoire, avec ou sans mot de passe) : même lien et même code ; codes
+  erronés limités (5 par compte depuis une même adresse IP, 10 par compte toutes adresses confondues, 30 par
+  adresse IP en 15 minutes) ; renvoi après le délai minimal de Supabase ; adresse en attente gardée dans un cookie
+  httpOnly d'une heure (jamais dans l'URL).
+- **Préinscription d'une adresse par un tiers** : un tiers peut créer un compte avec l'adresse d'une autre personne
+  et son propre mot de passe, sans pouvoir le confirmer. À la première confirmation de l'adresse, un mot de passe
+  qui n'a pas été choisi dans le même navigateur (formulaire avec mot de passe) est remplacé par un mot de passe
+  aléatoire : le mot de passe du tiers ne fonctionne jamais. Conséquence pour une personne inscrite avec un mot
+  de passe qui confirme son adresse sur un autre appareil : elle se connecte par e-mail, ou choisit un nouveau mot
+  de passe avec « Mot de passe oublié ».
+- **Méthode de connexion retenue** : seul le choix « lien » ou « mot de passe » est gardé dans le navigateur
+  (`localStorage`), pour l'affichage ; aucune donnée de session n'y est stockée.
+- **Inscription** : sans mot de passe par défaut (Google, ou l'adresse e-mail seule ; organisation et contact pour
+  un partenaire), mot de passe en option ; validation identique côté navigateur et serveur (Zod) ; compte existant
+  jamais signalé (une adresse déjà inscrite reçoit un lien de connexion, l'écran reste le même) ;
   profil créé en base par déclencheur à partir de l'identifiant Auth ; rôle « candidat » ou demande partenaire
   uniquement (aucun rôle privilégié attribuable par l'utilisateur).
 - **Récupération** : lien à usage unique (`token_hash` ou code PKCE) vérifié par `/auth/callback` ; lien invalide

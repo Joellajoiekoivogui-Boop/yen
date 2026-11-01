@@ -1,12 +1,14 @@
 /**
- * Authentification par e-mail et mot de passe : connexion, erreurs, limitation des tentatives,
- * redirections, déconnexion, session invalide, récupération de compte.
+ * Authentification : connexion par mot de passe (erreurs, limitation des tentatives, redirections,
+ * déconnexion, session invalide, récupération de compte), vérification de l'adresse par code, et
+ * connexion ou inscription sans mot de passe (lien magique et code reçus par e-mail).
  * Pile Supabase locale requise (E2E_STACK=1) ; comptes de test synthétiques uniquement.
  */
 import { createHmac, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
-import { mailbox, verificationCode, wrongCode } from "./mailbox";
+import { choosePasswordSignIn, choosePasswordSignUp } from "./auth-helpers";
+import { emailLink, mailbox, nthMail, verificationCode, wrongCode } from "./mailbox";
 
 test.skip(!process.env.E2E_STACK, "Pile Supabase locale requise (E2E_STACK=1)");
 
@@ -29,6 +31,7 @@ async function authAdmin(path: string, body: object) {
 }
 
 async function fillLogin(page: Page, email: string, password: string) {
+  await choosePasswordSignIn(page);
   await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(email);
   await page.getByRole("textbox", { name: "Mot de passe" }).fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
@@ -196,6 +199,7 @@ test("inscription : données invalides refusées avant tout envoi", async ({ pag
   let actions = 0;
   page.on("request", (r) => { if (r.method() === "POST" && r.headers()["next-action"]) actions++; });
   await page.goto("/inscription");
+  await choosePasswordSignUp(page);
   await page.getByRole("textbox", { name: "Prénom" }).fill("Test");
   await page.getByRole("textbox", { name: "Nom", exact: true }).fill("Invalide");
   await page.getByRole("textbox", { name: "Adresse e-mail" }).fill("pas-une-adresse");
@@ -257,6 +261,7 @@ const freshEmail = (label: string) => `${label}.${Date.now()}.${randomUUID().sli
 
 async function signUp(page: Page, email: string, password = "Inscription-2026") {
   await page.goto("/inscription");
+  await choosePasswordSignUp(page);
   const f = (name: string, value: string) => page.getByRole("textbox", { name, exact: true }).fill(value);
   await f("Prénom", "Test");
   await f("Nom", "Verification");
@@ -318,7 +323,7 @@ test("renvoi du code : après le délai, le nouveau code remplace l'ancien", asy
   await expect(resend).toHaveText(/dans \d+ s/);
   await expect(resend).toBeEnabled({ timeout: 70_000 });
   await resend.click();
-  await expect(page.getByText(/un nouveau code vient d'être envoyé/)).toBeVisible();
+  await expect(page.getByText(/un nouvel e-mail vient d'être envoyé/)).toBeVisible();
   const second = await verificationCode(email, 2);
   expect(second).not.toBe(first);
   await expect(resend).toBeDisabled();
@@ -384,4 +389,188 @@ test("adresse déjà inscrite : même page de vérification, aucun e-mail envoy�
   await expect(page.getByRole("heading", { level: 1, name: "Vérifiez votre adresse e-mail" })).toBeVisible();
   await page.waitForTimeout(2000);
   expect((await mailbox(DEMO.email)).length).toBe(before);
+});
+
+/* -----------------------------------------------------------------------------
+   Sans mot de passe : un seul e-mail contient un lien et un code (générés, envoyés et
+   vérifiés par Supabase Auth). Le lien mène à /auth/lien, qui attend un clic.
+   ----------------------------------------------------------------------------- */
+
+/** Compte candidat vérifié, coordonnées complètes, sans mot de passe connu. */
+async function existingCandidate(label: string) {
+  const email = freshEmail(label);
+  await authAdmin("users", { email, email_confirm: true, user_metadata: { first_name: "Sans", last_name: "MotDePasse", phone: "+224 620 10 20 30", city: "Conakry", account_type: "candidate", accepted_terms: "true" } });
+  return email;
+}
+
+async function requestLoginLink(page: Page, email: string, path = "/connexion") {
+  await page.goto(path);
+  await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(email);
+  await page.getByRole("button", { name: "Recevoir un lien de connexion" }).click();
+  await page.waitForURL(/\/verification/, { timeout: 20_000 });
+}
+
+test("connexion par code : un e-mail avec lien et code, le code ouvre la session et respecte la page demandée", async ({ page }) => {
+  const email = await existingCandidate("code-connexion");
+  await page.goto("/candidat/cv");
+  await expect(page).toHaveURL(/\/connexion\?suivant=%2Fcandidat%2Fcv/);
+  await requestLoginLink(page, email, page.url());
+  await expect(page.getByRole("heading", { level: 1, name: "Consultez vos e-mails" })).toBeVisible();
+  await expect(page.getByText(email)).toBeVisible();
+  expect(page.url()).not.toContain("example.test");
+  const mail = await nthMail(email);
+  expect(mail.subject).toBe("Votre lien de connexion YEN Career Bridge");
+  expect(mail.links.some((l) => l.startsWith("http://localhost:3000/auth/lien?token_hash="))).toBe(true);
+  const code = await verificationCode(email);
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(wrongCode(code));
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByText(/Code incorrect ou expiré/)).toBeVisible();
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(code);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page).toHaveURL(/\/candidat\/cv$/, { timeout: 20_000 });
+});
+
+test("lien magique : ouvrir la page ne consomme rien, le clic connecte, le lien ne sert qu'une fois", async ({ page, context, request }) => {
+  const email = await existingCandidate("lien-magique");
+  await requestLoginLink(page, email);
+  const link = await emailLink(email);
+  // une messagerie qui « ouvre » le lien pour l'analyser ne le consomme pas
+  const scan = await request.get(link);
+  expect(scan.status()).toBe(200);
+  await context.clearCookies();
+  await page.goto(link);
+  await expect(page.getByRole("heading", { level: 1, name: "Bienvenue sur YEN Career Bridge" })).toBeVisible();
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.waitForURL(/\/candidat$/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
+  // réutilisation refusée, avec un message clair
+  await context.clearCookies();
+  await page.goto(link);
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await expect(page.getByText(/Ce lien n'est plus valable/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Recevoir un nouveau lien" })).toBeVisible();
+  // lien tronqué
+  await page.goto("/auth/lien");
+  await expect(page.getByText(/Ce lien est incomplet/)).toBeVisible();
+});
+
+test("connexion sans mot de passe, adresse inconnue : même réponse, aucun e-mail envoyé", async ({ page }) => {
+  const email = freshEmail("inconnu");
+  await requestLoginLink(page, email);
+  await expect(page.getByRole("heading", { level: 1, name: "Consultez vos e-mails" })).toBeVisible();
+  await expect(page.getByText(/Si un compte correspond à cette adresse/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Créer un compte" })).toBeVisible();
+  await page.waitForTimeout(2000);
+  expect(await mailbox(email)).toHaveLength(0);
+  // et aucun compte n'est créé
+  const db = new pg.Client({ connectionString: DB_URL });
+  await db.connect();
+  try {
+    expect((await db.query("select 1 from auth.users where email = $1", [email])).rowCount).toBe(0);
+  } finally {
+    await db.end();
+  }
+});
+
+test("inscription sans mot de passe : l'adresse suffit, le lien vérifie, les coordonnées sont demandées ensuite", async ({ page }) => {
+  const email = freshEmail("sans-mot-de-passe");
+  await page.goto("/inscription");
+  await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(email);
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await page.waitForURL(/\/verification$/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Vérifiez votre adresse e-mail" })).toBeVisible();
+  expect((await nthMail(email)).subject).toBe("Votre code de vérification YEN Career Bridge");
+  // pas de session avant la vérification
+  await page.goto("/candidat");
+  await expect(page).toHaveURL(/\/connexion/);
+  await page.goto(await emailLink(email));
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.waitForURL(/\/coordonnees$/, { timeout: 20_000 });
+  const f = (name: string, value: string) => page.getByRole("textbox", { name, exact: true }).fill(value);
+  await f("Prénom", "Mariam");
+  await f("Nom", "SansMotDePasse");
+  await f("Téléphone", "+224 620 77 88 99");
+  await f("Ville", "Labé");
+  await page.getByRole("button", { name: "Accéder à mon espace" }).click();
+  await page.waitForURL(/\/candidat$/);
+  // conditions d'utilisation acceptées en continuant : consentement enregistré
+  const db = new pg.Client({ connectionString: DB_URL });
+  await db.connect();
+  try {
+    const { rows } = await db.query(
+      "select c.consent_type from candidate_consents c join candidate_profiles cp on cp.id = c.candidate_id join profiles p on p.id = cp.user_id where p.email = $1",
+      [email],
+    );
+    expect(rows.map((r) => r.consent_type)).toContain("conditions_utilisation");
+  } finally {
+    await db.end();
+  }
+});
+
+test("inscription d'une organisation sans mot de passe : le code vérifie l'adresse, la demande attend YEN", async ({ page }) => {
+  const email = freshEmail("partenaire-lien");
+  const org = `Organisation sans mot de passe ${Date.now()}`;
+  await page.goto("/inscription?type=partenaire");
+  const f = (name: string, value: string) => page.getByRole("textbox", { name, exact: true }).fill(value);
+  await f("Nom de l'organisation", org);
+  await f("Prénom du contact", "Fanta");
+  await f("Nom du contact", "Partenaire");
+  await f("E-mail professionnel", email);
+  await page.getByRole("button", { name: "Demander un espace partenaire" }).click();
+  await page.waitForURL(/\/verification$/, { timeout: 20_000 });
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(await verificationCode(email));
+  await page.getByRole("button", { name: "Vérifier mon adresse" }).click();
+  await page.waitForURL(/\/partenaire\/en-attente$/, { timeout: 20_000 });
+  const db = new pg.Client({ connectionString: DB_URL });
+  await db.connect();
+  try {
+    const { rows } = await db.query("select status, contact_name from organizations where name = $1", [org]);
+    expect(rows).toEqual([{ status: "en_attente", contact_name: "Fanta Partenaire" }]);
+  } finally {
+    await db.end();
+  }
+});
+
+test("inscription sans mot de passe avec une adresse déjà inscrite : même écran, un lien de connexion part au titulaire", async ({ page }) => {
+  const email = await existingCandidate("deja-inscrit");
+  await page.goto("/inscription");
+  await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(email);
+  await page.getByRole("button", { name: "Créer mon compte" }).click();
+  await page.waitForURL(/\/verification$/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Vérifiez votre adresse e-mail" })).toBeVisible();
+  expect((await nthMail(email)).subject).toBe("Votre lien de connexion YEN Career Bridge");
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(await verificationCode(email));
+  await page.getByRole("button", { name: "Vérifier mon adresse" }).click();
+  await page.waitForURL(/\/candidat$/, { timeout: 20_000 });
+});
+
+test("mot de passe choisi une fois : l'appareil s'en souvient (équipe YEN)", async ({ page }) => {
+  await page.goto("/connexion");
+  await expect(page.getByRole("button", { name: "Recevoir un lien de connexion" })).toBeVisible();
+  await choosePasswordSignIn(page);
+  await expect(page.getByRole("link", { name: "Mot de passe oublié ?" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("textbox", { name: "Mot de passe", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Se connecter", exact: true })).toBeVisible();
+  // retour au lien par e-mail, retenu lui aussi
+  await page.getByRole("button", { name: "Recevoir plutôt un lien par e-mail" }).click();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Recevoir un lien de connexion" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Mot de passe", exact: true })).toHaveCount(0);
+});
+
+test("adresse préinscrite par un tiers avec un mot de passe : après confirmation par la titulaire, ce mot de passe ne fonctionne plus", async ({ page, context }) => {
+  const email = freshEmail("preinscription");
+  // le tiers crée le compte avec son mot de passe, sans pouvoir confirmer l'adresse
+  await authAdmin("users", { email, password: "Mot-du-tiers-2026", email_confirm: false, user_metadata: { account_type: "candidate" } });
+  // la titulaire se connecte par e-mail : Supabase lui envoie la confirmation, elle saisit le code
+  await requestLoginLink(page, email);
+  await page.getByRole("textbox", { name: "Code de vérification" }).fill(await verificationCode(email));
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await page.waitForURL(/\/coordonnees$/, { timeout: 20_000 });
+  // le mot de passe du tiers est refusé
+  await context.clearCookies();
+  await page.goto("/connexion");
+  await fillLogin(page, email, "Mot-du-tiers-2026");
+  await expect(page.getByText("Adresse e-mail ou mot de passe incorrect.")).toBeVisible();
 });

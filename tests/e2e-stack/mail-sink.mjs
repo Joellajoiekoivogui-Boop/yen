@@ -2,7 +2,7 @@
  * Boîte aux lettres de test (pile locale uniquement) : remplace Resend pendant les tests.
  * - SMTP sur 127.0.0.1:54325 : GoTrue y dépose ses e-mails (aucun envoi réel, rien ne sort).
  * - HTTP sur 127.0.0.1:54326 :
- *     GET /messages?to=adresse  → e-mails reçus pour cette adresse (texte décodé), du plus ancien au plus récent ;
+ *     GET /messages?to=adresse  → e-mails reçus pour cette adresse (texte décodé et liens), du plus ancien au plus récent ;
  *     GET /templates/<nom>.html → modèles d'e-mail du dépôt (supabase/templates), lus par GoTrue.
  */
 import http from "node:http";
@@ -58,8 +58,11 @@ net
           const raw = Buffer.from(buffer.slice(0, end), "latin1").toString("latin1").replace(/^\.\./gm, ".");
           buffer = buffer.slice(end + 5);
           inData = false;
-          const text = decodeBody(raw).replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
-          for (const to of rcpt) messages.push({ to: to.toLowerCase(), subject: header(raw, "Subject"), text, receivedAt: new Date().toISOString() });
+          const body = decodeBody(raw);
+          const text = body.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+          // liens des boutons (attribut href), perdus dans le texte
+          const links = [...body.matchAll(/href="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+          for (const to of rcpt) messages.push({ to: to.toLowerCase(), subject: header(raw, "Subject"), text, links, receivedAt: new Date().toISOString() });
           rcpt = [];
           reply("250 OK");
           continue;

@@ -5,14 +5,19 @@ import { AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookies";
 /**
  * Adresse en attente de vérification, gardée une heure dans un cookie httpOnly (jamais dans
  * l'adresse de la page) pour pré-remplir la page « Vérifiez votre adresse e-mail ».
- * `sentAt` : heure du dernier envoi de code, pour le délai avant de pouvoir en redemander un.
+ * `sentAt` : heure du dernier envoi, pour le délai avant de pouvoir redemander un e-mail.
+ * `mode` : « login » (connexion sans mot de passe), « signup » (création de compte sans mot de passe) ou
+ * « password » (compte créé avec un mot de passe dans ce navigateur), pour le texte affiché et la protection
+ * contre la préinscription d'une adresse par un tiers (voir actions.ts, afterEmailVerified).
  */
 const NAME = "yen-verification";
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-export async function rememberPendingEmail(email: string, codeJustSent: boolean) {
+export type VerificationMode = "login" | "signup" | "password";
+
+export async function rememberPendingEmail(email: string, codeJustSent: boolean, mode: VerificationMode = "signup") {
   const sentAt = codeJustSent ? Math.floor(Date.now() / 1000) : 0;
-  (await cookies()).set(NAME, `${sentAt}:${email}`, { ...AUTH_COOKIE_OPTIONS, maxAge: 60 * 60 });
+  (await cookies()).set(NAME, `${sentAt}:${mode}:${email}`, { ...AUTH_COOKIE_OPTIONS, maxAge: 60 * 60 });
 }
 
 /**
@@ -21,14 +26,21 @@ export async function rememberPendingEmail(email: string, codeJustSent: boolean)
  */
 export const RESEND_DELAY_S = Math.min(600, Math.max(0, Number(process.env.AUTH_RESEND_DELAY_S ?? 60) || 0));
 
-/** Adresse en attente et secondes restantes avant de pouvoir redemander un code. */
-export async function pendingVerification(): Promise<{ email: string; resendIn: number }> {
+/** Adresse en attente, type de parcours et secondes restantes avant de pouvoir redemander un e-mail. */
+export async function pendingVerification(): Promise<{ email: string; mode: VerificationMode; resendIn: number }> {
   const raw = (await cookies()).get(NAME)?.value ?? "";
   const i = raw.indexOf(":");
-  const email = raw.slice(i + 1);
+  let rest = raw.slice(i + 1);
+  let mode: VerificationMode = "signup";
+  // ancien format « sentAt:email » toujours accepté (cookies posés avant la connexion sans mot de passe)
+  const m = /^(login|signup|password):/.exec(rest);
+  if (m) {
+    mode = m[1] as VerificationMode;
+    rest = rest.slice(m[0].length);
+  }
   const sentAt = Number(raw.slice(0, i));
-  if (i < 0 || email.length > 254 || !EMAIL.test(email) || !Number.isFinite(sentAt)) return { email: "", resendIn: 0 };
-  return { email, resendIn: Math.max(0, Math.min(RESEND_DELAY_S, sentAt + RESEND_DELAY_S - Math.floor(Date.now() / 1000))) };
+  if (i < 0 || rest.length > 254 || !EMAIL.test(rest) || !Number.isFinite(sentAt)) return { email: "", mode: "signup", resendIn: 0 };
+  return { email: rest, mode, resendIn: Math.max(0, Math.min(RESEND_DELAY_S, sentAt + RESEND_DELAY_S - Math.floor(Date.now() / 1000))) };
 }
 
 export async function forgetPendingEmail() {

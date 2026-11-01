@@ -10,8 +10,8 @@ import { createHash } from "node:crypto";
  *  - les ÉCHECS par couple (adresse IP, compte) : un attaquant ne bloque que lui-même, jamais
  *    le titulaire du compte qui se connecte depuis une autre adresse ;
  *  - les échecs par adresse IP, avec un plafond plus large (essais sur de nombreux comptes) ;
- *  - les demandes d'e-mail (réinitialisation, renvoi) par adresse IP, pour préserver le quota
- *    d'envoi du projet ;
+ *  - les demandes d'e-mail (lien de connexion, inscription, renvoi, réinitialisation) par adresse
+ *    e-mail et par adresse IP, pour préserver le quota d'envoi du projet ;
  *  - les codes de vérification erronés, par couple (adresse IP, compte), par compte toutes
  *    adresses confondues (un code à 6 chiffres ne doit pas pouvoir être essayé en masse depuis
  *    de nombreuses adresses) et par adresse IP.
@@ -32,10 +32,14 @@ export const LIMITS = {
   loginPerAccount: 8,
   /** échecs de connexion depuis une même adresse, tous comptes confondus */
   loginPerIp: 40,
-  /** demandes d'e-mail (réinitialisation, renvoi) pour une adresse e-mail depuis une même adresse IP */
+  /** demandes d'e-mail (lien de connexion, inscription, renvoi, réinitialisation) pour une adresse e-mail depuis une même adresse IP */
   emailPerAccount: 3,
-  /** demandes d'e-mail depuis une même adresse IP */
-  emailPerIp: 10,
+  /**
+   * demandes d'e-mail depuis une même adresse IP : assez large pour une salle de formation derrière
+   * une seule connexion (l'e-mail est le moyen de connexion principal) ; le quota d'envoi du projet
+   * Supabase reste le plafond global
+   */
+  emailPerIp: 30,
   /** codes de vérification erronés pour un compte depuis une même adresse IP */
   otpPerAccount: 5,
   /** codes de vérification erronés pour un compte, toutes adresses IP confondues */

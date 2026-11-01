@@ -1,37 +1,51 @@
 # E-mails d'authentification : Resend + Supabase Auth
 
-Les comptes créés par e-mail et mot de passe (candidats et partenaires) sont activés par un **code de
-vérification** reçu par e-mail.
+Un seul e-mail contient **un lien et un code à 6 chiffres** : l'utilisateur clique sur le lien, ou recopie le
+code. Il sert à trois choses :
+
+- **se connecter sans mot de passe** (méthode proposée par défaut sur `/connexion`) ;
+- **créer un compte sans mot de passe** (candidat : l'adresse seule ; partenaire : organisation et contact) ;
+- **vérifier l'adresse** d'un compte créé avec un mot de passe (la vérification reste obligatoire).
+
+Google et le mot de passe restent disponibles. L'équipe YEN peut continuer à se connecter avec son mot de passe :
+le navigateur retient ce choix.
 
 | Qui | Fait quoi |
 |---|---|
-| Site (Next.js) | Appelle `supabase.auth.signUp()`, affiche la page `/verification`, transmet le code saisi à `supabase.auth.verifyOtp({ type: "signup" })`, limite les codes erronés et les renvois |
-| Supabase Auth | **Génère** le code, l'insère dans l'e-mail, le **vérifie** et ouvre la session |
+| Site (Next.js) | Appelle `supabase.auth.signInWithOtp()` (ou `signUp()` avec mot de passe), affiche `/verification` et `/auth/lien`, transmet le code ou le lien à `supabase.auth.verifyOtp({ type: "email" })`, limite les demandes et les codes erronés |
+| Supabase Auth | **Génère** le lien et le code, les insère dans l'e-mail, les **vérifie** et ouvre la session |
 | Resend | **Transporte** l'e-mail (serveur SMTP configuré dans Supabase), rien d'autre |
 
 Aucune clé Resend n'est utilisée par le site : la clé se saisit **uniquement** dans le tableau de bord Supabase.
 
 ## Parcours
 
-1. Le visiteur remplit le formulaire d'inscription (`/inscription`).
-2. Le serveur appelle `supabase.auth.signUp()` ; Supabase crée le compte (non vérifié) et génère le code.
-3. Supabase envoie l'e-mail par le SMTP de Resend, avec le modèle `supabase/templates/confirmation.html`.
+1. Le visiteur saisit son adresse (`/connexion`), ou s'inscrit (`/inscription`).
+2. Le serveur appelle `supabase.auth.signInWithOtp()` :
+   - connexion : `shouldCreateUser: false`, une adresse inconnue ne reçoit rien et aucun compte n'est créé ;
+   - inscription : `shouldCreateUser: true`, avec les informations du formulaire (type de compte, organisation…).
+3. Supabase envoie l'e-mail par le SMTP de Resend : modèle *Confirm signup* pour un nouveau compte
+   (`supabase/templates/confirmation.html`), *Magic Link* pour un compte existant (`supabase/templates/magic-link.html`).
 4. Le visiteur arrive sur `/verification` (l'adresse est retenue dans un cookie httpOnly, jamais dans l'URL).
-5. Il saisit le code ; le serveur appelle `supabase.auth.verifyOtp({ email, token, type: "signup" })`.
-6. Code valide : session ouverte (cookies httpOnly), redirection vers son espace (`/candidat`, ou
-   `/partenaire/en-attente` pour une organisation en attente de validation).
+5. Il clique sur le lien de l'e-mail (page `/auth/lien`, bouton « Continuer »), ou saisit le code.
+6. Le serveur appelle `supabase.auth.verifyOtp({ type: "email" })`, avec le code ou l'empreinte du lien
+   (`token_hash`). Session ouverte (cookies httpOnly), redirection vers son espace. Un nouveau candidat passe
+   d'abord par « Vos coordonnées » (nom, téléphone, ville).
 
-Le code de confirmation d'inscription (`type: "signup"`) n'est pas le code de connexion sans mot de passe
-(`type: "email"`), que le site n'utilise pas : la connexion se fait avec l'e-mail et le mot de passe.
+Pourquoi un clic sur `/auth/lien` : certaines messageries (Outlook, antivirus d'entreprise) ouvrent les liens
+pour les analyser. Ouvrir la page ne vérifie rien ; seul le clic de l'utilisateur consomme le lien.
 
 Garde-fous du site :
 
 - **Codes erronés** : 5 par compte depuis une même adresse IP, 10 par compte toutes adresses confondues et 30 par
   adresse IP, en 15 minutes. Ces limites s'ajoutent à celles de Supabase.
-- **Renvoi de code** : il est possible après le délai minimal de Supabase entre deux e-mails (60 s par défaut). Le site
-  accepte aussi 3 demandes par adresse e-mail et 10 par adresse IP en 15 minutes.
-- **Pas d'énumération des comptes** : une adresse déjà inscrite mène à la même page, sans e-mail envoyé.
-- **Connexion avant vérification** : un lien mène à la saisie du code.
+- **Envois d'e-mail** (connexion, inscription, renvoi) : 3 par adresse e-mail et 30 par adresse IP en 15 minutes.
+  Le renvoi est possible après le délai minimal de Supabase entre deux e-mails (60 s par défaut).
+- **Pas d'énumération des comptes** : adresse inconnue à la connexion ou déjà inscrite à l'inscription, l'écran
+  est le même (une adresse déjà inscrite reçoit simplement un lien de connexion).
+- **Usage unique** : le lien et le code d'un même e-mail ne servent qu'une fois ; un nouvel envoi remplace le précédent.
+- **Adresse préinscrite par un tiers** : à la première confirmation, un mot de passe qui n'a pas été choisi dans le
+  même navigateur est remplacé par un mot de passe aléatoire (détails dans `docs/SECURITE.md`).
 
 ## 1. Resend
 
@@ -97,17 +111,19 @@ modifié, donner la même valeur à la variable `AUTH_RESEND_DELAY_S` du site (V
 - **Email OTP Length** : `6`. Le site accepte de 6 à 10 chiffres ; 6 correspond aux textes affichés.
 - **Email OTP Expiration** : `3600` secondes (1 heure) au plus ; 900 à 1800 secondes est un bon compromis.
 
-### 2.3 Modèle de l'e-mail
+### 2.3 Modèles des e-mails
 
-*Authentication › Emails › Templates › Confirm signup* :
+*Authentication › Emails › Templates* :
 
-- **Subject** : `Votre code de vérification YEN Career Bridge`
-- **Message body** : coller le contenu de `supabase/templates/confirmation.html`. Supabase y remplace `{{ .Token }}`
-  par le code.
+| Modèle | Subject | Message body |
+|---|---|---|
+| **Confirm signup** | `Votre code de vérification YEN Career Bridge` | contenu de `supabase/templates/confirmation.html` |
+| **Magic Link** | `Votre lien de connexion YEN Career Bridge` | contenu de `supabase/templates/magic-link.html` |
 
-Le modèle ne contient volontairement **pas de lien** de confirmation. Certaines messageries (Outlook, antivirus
-d'entreprise) ouvrent les liens pour les analyser, ce qui consommerait le code avant l'utilisateur. Le modèle
-*Reset password* garde son lien (voir `docs/DEPLOIEMENT.md`).
+Supabase y remplace `{{ .Token }}` par le code, `{{ .TokenHash }}` par l'empreinte du lien et `{{ .SiteURL }}` par
+l'adresse du site (*URL Configuration › Site URL*, à régler sur l'adresse de production). Le lien mène à
+`/auth/lien` ; ne pas le remplacer par `{{ .ConfirmationURL }}`, qui serait consommé par les analyseurs de liens.
+Le modèle *Reset password* garde son lien vers `/auth/callback` (voir `docs/DEPLOIEMENT.md`).
 
 ### 2.4 Limites d'envoi
 
@@ -131,9 +147,12 @@ d'entreprise) ouvrent les liens pour les analyser, ce qui consommerait le code a
    l'état de chaque envoi (*Delivered*, *Bounced*…).
 3. Saisir un code faux : le message « Code incorrect ou expiré » s'affiche.
 4. Saisir le bon code : on arrive dans l'espace.
-5. Avec un autre compte, cliquer « Renvoyer un code » après 60 secondes. Seul le dernier code fonctionne.
-6. Se connecter avec un compte non vérifié : le lien « Saisir mon code de vérification » apparaît.
-7. En cas d'échec, consulter *Logs › Auth* dans Supabase : les erreurs SMTP y apparaissent.
+5. Avec un autre compte, cliquer « Renvoyer un code » après 60 secondes. Seul le dernier e-mail fonctionne.
+6. Se déconnecter, puis sur `/connexion` saisir l'adresse et cliquer « Recevoir un lien de connexion » : l'e-mail
+   « Votre lien de connexion » arrive ; le bouton « Me connecter » mène à « Continuer », qui ouvre la session.
+7. Recliquer sur le même lien : « Ce lien n'est plus valable » s'affiche.
+8. Se connecter avec un compte créé par mot de passe mais non vérifié : le lien « Saisir mon code de vérification » apparaît.
+9. En cas d'échec, consulter *Logs › Auth* dans Supabase : les erreurs SMTP y apparaissent.
 
 ## 4. Problèmes fréquents
 
@@ -141,7 +160,9 @@ d'entreprise) ouvrent les liens pour les analyser, ce qui consommerait le code a
 |---|---|---|
 | « L'inscription n'a pas pu aboutir » ; *Error sending confirmation email* dans les journaux Supabase | SMTP mal renseigné | Domaine *Verified* dans Resend, identifiant `resend`, clé avec permission d'envoi, adresse d'expédition sur le domaine vérifié, port 465 |
 | E-mail jamais reçu | Rebond ou spam | État de l'envoi dans Resend › *Emails* ; ajouter DMARC ; vérifier le dossier spam |
-| « Un code vient déjà d'être envoyé. Patientez une minute » | Intervalle minimal de Supabase entre deux e-mails | Attendre la fin du compte à rebours |
+| « Un e-mail vient déjà d'être envoyé. Patientez une minute » | Intervalle minimal de Supabase entre deux e-mails | Attendre la fin du compte à rebours |
+| Le lien de l'e-mail mène à une adresse `localhost` ou à l'ancien site | *Site URL* mal réglée dans Supabase | *URL Configuration › Site URL* = adresse de production |
+| « Ce lien n'est plus valable » au premier clic | Lien déjà utilisé, remplacé par un e-mail plus récent, ou expiré | Utiliser le dernier e-mail reçu, ou le code |
 | « Trop de demandes d'inscription » | *Rate limit for sending emails* atteint | Augmenter la limite (2.4) |
 | « Code incorrect ou expiré » avec le bon code | Code remplacé par un renvoi, ou délai dépassé | Utiliser le dernier e-mail reçu ; vérifier *Email OTP Expiration* |
 | Code à 8 chiffres reçu | *Email OTP Length* réglé à 8 | Accepté par le site ; remettre 6 pour coller aux textes |
@@ -154,7 +175,13 @@ générés avec le modèle du dépôt. Aucun e-mail ne sort de la machine.
 
 `tests/e2e/auth.spec.ts` vérifie :
 
-- inscription, code faux puis bon code ;
+- connexion par code (lien et code dans le même e-mail), retour vers la page demandée ;
+- lien magique : la page seule ne consomme rien, le clic connecte, le lien ne sert qu'une fois ;
+- adresse inconnue à la connexion : même écran, aucun e-mail, aucun compte créé ;
+- inscription sans mot de passe (candidat, puis « Vos coordonnées » ; organisation partenaire) ;
+- adresse déjà inscrite à l'inscription : même écran, un lien de connexion part au titulaire ;
+- méthode « mot de passe » retenue par le navigateur ;
+- inscription avec mot de passe, code faux puis bon code ;
 - usage unique du code ;
 - renvoi : le nouveau code remplace l'ancien ;
 - code expiré ;

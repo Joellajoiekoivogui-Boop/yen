@@ -23,9 +23,10 @@ export const citySchema = z.string({ error: "Ville requise." }).trim().min(1, "V
 /** Adresse d'inscription : une faute de frappe connue dans le domaine (gmail.co…) est refusée avec la correction proposée. */
 const signUpEmail = (message: string) =>
   z
-    .email(message)
+    .string({ error: message })
     .trim()
     .toLowerCase()
+    .pipe(z.email(message))
     .refine((v) => !suggestEmailFix(v), { error: (iss) => `Adresse probablement mal écrite : vouliez-vous dire ${suggestEmailFix(String(iss.input))} ?` });
 
 const name = (label: string) => z.string().trim().min(1, `${label} requis.`).max(100, "100 caractères maximum.");
@@ -76,6 +77,27 @@ export const partnerSignUpSchema = z
 
 export const resetRequestSchema = z.object({ email: z.email("Adresse e-mail invalide.").trim().toLowerCase() });
 
+/** Adresse saisie seule (connexion sans mot de passe) : espaces retirés avant le contrôle du format. */
+const plainEmail = z.string({ error: "Adresse e-mail invalide." }).trim().toLowerCase().pipe(z.email("Adresse e-mail invalide."));
+
+/** Connexion sans mot de passe : lien et code envoyés par e-mail (Supabase Auth). */
+export const emailLinkRequestSchema = z.object({ email: plainEmail });
+
+/** Inscription candidat sans mot de passe : l'adresse suffit, les coordonnées sont demandées ensuite (« Vos coordonnées »). */
+export const candidateEmailSignUpSchema = z.object({ email: signUpEmail("Adresse e-mail invalide.") });
+
+/** Inscription partenaire sans mot de passe : organisation, contact et adresse professionnelle. */
+export const partnerEmailSignUpSchema = z.object({
+  organization_name: z.string().trim().min(2, "Nom de l'organisation requis.").max(200),
+  first_name: name("Prénom"),
+  last_name: name("Nom"),
+  email: signUpEmail("Adresse e-mail professionnelle invalide."),
+  phone: z.string().trim().max(30).regex(/^[+0-9 ()-]*$/, "Numéro invalide.").optional().nullable(),
+});
+
+/** Empreinte du lien reçu par e-mail ({{ .TokenHash }} de Supabase Auth, préfixée « pkce_ » selon le flux). */
+export const emailLinkSchema = z.object({ token_hash: z.string().regex(/^(?:pkce_)?[A-Za-z0-9_-]{20,128}$/, "Lien invalide.") });
+
 /**
  * Code de vérification reçu par e-mail (généré et vérifié par Supabase Auth) : chiffres uniquement,
  * espaces tolérés au collage ; 6 chiffres par défaut, jusqu'à 10 selon le réglage du projet Supabase.
@@ -85,9 +107,9 @@ export const otpCodeSchema = z
   .transform((v) => v.replace(/[\s-]/g, ""))
   .pipe(z.string().min(1, "Saisissez le code reçu par e-mail.").regex(/^\d{6,10}$/, "Code invalide : saisissez les chiffres reçus par e-mail (6 chiffres)."));
 
-export const verifySignupSchema = z.object({
+export const verifyEmailCodeSchema = z.object({
   // espaces retirés avant le contrôle du format (adresse collée depuis un e-mail)
-  email: z.string({ error: "Adresse e-mail invalide." }).trim().toLowerCase().pipe(z.email("Adresse e-mail invalide.")),
+  email: plainEmail,
   code: otpCodeSchema,
 });
 

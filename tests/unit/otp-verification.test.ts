@@ -3,7 +3,7 @@
  * La génération et la vérification du code restent assurées par Supabase Auth.
  */
 import { beforeEach, describe, expect, it } from "vitest";
-import { verifySignupSchema } from "@/features/auth/schemas";
+import { verifyEmailCodeSchema } from "@/features/auth/schemas";
 import { clearOtpFailures, LIMITS, otpRetryAfter, recordOtpFailure, resetAttempts } from "@/lib/security/attempts";
 
 const IP = "203.0.113.7";
@@ -11,7 +11,7 @@ const OTHER_IP = "198.51.100.20";
 const T0 = 1_800_000_000_000;
 
 describe("format du code de vérification", () => {
-  const parse = (code: string) => verifySignupSchema.safeParse({ email: " Awa@Exemple.test ", code });
+  const parse = (code: string) => verifyEmailCodeSchema.safeParse({ email: " Awa@Exemple.test ", code });
 
   it("accepte 6 chiffres, avec espaces ou tirets collés depuis l'e-mail", () => {
     for (const code of ["123456", "123 456", " 123-456 "]) {

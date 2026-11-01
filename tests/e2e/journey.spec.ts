@@ -6,6 +6,7 @@
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import { choosePasswordSignIn, choosePasswordSignUp } from "./auth-helpers";
 import { verificationCode } from "./mailbox";
 
 test.skip(!process.env.E2E_STACK, "Pile Supabase locale requise (E2E_STACK=1)");
@@ -19,6 +20,7 @@ let candidateUrl = "";
 
 async function login(page: Page, email: string, password: string) {
   await page.goto("/connexion");
+  await choosePasswordSignIn(page);
   await page.getByRole("textbox", { name: "Adresse e-mail" }).fill(email);
   await page.getByRole("textbox", { name: "Mot de passe" }).fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
@@ -57,6 +59,7 @@ async function cvPdf(padBytes = 0): Promise<Buffer> {
 
 test("un candidat crée son compte et se connecte", async ({ page }) => {
   await page.goto("/inscription");
+  await choosePasswordSignUp(page);
   const f = (label: string, v: string) => page.getByRole("textbox", { name: label, exact: true }).fill(v);
   await f("Prénom", "Test");
   await f("Nom", candidate.lastName);
@@ -341,6 +344,7 @@ test("le partenaire voit la candidature transmise, sans coordonnées ni notes in
 async function signUpPartner(page: Page, tag: string) {
   const partner = { org: `Organisation E2E ${tag} ${stamp}`, email: `partenaire.${tag}.${stamp}@example.test`, password: "Partenaire-E2e-2026" };
   await page.goto("/inscription?type=partenaire");
+  await choosePasswordSignUp(page);
   const f = (label: string, v: string) => page.getByRole("textbox", { name: label, exact: true }).fill(v);
   await f("Nom de l'organisation", partner.org);
   await f("Prénom du contact", "Awa");

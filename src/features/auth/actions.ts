@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { clientIp, dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
 import { clearLoginFailures, clearOtpFailures, loginRetryAfter, otpRetryAfter, recordLoginFailure, recordOtpFailure, takeEmailRequest } from "@/lib/security/attempts";
@@ -9,8 +10,20 @@ import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { EMAIL_NOT_CONFIRMED_MESSAGE, signUpErrorMessage } from "./errors";
-import { candidateSignUpSchema, contactDetailsSchema, newPasswordSchema, partnerSignUpSchema, resetRequestSchema, signInSchema, verifySignupSchema } from "./schemas";
-import { forgetPendingEmail, rememberPendingEmail } from "./verification-cookie";
+import {
+  candidateEmailSignUpSchema,
+  candidateSignUpSchema,
+  contactDetailsSchema,
+  emailLinkRequestSchema,
+  emailLinkSchema,
+  newPasswordSchema,
+  partnerEmailSignUpSchema,
+  partnerSignUpSchema,
+  resetRequestSchema,
+  signInSchema,
+  verifyEmailCodeSchema,
+} from "./schemas";
+import { forgetPendingEmail, pendingVerification, rememberPendingEmail } from "./verification-cookie";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
 const minutes = (seconds: number) => Math.max(1, Math.ceil(seconds / 60));
@@ -31,7 +44,7 @@ export async function signInAction(values: Record<string, unknown>): Promise<Act
     if (error) {
       if (error.code === "email_not_confirmed") {
         // mot de passe correct mais adresse non vérifiée : la page de vérification connaîtra l'adresse
-        await rememberPendingEmail(input.email, false);
+        await rememberPendingEmail(input.email, false, "password");
         return fail(EMAIL_NOT_CONFIRMED_MESSAGE);
       }
       if (isRateLimited(error)) return fail("Trop de connexions en même temps sur la plateforme. Patientez une minute puis réessayez.");
@@ -80,7 +93,7 @@ export async function signUpCandidateAction(values: Record<string, unknown>): Pr
     // Si la confirmation d'e-mail est désactivée côté Supabase, une session est ouverte immédiatement
     if (data?.session) return { ok: true, message: "Compte créé : bienvenue !", data: { redirectTo: "/candidat" } };
     // Supabase a envoyé un code de vérification ; même suite si l'adresse a déjà un compte (pas d'énumération)
-    await rememberPendingEmail(email, true);
+    await rememberPendingEmail(email, true, "password");
     return { ok: true, data: { redirectTo: "/verification" } };
   });
 }
@@ -107,7 +120,7 @@ export async function signUpPartnerAction(values: Record<string, unknown>): Prom
     // Sans confirmation d'e-mail côté Supabase, la session est ouverte immédiatement
     if (data?.session) return { ok: true, message: "Demande enregistrée.", data: { redirectTo: "/partenaire/en-attente" } };
     // code de vérification envoyé ; l'équipe YEN validera ensuite l'organisation
-    await rememberPendingEmail(email, true);
+    await rememberPendingEmail(email, true, "password");
     return { ok: true, data: { redirectTo: "/verification" } };
   });
 }
@@ -125,21 +138,128 @@ export async function saveContactDetailsAction(values: Record<string, unknown>):
   });
 }
 
+/* -----------------------------------------------------------------------------
+   Lien magique et code par e-mail (connexion sans mot de passe, inscription, vérification).
+   Supabase Auth génère le lien et le code, envoie l'e-mail (SMTP du projet, Resend) et les
+   vérifie : le site ne fabrique ni ne contrôle aucun code lui-même.
+   ----------------------------------------------------------------------------- */
+
+const LINK_INVALID = "Ce lien n'est plus valable : il a déjà servi, a expiré ou a été remplacé par un e-mail plus récent. Demandez un nouveau lien.";
+
+/** Page de saisie du code, avec la page demandée avant la connexion (chemin interne uniquement). */
+const verificationPath = (next: unknown) => {
+  const safe = safeInternalPath(next);
+  return safe ? `/verification?suivant=${encodeURIComponent(safe)}` : "/verification";
+};
+
 /**
- * Vérification de l'adresse e-mail par le code reçu à l'inscription. Le code est généré, envoyé
- * (SMTP du projet, Resend) et vérifié par Supabase Auth ; un code valide ouvre la session.
- * Échecs limités par compte et par adresse IP, en plus de la limite de Supabase.
+ * Envoie un e-mail contenant un lien et un code. `create` : données du compte à créer si l'adresse
+ * est inconnue (inscription) ; sans `create`, aucune adresse inconnue ne reçoit d'e-mail (connexion).
+ * Retourne un message d'erreur, ou null quand la réponse doit être la même que l'adresse ait un compte ou non.
  */
-export async function verifySignupCodeAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
+async function sendLinkAndCode(email: string, create?: Record<string, string>, opts: { resend?: boolean } = {}): Promise<string | null> {
+  const wait = takeEmailRequest(await clientIp(), email);
+  if (wait) return `Trop de demandes d'e-mail pour cette adresse. Réessayez dans ${minutes(wait)} minute(s).`;
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: Boolean(create), data: create, emailRedirectTo: `${publicEnv.siteUrl}/auth/callback` },
+  });
+  if (!error) return null;
+  // adresse sans compte, en connexion : même réponse qu'avec un compte (pas d'énumération)
+  if (error.code === "otp_disabled") return null;
+  if (error.code === "over_email_send_rate_limit" && /\d+\s*seconds?/i.test(error.message)) {
+    // un e-mail est parti il y a moins d'une minute pour cette adresse : il reste valable
+    return opts.resend ? "Un e-mail vient déjà d'être envoyé. Patientez une minute avant d'en demander un nouveau." : null;
+  }
+  if (isRateLimited(error)) return "Trop de demandes d'e-mail sur la plateforme pour le moment. Réessayez dans quelques minutes.";
+  // code seul dans les journaux (jamais l'adresse)
+  console.error("[lien e-mail] refus Supabase Auth", error.code, error.status);
+  return signUpErrorMessage(error.code) ?? "L'e-mail n'a pas pu être envoyé. Réessayez dans un instant.";
+}
+
+/** Connexion sans mot de passe : lien et code envoyés si un compte correspond (réponse identique sinon). */
+export async function requestLoginLinkAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
   return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
-    const input = parseInput(verifySignupSchema, values);
+    const input = parseInput(emailLinkRequestSchema, values);
+    const error = await sendLinkAndCode(input.email);
+    if (error) return fail(error);
+    await rememberPendingEmail(input.email, true, "login");
+    return { ok: true, data: { redirectTo: verificationPath(values.next) } };
+  });
+}
+
+/**
+ * Inscription sans mot de passe (candidat : l'adresse seule ; partenaire : organisation et contact).
+ * L'adresse est vérifiée par le lien ou le code reçu. Une adresse déjà inscrite reçoit un lien de
+ * connexion à la place, avec la même réponse à l'écran (pas d'énumération des comptes).
+ */
+export async function signUpWithEmailAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
+  return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
+    if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
+    // conditions d'utilisation acceptées en continuant (mention affichée sous le bouton)
+    let email: string;
+    let data: Record<string, string>;
+    if (values.account_type === "partner") {
+      const { email: e, phone, ...org } = parseInput(partnerEmailSignUpSchema, values);
+      email = e;
+      data = { ...org, ...(phone ? { phone } : {}), account_type: "partner", accepted_terms: "true" };
+    } else {
+      email = parseInput(candidateEmailSignUpSchema, values).email;
+      data = { account_type: "candidate", accepted_terms: "true" };
+    }
+    const error = await sendLinkAndCode(email, data);
+    if (error) return fail(error);
+    await rememberPendingEmail(email, true, "signup");
+    return { ok: true, data: { redirectTo: "/verification" } };
+  });
+}
+
+/**
+ * Après une vérification réussie : session ouverte, sauf compte désactivé.
+ *
+ * Préinscription par un tiers : quelqu'un peut créer un compte avec l'adresse d'une autre personne et un
+ * mot de passe de son choix, sans pouvoir le confirmer. Si la vraie titulaire confirme ensuite l'adresse
+ * (lien ou code), ce mot de passe deviendrait valable. Donc, à la toute première confirmation, un mot de
+ * passe qui n'a pas été choisi dans ce navigateur pour cette adresse est remplacé par un mot de passe
+ * aléatoire, inconnu de tous : la connexion se fait alors par e-mail (ou « Mot de passe oublié »).
+ */
+async function afterEmailVerified(supabase: Awaited<ReturnType<typeof createClient>>, next: unknown): Promise<ActionResult<{ redirectTo: string }>> {
+  const pending = await pendingVerification();
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+  const confirmedAt = user?.email_confirmed_at ? Date.parse(user.email_confirmed_at) : 0;
+  const firstConfirmation = Date.now() - confirmedAt < 2 * 60_000;
+  const ownPassword = pending.mode === "password" && pending.email === user?.email?.toLowerCase();
+  if (user && firstConfirmation && !ownPassword) {
+    const { error } = await supabase.auth.updateUser({ password: randomBytes(32).toString("base64url") });
+    if (error) console.error("[vérification] mot de passe non remplacé", error.code, error.status);
+  }
+  await forgetPendingEmail();
+  const ctx = await getSession();
+  if (ctx && !ctx.profile.is_active) {
+    await supabase.auth.signOut();
+    return fail("Ce compte est désactivé. Contactez l'équipe YEN.");
+  }
+  const target = safeInternalPath(next) ?? (ctx ? homePathFor(ctx) : "/connexion?confirme=1");
+  return { ok: true, message: "Adresse e-mail vérifiée : bienvenue !", data: { redirectTo: target } };
+}
+
+/**
+ * Code reçu par e-mail : vérifie l'adresse et ouvre la session (inscription, avec ou sans mot de
+ * passe, et connexion sans mot de passe). Le type « email » de Supabase couvre le code d'inscription
+ * comme le code de connexion. Échecs limités par compte et par adresse IP, en plus de la limite de Supabase.
+ */
+export async function verifyEmailCodeAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
+  return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
+    if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
+    const input = parseInput(verifyEmailCodeSchema, values);
     const ip = await clientIp();
     const wait = otpRetryAfter(ip, input.email);
     if (wait) return fail(`Trop de codes erronés. Réessayez dans ${minutes(wait)} minute(s), ou demandez un nouveau code.`);
     const supabase = await createClient();
-    // type « signup » : confirmation d'inscription (différent du code de connexion « email »)
-    const { error } = await supabase.auth.verifyOtp({ email: input.email, token: input.code, type: "signup" });
+    const { error } = await supabase.auth.verifyOtp({ email: input.email, token: input.code, type: "email" });
     if (error) {
       if (isRateLimited(error)) return fail("Trop de vérifications en même temps sur la plateforme. Patientez une minute puis réessayez.");
       if (error.code === "otp_expired" || error.status === 403) {
@@ -150,29 +270,43 @@ export async function verifySignupCodeAction(values: Record<string, unknown>): P
       return fail("La vérification n'a pas pu aboutir. Réessayez dans un instant.");
     }
     clearOtpFailures(ip, input.email);
-    await forgetPendingEmail();
-    const ctx = await getSession();
-    if (ctx && !ctx.profile.is_active) {
-      await supabase.auth.signOut();
-      return fail("Ce compte est désactivé. Contactez l'équipe YEN.");
-    }
-    return { ok: true, message: "Adresse e-mail vérifiée : bienvenue !", data: { redirectTo: ctx ? homePathFor(ctx) : "/connexion?confirme=1" } };
+    return afterEmailVerified(supabase, values.next);
   });
 }
 
-/** Renvoie un code de vérification d'inscription (réponse identique que le compte existe ou non). */
-export async function resendConfirmationAction(values: Record<string, unknown>): Promise<ActionResult> {
+/**
+ * Lien reçu par e-mail (page /auth/lien) : vérifié seulement après un clic sur « Continuer », pour
+ * qu'une messagerie qui ouvre les liens afin de les analyser ne le consomme pas à la place de l'utilisateur.
+ */
+export async function confirmEmailLinkAction(values: Record<string, unknown>): Promise<ActionResult<{ redirectTo: string }>> {
+  return runAction<{ redirectTo: string }>({ allowAnonymous: true }, async () => {
+    if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
+    const parsed = emailLinkSchema.safeParse(values);
+    if (!parsed.success) return fail(LINK_INVALID);
+    const supabase = await createClient();
+    const { error } = await supabase.auth.verifyOtp({ token_hash: parsed.data.token_hash, type: "email" });
+    if (error) {
+      if (isRateLimited(error)) return fail("Trop de vérifications en même temps sur la plateforme. Patientez une minute puis réessayez.");
+      if (error.code !== "otp_expired" && error.status !== 403) console.error("[lien e-mail] refus Supabase Auth", error.code, error.status);
+      return fail(LINK_INVALID);
+    }
+    return afterEmailVerified(supabase, undefined);
+  });
+}
+
+/**
+ * Renvoie un lien et un code. Compte non vérifié : nouvel e-mail de confirmation ; compte vérifié :
+ * lien de connexion ; adresse inconnue : rien. Réponse identique dans tous les cas.
+ */
+export async function resendEmailCodeAction(values: Record<string, unknown>): Promise<ActionResult> {
   return runAction({ allowAnonymous: true }, async () => {
     if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED);
-    const input = parseInput(resetRequestSchema, values);
-    const wait = takeEmailRequest(await clientIp(), input.email);
-    if (wait) return fail(`Trop de demandes de code. Réessayez dans ${minutes(wait)} minute(s).`);
-    const supabase = await createClient();
-    const { error } = await supabase.auth.resend({ type: "signup", email: input.email, options: { emailRedirectTo: `${publicEnv.siteUrl}/auth/callback?suivant=/candidat` } });
-    if (error?.code === "over_email_send_rate_limit" || error?.code === "over_request_rate_limit") return fail("Un code vient déjà d'être envoyé. Patientez une minute avant d'en demander un nouveau.");
-    if (error) console.error("[inscription] renvoi du code refusé", error.code, error.status);
-    await rememberPendingEmail(input.email, true);
-    return { ok: true, message: "Si une inscription est en attente pour cette adresse, un nouveau code vient d'être envoyé. Il remplace le précédent. Pensez à vérifier les courriers indésirables (spams)." };
+    const input = parseInput(emailLinkRequestSchema, values);
+    const error = await sendLinkAndCode(input.email, undefined, { resend: true });
+    if (error) return fail(error);
+    const { mode } = await pendingVerification();
+    await rememberPendingEmail(input.email, true, mode);
+    return { ok: true, message: "Si un compte correspond à cette adresse, un nouvel e-mail vient d'être envoyé. Il remplace le précédent. Pensez à vérifier les courriers indésirables (spams)." };
   });
 }
 

@@ -17,9 +17,9 @@ export default async function SignUpPage(props: PageProps<"/inscription">) {
   const configured = isSupabaseConfigured();
   const google = configured && (await isGoogleAuthEnabled());
   return (
-    <Card className="w-full max-w-xl p-6 sm:p-8">
+    <Card className="w-full max-w-lg p-6 sm:p-8">
       <h1 className="text-2xl font-bold text-navy-900">Créer un compte</h1>
-      <p className="mt-1 text-sm text-muted">Moins d&apos;une minute. Vous compléterez votre parcours ensuite, depuis votre espace.</p>
+      <p className="mt-1 text-sm text-muted">Moins d&apos;une minute, sans mot de passe à retenir.</p>
       <div className="mt-6">
         {!configured ? (
           <Alert tone="warning" title="Configuration requise">Supabase n&apos;est pas configuré : l&apos;inscription est indisponible.</Alert>

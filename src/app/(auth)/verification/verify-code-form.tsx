@@ -3,16 +3,29 @@
 import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { Loader2, MailPlus } from "lucide-react";
 import { Alert, Button } from "@/components/ui";
-import { resendConfirmationAction, verifySignupCodeAction } from "@/features/auth/actions";
-import { verifySignupSchema } from "@/features/auth/schemas";
+import { resendEmailCodeAction, verifyEmailCodeAction } from "@/features/auth/actions";
+import { verifyEmailCodeSchema } from "@/features/auth/schemas";
 
 type Field = "email" | "code";
 
 /**
- * Saisie du code de vérification (généré et vérifié par Supabase Auth) et renvoi d'un nouveau
- * code, possible après le délai minimal de Supabase entre deux e-mails.
+ * Saisie du code reçu par e-mail (généré et vérifié par Supabase Auth) et renvoi d'un nouvel
+ * e-mail, possible après le délai minimal de Supabase entre deux envois.
+ * `mode` : « signup » (vérification d'une inscription) ou « login » (connexion sans mot de passe).
  */
-export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: { email: string; resendIn: number; resendDelay: number }) {
+export function VerifyCodeForm({
+  email: initialEmail,
+  mode,
+  next,
+  resendIn,
+  resendDelay,
+}: {
+  email: string;
+  mode: "login" | "signup" | "password";
+  next?: string;
+  resendIn: number;
+  resendDelay: number;
+}) {
   const id = useId();
   const [email, setEmail] = useState(initialEmail);
   const [editingEmail, setEditingEmail] = useState(!initialEmail);
@@ -43,7 +56,7 @@ export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: {
     e.preventDefault();
     setAlert(null);
     setRejected(false);
-    const parsed = verifySignupSchema.safeParse({ email, code });
+    const parsed = verifyEmailCodeSchema.safeParse({ email, code });
     if (!parsed.success) {
       const next: Partial<Record<Field, string>> = {};
       for (const issue of parsed.error.issues) next[issue.path[0] as Field] ??= issue.message;
@@ -54,7 +67,7 @@ export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: {
     }
     setErrors({});
     startVerify(async () => {
-      const r = await verifySignupCodeAction({ email, code });
+      const r = await verifyEmailCodeAction({ email, code, next });
       if (r.ok) {
         setAlert({ tone: "success", text: r.message ?? "Adresse vérifiée." });
         window.location.assign(r.data?.redirectTo ?? "/");
@@ -70,14 +83,14 @@ export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: {
 
   const resend = () => {
     setAlert(null);
-    const parsed = verifySignupSchema.shape.email.safeParse(email);
+    const parsed = verifyEmailCodeSchema.shape.email.safeParse(email);
     if (!parsed.success) {
       setErrors({ email: parsed.error.issues[0]?.message });
       setEditingEmail(true);
       return;
     }
     startResend(async () => {
-      const r = await resendConfirmationAction({ email });
+      const r = await resendEmailCodeAction({ email });
       setAlert(r.ok ? { tone: "success", text: r.message ?? "Nouveau code envoyé." } : { tone: "error", text: r.error });
       if (r.ok) {
         setWait(resendDelay);
@@ -111,7 +124,7 @@ export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: {
         </div>
       ) : (
         <p className="rounded-lg bg-navy-50 px-3 py-2.5 text-sm text-navy-900">
-          Code envoyé à <strong className="font-semibold break-all">{email}</strong>{" "}
+          Envoyé à <strong className="font-semibold break-all">{email}</strong>{" "}
           <button type="button" onClick={() => setEditingEmail(true)} className="font-medium text-electric-700 hover:underline">
             Modifier
           </button>
@@ -138,8 +151,7 @@ export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: {
           className="field-input h-14 text-center font-mono text-2xl tracking-[0.35em] placeholder:tracking-[0.35em]"
         />
         <p id={`${id}-code-help`} className="mt-1 text-xs text-muted">
-          Le code arrive en une à deux minutes. Pensez à regarder dans les courriers indésirables (spams). Si l&apos;e-mail
-          contient un lien plutôt qu&apos;un code, cliquez simplement sur ce lien.
+          L&apos;e-mail arrive en une à deux minutes. Pensez à regarder dans les spams.
         </p>
         {errors.code && (
           <p id={`${id}-code-err`} className="mt-1 animate-slide-down text-xs text-red-600">
@@ -154,7 +166,7 @@ export function VerifyCodeForm({ email: initialEmail, resendIn, resendDelay }: {
       <div className="flex flex-col items-stretch gap-3 text-center">
         <Button type="submit" variant="secondary" size="lg" disabled={pending} aria-busy={pending || undefined}>
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
-          Vérifier mon adresse
+          {mode === "login" ? "Se connecter" : "Vérifier mon adresse"}
         </Button>
         <button
           type="button"

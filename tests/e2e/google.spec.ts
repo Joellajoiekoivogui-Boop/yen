@@ -12,7 +12,7 @@ test("le bouton Google part vers Google avec un vérificateur PKCE protégé", a
   // Requête finale de la chaîne de redirections (site → Supabase Auth → Google) : lue, sans dépendre de la page de Google
   await page.route("https://accounts.google.com/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google (simulé)</h1>" }));
   await page.goto("/connexion");
-  await expect(page.getByText(/En continuant avec Google, vous acceptez/)).toBeVisible();
+  await expect(page.getByText(/En continuant, vous acceptez les/)).toBeVisible();
   const toGoogle = page.waitForRequest((r) => r.url().startsWith("https://accounts.google.com/"));
   await page.getByRole("link", { name: "Continuer avec Google" }).click();
   const google = new URL((await toGoogle).url());
