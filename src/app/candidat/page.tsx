@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { Briefcase, CalendarClock, CheckCircle2, ClipboardCheck, Circle, MessageSquareWarning, Sparkles, Target } from "lucide-react";
+import { Briefcase, CalendarClock, CheckCircle2, Circle, MessageSquareWarning, Sparkles, Target } from "lucide-react";
 import { SingleLineChart } from "@/components/charts";
-import { Alert, ApplicationStatusBadge, Badge, ButtonLink, Card, CardBody, CardHeader, EmptyState, ProgressRing, ScorePill, StatCard } from "@/components/ui";
+import { NextStepCard } from "@/components/candidate/next-step-card";
+import { Alert, ApplicationStatusBadge, Badge, Card, CardBody, CardHeader, EmptyState, ProgressRing, ScorePill, StatCard } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ACTIVE_APPLICATION_STATUSES } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
+import { entretienWording } from "@/lib/wording";
+import { nextStep } from "@/features/candidates/next-step";
 import { completionOf, loadCandidateBundle } from "@/features/candidates/queries";
 import { aggregateDemonstrated } from "@/features/candidates/skills";
 import { computeMatch, rankMatches } from "@/features/matching/engine";
@@ -17,12 +20,14 @@ export default async function CandidateDashboard() {
   const ctx = await requireCandidate();
   const supabase = await createClient();
   // Requêtes indépendantes lancées en parallèle : moins d'allers-retours, page plus rapide
-  const [bundle, [lastAnalysis, recs, apps, offers, infoReqs]] = await Promise.all([loadCandidateBundle(supabase, ctx.candidateId), Promise.all([
+  const [bundle, [lastAnalysis, recs, apps, offers, infoReqs, running]] = await Promise.all([loadCandidateBundle(supabase, ctx.candidateId), Promise.all([
     supabase.from("ai_analyses").select("created_at, status").eq("candidate_id", ctx.candidateId).in("kind", ["analyse_profil"]).neq("status", "echoue").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("ai_recommendations").select("id, rec_type, title, body, origin").eq("candidate_id", ctx.candidateId).eq("status", "active").order("priority").order("created_at", { ascending: false }).limit(4),
     supabase.from("applications").select("id, status, submitted_at, job_offers(title, organization_id)").eq("candidate_id", ctx.candidateId).in("status", ACTIVE_APPLICATION_STATUSES).order("updated_at", { ascending: false }).limit(5),
     supabase.from("job_offers").select("id").eq("status", "publiee").or(`deadline.is.null,deadline.gte.${new Date().toISOString().slice(0, 10)}`).order("published_at", { ascending: false }).limit(40),
     supabase.from("info_requests").select("id, message, created_at").eq("candidate_id", ctx.candidateId).eq("status", "ouverte"),
+    // entretien commencé dont le temps n'est pas écoulé (5 min de tolérance, comme à la soumission)
+    supabase.from("assessment_attempts").select("id, deadline_at, assessments(title)").eq("candidate_id", ctx.candidateId).eq("status", "en_cours").gt("deadline_at", minutesAgo(5)).order("started_at", { ascending: false }).limit(1).maybeSingle(),
   ])]);
   if (!bundle) return <Alert tone="error">Profil introuvable.</Alert>;
 
@@ -36,6 +41,15 @@ export default async function CandidateDashboard() {
   const toEvaluate = bundle.declaredSkills.filter((d) => !demonstrated[d.skill_id]);
 
   const topOffers = evidence ? rankMatches(targets.map((t) => ({ target: t, match: computeMatch(t, evidence) }))).slice(0, 3) : [];
+  const step = nextStep({
+    attemptInProgress: running.data
+      ? { id: running.data.id, title: (running.data.assessments as unknown as { title: string } | null)?.title ?? "en cours", minutesLeft: minutesUntil(running.data.deadline_at) }
+      : null,
+    completionItems: completion.items,
+    skillToDemonstrate: toEvaluate[0]?.skills?.name ?? null,
+    recommendation: recs.data?.[0] ? { title: recs.data[0].title } : null,
+    bestOffer: topOffers[0] ? { id: topOffers[0].target.id, title: topOffers[0].target.title, score: topOffers[0].match.score } : null,
+  });
 
   // Évolution : nombre cumulé de compétences démontrées par mois
   const firstByskill = new Map<string, string>();
@@ -47,13 +61,10 @@ export default async function CandidateDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted">Bonjour {ctx.profile.first_name || ""} 👋</p>
-          <h1 className="text-2xl font-bold tracking-tight text-navy-900">Tableau de bord</h1>
-          <p className="mt-1 text-xs text-muted">Identifiant YEN : <span className="font-mono font-semibold text-navy-800">{bundle.candidate.public_code}</span></p>
-        </div>
-        <ButtonLink href="/candidat/evaluations" variant="secondary"><ClipboardCheck className="size-4" aria-hidden /> Passer un entretien</ButtonLink>
+      <div>
+        <p className="text-sm text-muted">Bonjour {ctx.profile.first_name || ""} 👋</p>
+        <h1 className="text-2xl font-bold tracking-tight text-navy-900">Tableau de bord</h1>
+        <p className="mt-1 text-xs text-muted">Identifiant YEN : <span className="font-mono font-semibold text-navy-800">{bundle.candidate.public_code}</span></p>
       </div>
 
       {(infoReqs.data ?? []).map((r) => (
@@ -62,6 +73,8 @@ export default async function CandidateDashboard() {
           <InfoRequestForm id={r.id} />
         </Alert>
       ))}
+
+      <NextStepCard step={step} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="group flex items-center gap-4 p-4 transition duration-500 ease-out-expo hover:-translate-y-1 hover:shadow-lg">
@@ -73,7 +86,7 @@ export default async function CandidateDashboard() {
           </div>
         </Card>
         <StatCard label="Compétences démontrées" value={Object.keys(demonstrated).length} hint="Validées par un entretien, un projet vérifié ou un évaluateur" icon={CheckCircle2} tone="gold" />
-        <StatCard label="Compétences à évaluer" value={toEvaluate.length} hint="Déclarées mais pas encore démontrées" icon={Target} tone="amber" />
+        <StatCard label="Compétences à démontrer" value={toEvaluate.length} hint="Déclarées, pas encore démontrées : un entretien suffit" icon={Target} tone="amber" />
         <StatCard label="Dernière analyse" value={lastAnalysis.data ? formatDate(lastAnalysis.data.created_at) : "—"} hint={lastAnalysis.data ? "Analyse IA du profil" : "Aucune analyse réalisée"} icon={CalendarClock} tone="navy" />
       </div>
 
@@ -125,7 +138,7 @@ export default async function CandidateDashboard() {
                     <p className="text-sm font-medium text-navy-900">{r.title}</p>
                     <Badge tone={r.origin === "ia" ? "purple" : "blue"}>{r.origin === "ia" ? "IA" : "Entretien"}</Badge>
                   </div>
-                  <p className="mt-1 line-clamp-3 text-xs text-slate-600">{r.body}</p>
+                  <p className="mt-1 line-clamp-3 text-xs text-slate-600">{entretienWording(r.body)}</p>
                 </div>
               ))
             )}
@@ -163,4 +176,14 @@ export default async function CandidateDashboard() {
       </div>
     </div>
   );
+}
+
+/** Instant d'il y a `n` minutes (format ISO), pour les requêtes. */
+function minutesAgo(n: number): string {
+  return new Date(Date.now() - n * 60_000).toISOString();
+}
+
+/** Minutes restantes avant une échéance. */
+function minutesUntil(iso: string): number {
+  return (new Date(iso).getTime() - Date.now()) / 60_000;
 }

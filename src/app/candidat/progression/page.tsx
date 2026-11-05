@@ -6,6 +6,7 @@ import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/utils";
 import { levelLabel } from "@/lib/labels";
+import { entretienWording } from "@/lib/wording";
 import { generateProgressPlanAction } from "@/features/ai/actions";
 import { setRecommendationStatusAction } from "@/features/candidates/actions";
 import { isAIConfigured } from "@/features/ai/provider";
@@ -82,7 +83,7 @@ export default async function ProgressPage() {
                   <Badge tone={r.origin === "ia" ? "purple" : "blue"}>{r.origin === "ia" ? "IA" : r.origin === "regles" ? "Entretien" : "Évaluateur"}</Badge>
                   {r.status === "terminee" && <Badge tone="green">Terminée</Badge>}
                 </div>
-                <p className="mt-1 text-xs text-slate-600">{r.body}</p>
+                <p className="mt-1 text-xs text-slate-600">{entretienWording(r.body)}</p>
               </div>
               <div className="flex gap-1">
                 {r.status === "active" && <ActionButton variant="ghost" action={setRecommendationStatusAction.bind(null, r.id, "terminee")}>Marquer terminée</ActionButton>}

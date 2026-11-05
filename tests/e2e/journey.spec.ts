@@ -86,6 +86,9 @@ test("un candidat crée son compte et se connecte", async ({ page }) => {
   await page.getByRole("textbox", { name: "Code de vérification" }).fill(await verificationCode(candidate.email));
   await page.getByRole("button", { name: "Vérifier mon adresse" }).click();
   await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible({ timeout: 20_000 });
+  // une seule action conseillée : sans domaine principal, ni entretiens ni offres ne sont ciblés
+  await expect(page.getByText("Votre prochaine étape")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choisissez votre domaine principal" })).toBeVisible();
   await logout(page);
 
   await login(page, candidate.email, candidate.password);
@@ -154,6 +157,54 @@ test("le candidat passe un entretien corrigé automatiquement", async ({ page })
   await expect(page.getByRole("cell", { name: "JavaScript / TypeScript" }).first()).toBeVisible();
   // jamais « Expert » automatiquement
   await expect(page.getByRole("cell", { name: "Expert" })).toHaveCount(0);
+});
+
+test("étude de cas : reprise depuis le tableau de bord, correction à côté de la réponse, résultat expliqué au candidat", async ({ page }) => {
+  test.skip(!ADMIN.password, "E2E_ADMIN_PASSWORD requis");
+  const answer = "Routes /beneficiaires et /visites, tables reliées par une clé étrangère, jetons d'accès et tests d'intégration.";
+  await login(page, candidate.email, candidate.password);
+  await page.goto("/candidat/evaluations");
+  await page.getByRole("link", { name: /Étude de cas : conception d'une API/ }).click();
+  await expect(page.getByRole("heading", { name: "Avant de commencer" })).toBeVisible();
+  await page.getByRole("button", { name: /Commencer l'entretien/ }).click();
+  await page.waitForURL(/tentative/);
+  const attemptId = new URL(page.url()).pathname.split("/").pop()!;
+  await page.getByLabel("Votre réponse").fill(answer);
+  await expect(page.getByText(/Réponses enregistrées sur cet appareil/)).toBeVisible();
+  // chronomètre masquable (il réapparaît dans les 5 dernières minutes)
+  await page.getByRole("button", { name: /Masquer le temps restant/ }).click();
+  await expect(page.getByText("Temps masqué")).toBeVisible();
+
+  // entretien quitté en cours : le tableau de bord propose de le reprendre, la réponse est conservée
+  await page.goto("/candidat");
+  await expect(page.getByRole("heading", { name: "Terminez votre entretien « Étude de cas : conception d'une API »" })).toBeVisible();
+  await page.getByRole("link", { name: "Reprendre l'entretien" }).click();
+  await page.waitForURL(new RegExp(attemptId));
+  await expect(page.getByLabel("Votre réponse")).toHaveValue(answer);
+  await page.getByRole("button", { name: "Soumettre" }).click();
+  await expect(page.getByText("Correction en cours")).toBeVisible({ timeout: 20_000 });
+  await logout(page);
+
+  // l'évaluateur note sous la réponse, avec le total en direct
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.goto(`/admin/corrections/${attemptId}`);
+  await expect(page.getByText(answer)).toBeVisible();
+  await page.getByLabel("Note question 1 / 10").fill("4");
+  await page.getByLabel("Commentaire pour le candidat").fill("Routes claires ; détaillez la protection des données personnelles.");
+  await expect(page.getByText(/total provisoire\s*4 \/ 10/)).toBeVisible();
+  await page.getByRole("button", { name: "Valider la correction" }).click();
+  await page.waitForURL(/\/admin\/corrections$/, { timeout: 20_000 });
+  await logout(page);
+
+  // le candidat : « pas encore validé », ce qu'il faut revoir et quand réessayer
+  await login(page, candidate.email, candidate.password);
+  await page.goto(`/candidat/evaluations/tentative/${attemptId}`);
+  await expect(page.getByText("Pas encore validé")).toBeVisible();
+  await expect(page.getByText("40 %").first()).toBeVisible();
+  await expect(page.getByText(/Nouvelle tentative possible à partir du/)).toBeVisible();
+  await expect(page.getByText("À renforcer")).toBeVisible();
+  await expect(page.getByText(/détaillez la protection des données personnelles/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Voir mon plan de progression" })).toBeVisible();
 });
 
 test("le candidat téléverse un CV PDF et refuse un faux PDF", async ({ page }) => {

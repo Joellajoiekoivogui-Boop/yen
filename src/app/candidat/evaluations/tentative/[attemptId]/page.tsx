@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
-import { CheckCircle2, Hourglass, XCircle } from "lucide-react";
+import { CheckCircle2, Hourglass, Sprout } from "lucide-react";
 import { Alert, Badge, ButtonLink, Card, CardBody, CardHeader, PageHeader, ProgressBar } from "@/components/ui";
 import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime, isUuid } from "@/lib/utils";
 import { deliverAttemptQuestions, loadAttemptReview, type AttemptReviewItem } from "@/features/assessments/service";
+import { entretienWording } from "@/lib/wording";
 import { AttemptRunner } from "./attempt-runner";
 
 export default async function AttemptPage(props: PageProps<"/candidat/evaluations/tentative/[attemptId]">) {
@@ -15,12 +16,12 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
   // RLS : la tentative n'est visible que par son propriétaire
   const { data: t } = await supabase
     .from("assessment_attempts")
-    .select("id, assessment_id, status, deadline_at, submitted_at, graded_at, score_percent, passed, earned_points, max_points, reviewer_comment, result_details, recommendations, assessments(title, passing_score)")
+    .select("id, assessment_id, status, deadline_at, submitted_at, graded_at, score_percent, passed, earned_points, max_points, reviewer_comment, result_details, recommendations, assessments(title, passing_score, cooldown_hours, max_attempts)")
     .eq("id", attemptId)
     .eq("candidate_id", ctx.candidateId)
     .maybeSingle();
   if (!t) notFound();
-  const a = t.assessments as unknown as { title: string; passing_score: number };
+  const a = t.assessments as unknown as { title: string; passing_score: number; cooldown_hours: number; max_attempts: number | null };
 
   // temps imparti (+ 5 min de tolérance) écoulé sans soumission : les questions ne sont plus distribuées
   const expired = t.status === "en_cours" && isPastDeadline(t.deadline_at);
@@ -38,6 +39,13 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
   const review: AttemptReviewItem[] = t.status === "corrige" ? await loadAttemptReview(t.id) : [];
   const bySkill = ((t.result_details as { bySkill?: { skillId: string; name: string | null; percent: number; earned: number; max: number }[] })?.bySkill) ?? [];
   const recs = (t.recommendations as { title: string; body: string }[]) ?? [];
+  const threshold = Number(a.passing_score);
+  const mastered = bySkill.filter((s) => s.percent >= threshold);
+  const toWork = bySkill.filter((s) => s.percent < threshold);
+  // nouvelle tentative : après le délai prévu par l'entretien, dans la limite des tentatives
+  const { count: attemptsUsed } = !t.passed && a.max_attempts ? await supabase.from("assessment_attempts").select("id", { count: "exact", head: true }).eq("assessment_id", t.assessment_id).eq("candidate_id", ctx.candidateId) : { count: null };
+  const noAttemptLeft = a.max_attempts != null && attemptsUsed != null && attemptsUsed >= a.max_attempts;
+  const retryAt = t.submitted_at && a.cooldown_hours > 0 ? retryDate(t.submitted_at, a.cooldown_hours) : null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -47,32 +55,66 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
       {t.status === "corrige" && (
         <Card className="p-6">
           <div className="flex items-center gap-4">
-            {t.passed ? <CheckCircle2 className="size-10 text-emerald-600" aria-hidden /> : <XCircle className="size-10 text-amber-500" aria-hidden />}
+            {t.passed ? <CheckCircle2 className="size-10 shrink-0 text-emerald-600" aria-hidden /> : <Sprout className="size-10 shrink-0 text-navy-700" aria-hidden />}
             <div>
+              <p className="text-sm font-semibold text-navy-900">{t.passed ? "Entretien réussi" : "Pas encore validé"}</p>
               <p className="text-3xl font-bold text-navy-900 tabular-nums">{Math.round(Number(t.score_percent))} %</p>
-              <p className="text-sm text-muted">{Number(t.earned_points)} / {Number(t.max_points)} points · seuil {Number(a.passing_score)} % · {t.passed ? "réussie" : "non réussie"}</p>
+              <p className="text-sm text-muted">{Number(t.earned_points)} / {Number(t.max_points)} points · seuil {threshold} %</p>
             </div>
           </div>
           {t.reviewer_comment && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700"><strong>Commentaire de l&apos;évaluateur :</strong> {t.reviewer_comment}</p>}
+          <div className="mt-5 border-t border-border pt-4">
+            {t.passed ? (
+              <>
+                <p className="text-sm text-slate-700">Les compétences démontrées sont ajoutées à votre profil : les recruteurs partenaires les voient.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <ButtonLink href="/candidat/competences" variant="secondary">Voir mes compétences</ButtonLink>
+                  <ButtonLink href="/candidat/evaluations" variant="outline">Passer un autre entretien</ButtonLink>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-slate-700">
+                  {mastered.length > 0 ? `Vous maîtrisez déjà ${mastered.length > 1 ? `${mastered.length} compétences` : "une compétence"} de cet entretien. ` : ""}
+                  Revoyez les points de la correction ci-dessous, puis réessayez dans un jour ou deux : espacer les révisions aide à mieux retenir que recommencer tout de suite.
+                </p>
+                <p className="mt-2 text-sm font-medium text-navy-900">
+                  {noAttemptLeft ? "Vous avez utilisé toutes les tentatives de cet entretien. L'équipe YEN peut vous orienter vers un autre." : retryAt ? `Nouvelle tentative possible à partir du ${retryAt}.` : "Vous pouvez réessayer quand vous le souhaitez."}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <ButtonLink href="/candidat/progression" variant="secondary">Voir mon plan de progression</ButtonLink>
+                  <ButtonLink href="/candidat/evaluations" variant="outline">Tous les entretiens</ButtonLink>
+                </div>
+              </>
+            )}
+          </div>
         </Card>
       )}
       {bySkill.length > 0 && (
         <Card>
-          <CardHeader title="Détail par compétence" description="Une compétence est démontrée lorsque son score atteint le seuil." />
-          <CardBody className="space-y-3">
-            {bySkill.map((s) => (
-              <div key={s.skillId}>
-                <div className="flex justify-between text-sm"><span className="text-navy-900">{s.name}</span><span className="tabular-nums text-muted">{Math.round(s.percent)} %</span></div>
-                <ProgressBar value={s.percent} tone={s.percent >= Number(a.passing_score) ? "gold" : "amber"} label={s.name ?? ""} className="mt-1" />
-              </div>
-            ))}
+          <CardHeader title="Détail par compétence" description={`Une compétence est démontrée lorsque son score atteint ${threshold} %.`} />
+          <CardBody className="space-y-5">
+            {[{ title: "Ce que vous maîtrisez", items: mastered }, { title: "À renforcer", items: toWork }].map(
+              (group) =>
+                group.items.length > 0 && (
+                  <section key={group.title} className="space-y-3">
+                    <h3 className="text-xs font-semibold tracking-wide text-muted uppercase">{group.title}</h3>
+                    {group.items.map((s) => (
+                      <div key={s.skillId}>
+                        <div className="flex justify-between text-sm"><span className="text-navy-900">{s.name}</span><span className="tabular-nums text-muted">{Math.round(s.percent)} %</span></div>
+                        <ProgressBar value={s.percent} tone={s.percent >= threshold ? "gold" : "amber"} label={s.name ?? ""} className="mt-1" />
+                      </div>
+                    ))}
+                  </section>
+                ),
+            )}
           </CardBody>
         </Card>
       )}
       {recs.length > 0 && (
         <Card>
           <CardHeader icon={Hourglass} title="Recommandations de progression" />
-          <CardBody className="space-y-2">{recs.map((r, i) => <div key={i} className="rounded-lg bg-slate-50 p-3"><p className="text-sm font-medium text-navy-900">{r.title}</p><p className="text-xs text-slate-600">{r.body}</p></div>)}</CardBody>
+          <CardBody className="space-y-2">{recs.map((r, i) => <div key={i} className="rounded-lg bg-slate-50 p-3"><p className="text-sm font-medium text-navy-900">{r.title}</p><p className="text-xs text-slate-600">{entretienWording(r.body)}</p></div>)}</CardBody>
         </Card>
       )}
       {review.length > 0 && (
@@ -83,7 +125,7 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
               <div key={i} className="border-b border-border pb-3 last:border-0">
                 <div className="flex justify-between gap-3">
                   <p className="text-sm font-medium whitespace-pre-line text-navy-900">{i + 1}. {r.prompt}</p>
-                  <Badge tone={r.points === r.max ? "green" : r.points ? "amber" : "red"}>{r.points ?? 0}/{r.max}</Badge>
+                  <Badge tone={r.points === r.max ? "green" : r.points ? "amber" : "red"} className="shrink-0 self-start">{r.points ?? 0}/{r.max}</Badge>
                 </div>
                 {r.explanation && <p className="mt-1 text-xs text-slate-600">Explication : {r.explanation}</p>}
                 {r.comment && <p className="mt-1 text-xs text-slate-600">Commentaire : {r.comment}</p>}
@@ -98,4 +140,10 @@ export default async function AttemptPage(props: PageProps<"/candidat/evaluation
 
 function isPastDeadline(deadline: string): boolean {
   return new Date(deadline).getTime() + 5 * 60_000 < Date.now();
+}
+
+/** Date de la prochaine tentative possible, ou null si elle est déjà possible. */
+function retryDate(submittedAt: string, cooldownHours: number): string | null {
+  const at = new Date(submittedAt).getTime() + cooldownHours * 3_600_000;
+  return at > Date.now() ? formatDateTime(new Date(at).toISOString()) : null;
 }

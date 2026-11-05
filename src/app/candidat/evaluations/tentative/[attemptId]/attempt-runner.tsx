@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Clock, Loader2, Send } from "lucide-react";
+import { Check, Clock, Eye, EyeOff, Loader2, Send } from "lucide-react";
 import { Alert, Badge, Button, Card } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { submitAttemptAction } from "@/features/assessments/actions";
@@ -27,8 +27,15 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
   const [now, setNow] = useState(() => Date.now());
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // chronomètre masquable : regarder le temps en continu augmente le stress et gêne la réflexion
+  const [timerHidden, setTimerHidden] = useState(false);
+  const [saved, setSaved] = useState(false);
   const end = useMemo(() => new Date(deadline).getTime(), [deadline]);
   const remaining = Math.max(0, end - now);
+  // dans les 5 dernières minutes, le temps reste toujours visible
+  const showTimer = !timerHidden || remaining < 5 * 60_000;
+  // annonce discrète (lecteurs d'écran) à 5 minutes puis à 1 minute, une seule fois
+  const announcement = remaining > 0 && remaining <= 60_000 ? "Il reste moins d'une minute." : remaining > 0 && remaining <= 5 * 60_000 ? "Il reste moins de 5 minutes." : "";
 
   // Brouillon local (confort uniquement ; la correction se fait côté serveur)
   useEffect(() => {
@@ -42,12 +49,16 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
   useEffect(() => {
     try { window.localStorage.setItem(storageKey, JSON.stringify(answers)); } catch { /* ignore */ }
   }, [answers, storageKey]);
+
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const set = (qid: string, patch: Partial<Answer>) => setAnswers((a) => ({ ...a, [qid]: { selected: a[qid]?.selected ?? [], text: a[qid]?.text ?? "", ...patch } }));
+  const set = (qid: string, patch: Partial<Answer>) => {
+    setSaved(true);
+    setAnswers((a) => ({ ...a, [qid]: { selected: a[qid]?.selected ?? [], text: a[qid]?.text ?? "", ...patch } }));
+  };
   const isAnswered = (qid: string) => (answers[qid]?.selected.length ?? 0) > 0 || (answers[qid]?.text.trim().length ?? 0) > 0;
   const answered = questions.filter((q) => isAnswered(q.id)).length;
   const progress = questions.length ? Math.round((answered / questions.length) * 100) : 0;
@@ -84,15 +95,35 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
     <div className="space-y-4">
       <div className="sticky top-14 z-10 space-y-3 rounded-card border border-border bg-white px-4 py-3 shadow-sm lg:top-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full px-2.5 py-1 font-mono text-sm font-semibold tabular-nums transition-colors duration-500",
-              remaining < 120000 ? "animate-pulse bg-red-50 text-red-700" : remaining < 300000 ? "bg-amber-50 text-amber-800" : "bg-navy-50 text-navy-900",
+          <span className="inline-flex items-center gap-1">
+            {showTimer ? (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full px-2.5 py-1 font-mono text-sm font-semibold tabular-nums transition-colors duration-500",
+                  remaining < 120000 ? "bg-red-50 text-red-700" : remaining < 300000 ? "bg-amber-50 text-amber-800" : "bg-navy-50 text-navy-900",
+                )}
+                role="timer"
+                aria-live="off"
+              >
+                <Clock className="size-4" aria-hidden /> {String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-600">
+                <Clock className="size-4" aria-hidden /> Temps masqué
+              </span>
             )}
-            role="timer"
-            aria-live="off"
-          >
-            <Clock className="size-4" aria-hidden /> {String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
+            {remaining >= 5 * 60_000 && (
+              <button
+                type="button"
+                onClick={() => setTimerHidden((h) => !h)}
+                className="grid size-8 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-navy-800"
+                aria-label={timerHidden ? "Afficher le temps restant" : "Masquer le temps restant (il réapparaît dans les 5 dernières minutes)"}
+                title={timerHidden ? "Afficher le temps restant" : "Masquer le temps (il réapparaît dans les 5 dernières minutes)"}
+              >
+                {timerHidden ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
+              </button>
+            )}
+            <span className="sr-only" aria-live="polite">{announcement}</span>
           </span>
           <span className="text-sm text-muted">
             <span className="font-semibold text-navy-900 tabular-nums">{answered}</span>/{questions.length} répondue(s)
@@ -104,6 +135,11 @@ export function AttemptRunner({ attemptId, deadline, questions }: { attemptId: s
         <div className="h-1.5 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Questions répondues" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
           <div className="h-full rounded-full bg-gold-400 transition-[width] duration-500 ease-out-expo" style={{ width: `${progress}%` }} />
         </div>
+        {saved && (
+          <p className="flex items-center gap-1.5 text-xs text-muted">
+            <Check className="size-3.5 text-emerald-600" aria-hidden /> Réponses enregistrées sur cet appareil, même sans connexion
+          </p>
+        )}
         {questions.length > 1 && (
           <nav aria-label="Accès aux questions" className="flex flex-wrap gap-1.5">
             {questions.map((q, idx) => {
