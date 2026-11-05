@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ui";
 import { PageHero } from "@/components/public/page-hero";
 import { SectionTitle } from "@/components/public/section-title";
 import { DEFAULT_WEIGHTS, WEIGHT_LABELS, type Weights } from "@/features/matching/engine";
-import { HOW_IT_WORKS_STEPS as STEPS } from "@/lib/content/how-it-works";
+import { HOW_IT_WORKS_PHASES as PHASES, HOW_IT_WORKS_STEPS as STEPS } from "@/lib/content/how-it-works";
 import etudiantsPhoto from "@/assets/photos/etudiants.jpg";
 
 export const metadata: Metadata = { title: "Fonctionnement" };
@@ -22,7 +22,7 @@ export default function HowItWorksPage() {
       <PageHero
         eyebrow="Fonctionnement"
         title="Du profil à l'insertion professionnelle"
-        description={<p>Six étapes, de la création du compte au suivi après placement. Chacune s&apos;appuie sur des preuves, et les décisions restent humaines.</p>}
+        description={<p>Trois temps : vous présenter, prouver vos compétences, être recruté(e). Chaque étape s&apos;appuie sur des preuves, et les décisions restent humaines.</p>}
         photo={etudiantsPhoto}
         photoAlt="Étudiante concentrée sur son ordinateur portable dans un amphithéâtre, entourée d'autres participants"
         caption="Chaque compétence démontrée repose sur une preuve"
@@ -34,11 +34,11 @@ export default function HowItWorksPage() {
 
       {/* Parcours : la ligne se remplit et chaque étape s'allume au fil du défilement */}
       <section data-reveal="none" className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:py-24">
-        <SectionTitle eyebrow="Le parcours du candidat" title={<>Six étapes, dans l&apos;ordre</>} />
+        <SectionTitle eyebrow="Le parcours du candidat" title={<>Trois temps, six étapes</>} />
         <ol className="relative mt-12 space-y-6">
           <span aria-hidden className="absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-navy-100 sm:left-[1.625rem]" />
           <span aria-hidden className="timeline-fill absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-navy-700 sm:left-[1.625rem]" />
-          {STEPS.map(({ t, d, icon: Icon }, i) => (
+          {STEPS.map(({ t, d, icon: Icon, phase, duration }, i) => (
             <li key={t} data-reveal="up" className="group relative flex gap-5 sm:gap-6">
               {/* numéro bleu au repos ; la pastille allumée (même numéro, en blanc) apparaît au défilement */}
               <span className="relative z-10 grid size-11 shrink-0 place-items-center rounded-full bg-white text-sm font-bold text-navy-800 ring-2 ring-navy-100 sm:size-[3.25rem]">
@@ -48,13 +48,17 @@ export default function HowItWorksPage() {
                 </span>
               </span>
               <div className="min-w-0 flex-1 rounded-2xl border border-border bg-white p-5 transition duration-500 ease-out-expo group-hover:-translate-y-1 group-hover:border-navy-200 group-hover:shadow-md sm:p-6">
-                <div className="flex items-center gap-3">
+                <p className="text-xs font-semibold tracking-wide text-gold-700 uppercase">
+                  {phase + 1}. {PHASES[phase]}
+                </p>
+                <div className="mt-2 flex items-center gap-3">
                   <span className="grid size-9 place-items-center rounded-lg bg-gold-50 text-gold-700 ring-1 ring-gold-100">
                     <Icon className="size-4" aria-hidden />
                   </span>
                   <h3 className="text-lg font-semibold text-navy-900">{t}</h3>
                 </div>
                 <p className="mt-2 leading-relaxed text-slate-600">{d}</p>
+                {duration && <p className="mt-2 text-sm font-medium text-navy-800">{duration}</p>}
               </div>
             </li>
           ))}

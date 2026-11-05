@@ -6,6 +6,7 @@ d'avant sans rien casser. Pour l'utiliser, il suffit de dire : « reviens en arr
 | Nom | Date | État enregistré |
 |---|---|---|
 | `avant-equipe-ux` | 5 novembre 2026 | Site en ligne avant le travail de l'équipe UX : tableau de bord, entretiens, résultats et correction tels qu'avant (commit `72bf7a6`) |
+| `avant-ux-vitrine` | 5 novembre 2026 | Site vitrine avant le travail de l'équipe UX (accueil, fonctionnement), espaces candidat et évaluateur déjà améliorés (commit `5583d4b`) |
 
 Le point de retour est une **branche GitHub** du même nom. Le proxy de cette session refuse les étiquettes
 (tags) ; la branche joue le même rôle et reste sur GitHub.
@@ -13,8 +14,8 @@ Le point de retour est une **branche GitHub** du même nom. Le proxy de cette se
 ## Comment le retour se fait
 
 1. **Voir ce qui sera annulé** : liste des changements faits depuis le point de retour
-   (`git log --oneline avant-equipe-ux..main`), à confirmer avant d'agir.
-2. **Annuler sans effacer** : `git revert --no-edit avant-equipe-ux..main` crée de nouveaux changements qui
+   (par exemple `git log --oneline avant-ux-vitrine..main`), à confirmer avant d'agir.
+2. **Annuler sans effacer** : `git revert --no-edit <nom>..main` crée de nouveaux changements qui
    remettent le code dans l'état du point de retour. L'historique est conservé : on peut revenir de nouveau en
    avant si besoin.
 3. **Tests**, puis envoi sur `main` : Vercel remet en ligne la version d'avant.
@@ -23,12 +24,12 @@ Pas de `git reset --hard` ni d'écrasement forcé de `main` : rien n'est supprim
 
 ## En urgence : retour immédiat dans Vercel
 
-Dans Vercel, projet *yen-b3vs* : **Deployments**. Sur le déploiement du commit du point de retour (`72bf7a6`
-pour `avant-equipe-ux`), menu « … » puis **Instant Rollback**. Le site d'avant est remis en ligne en quelques
-secondes, sans toucher au code. Faire ensuite le retour dans le code (ci-dessus) pour que le prochain
+Dans Vercel, projet *yen-b3vs* : **Deployments**. Sur le déploiement du commit du point de retour
+(`72bf7a6` pour `avant-equipe-ux`, `5583d4b` pour `avant-ux-vitrine`), menu « … » puis **Instant Rollback**.
+Le site d'avant est remis en ligne en quelques secondes, sans toucher au code. Faire ensuite le retour dans le code (ci-dessus) pour que le prochain
 déploiement ne réinstalle pas la version annulée.
 
 ## Base de données
 
-Les changements de l'équipe UX ne modifient pas la base de données (aucune migration) : le retour en arrière
-n'efface aucune donnée. Les comptes, entretiens passés, corrections et candidatures restent intacts.
+Les changements de l'équipe UX (espaces et site vitrine) ne modifient pas la base de données (aucune
+migration) : le retour en arrière n'efface aucune donnée. Les comptes, entretiens passés, corrections et candidatures restent intacts.

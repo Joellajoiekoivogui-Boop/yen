@@ -1,4 +1,4 @@
-# Recherche UX : apprenants et évaluateurs
+# Recherche UX : apprenants, évaluateurs et site vitrine
 
 Travail mené sous cinq angles : recherche utilisateur, psychologie cognitive, psychologie sociale, design
 comportemental et design d'interface. Point de retour avant ces changements : `avant-equipe-ux`
@@ -105,3 +105,77 @@ Ces pistes ne sont pas faites. Elles demandent une mise à jour de la base ou un
   - délai entre soumission et correction ;
   - clics sur « Votre prochaine étape » ;
   - complétion du profil.
+
+---
+
+# Site vitrine
+
+Point de retour avant ces changements : `avant-ux-vitrine`. Même méthode et mêmes limites que ci-dessus : revue
+experte, à valider avec de vrais visiteurs.
+
+## Qui arrive sur le site, et avec quelle question
+
+| Visiteur | Sa question en arrivant | Ce qui le fait partir |
+|---|---|---|
+| **Étudiant ou diplômé** (souvent sur téléphone, par un lien WhatsApp) | « C'est pour moi ? Qu'est-ce que j'y gagne ? Combien de temps ça prend ? » | Un discours institutionnel, la peur d'être « testé » et de rater, le doute sur ses données |
+| **Recruteur ou organisation** | « Où est l'entrée pour moi ? Quels profils ? Quelles garanties ? » | Ne trouver que des appels destinés aux étudiants en haut de page |
+| **Formateur, enseignant, équipe YEN** | « Comment mes apprenants en profitent-ils ? Qu'est-ce que je fais, moi ? » | Une carte « Équipe YEN » qui liste des fonctions internes plutôt que leur rôle |
+
+## Constats par angle
+
+- **Recherche utilisateur** : le titre principal (« Identifier les talents, renforcer les compétences… ») parlait
+  du point de vue de l'organisation. En cinq secondes, un étudiant ne savait pas ce qu'il y gagnait. Les
+  partenaires n'avaient pas d'entrée dans le premier écran.
+- **Psychologie cognitive** : six étapes présentées à plat se retiennent mal ; regroupées en trois temps
+  (se présenter, prouver, être recruté), elles se mémorisent d'un coup d'œil. Le texte d'accroche était long
+  et abstrait (« preuves de compétences », « mises en relation »).
+- **Psychologie sociale** :
+  - **Identité et appartenance** : nommer le public (« jeunes ingénieurs et techniciens accompagnés par
+    YEN ») aide chacun à se reconnaître.
+  - **Peur de l'évaluation** : le mot « entretien » peut décourager de s'inscrire ; il faut dire qu'un échec se
+    rattrape.
+  - **Preuve sociale** : seules des photos réelles de la communauté sont montrées, jamais de faux témoignages
+    ni de chiffres inventés.
+- **Design comportemental** :
+  - **Effort perçu** : annoncer l'effort réel (« moins d'une minute, sans mot de passe ») lève le principal
+    frein à l'inscription.
+  - **Une seule formulation** : le même appel « Créer mon profil » partout, au lieu de « Commencer » à certains
+    endroits.
+  - **Auto-orientation** : un lien direct pour les recruteurs dès le premier écran.
+  - **Doutes levés au bon moment** : une foire aux questions repliée répond quand le doute se présente, sans
+    alourdir la page.
+
+## Ce qui a changé
+
+| Endroit | Avant | Après | Principe |
+|---|---|---|---|
+| Accueil, premier écran | « Identifier les talents, renforcer les compétences, ouvrir l'accès au stage et à l'emploi. » | Public nommé en tête ; titre « Prouvez ce que vous savez faire, décrochez votre stage ou votre emploi. » ; accroche courte et concrète | Bénéfice pour le visiteur, identité |
+| Sous les boutons | Rien | « Moins d'une minute, sans mot de passe. » et « Vous recrutez ? Espace partenaires » | Effort perçu, auto-orientation |
+| « Pour qui ? » | Fonctions de l'outil ; carte « Équipe YEN » | Ce que chacun y gagne ; carte « Formateurs et équipe YEN » (correction avec grille, compétences prouvées, présélection, suivi) | Parler bénéfices, inclure les formateurs |
+| « Comment ça marche » (accueil) | « Étape 2 sur 6 » | « Vous présenter · étape 2 sur 6 » et la durée quand elle est connue | Regroupement en trois temps |
+| Questions fréquentes (nouveau) | Absent | 6 questions repliées : qui peut s'inscrire, à quoi servent les entretiens, et si j'échoue, qui voit mes données, le rôle du score, comment recruter | Lever les doutes au moment où ils se posent |
+| Appel final | « Commencer » | « Créer mon profil », avec la même mention d'effort | Cohérence des appels |
+| Page Fonctionnement | « Six étapes, dans l'ordre » | « Trois temps, six étapes » : temps indiqué sur chaque étape, durées réelles (inscription, entretiens), droit à l'erreur | Regroupement, effort perçu, droit à l'erreur |
+| Image de partage (WhatsApp, réseaux) | Ancienne accroche | Nouvelle accroche | Cohérence du message |
+
+Toutes les réponses viennent du fonctionnement réel de la plateforme. Ni tarif ni chiffre n'ont été inventés :
+la gratuité, par exemple, n'est pas annoncée tant que YEN ne l'a pas confirmée.
+
+## Pistes suivantes
+
+1. **Gratuité et éligibilité** : si YEN confirme que la plateforme est gratuite pour les candidats, le dire
+   dès le premier écran (frein majeur levé).
+2. **Témoignages réels** : deux ou trois candidats placés, avec leur accord écrit, dans leurs propres mots.
+3. **Page partenaires** : montrer un profil type (anonymisé) tel que le voit un recruteur.
+4. **Page « Formateurs et établissements »** : comment orienter ses apprenants vers la plateforme.
+
+## Plan pour valider
+
+- **Test des 5 secondes** avec 10 étudiants : montrer le premier écran, puis demander « À qui s'adresse ce site ?
+  Que pouvez-vous y faire ? ».
+- **Test d'utilisabilité** avec 3 recruteurs : « Trouvez comment publier une offre ».
+- **Indicateurs à suivre** :
+  - part des visiteurs de l'accueil qui ouvrent l'inscription ;
+  - questions fréquentes les plus ouvertes ;
+  - clics sur « Vous recrutez ? ».
+

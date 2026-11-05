@@ -10,6 +10,7 @@ import { revealDelay } from "@/components/motion/delay";
 import { MotionToggle } from "@/components/motion/motion-toggle";
 import { NightSky } from "@/components/motion/sky";
 import { DomainOrbit } from "@/components/public/domain-orbit";
+import { Faq } from "@/components/public/faq";
 import { SectionTitle } from "@/components/public/section-title";
 import { listDomains, referenceDomains } from "@/features/catalog/queries";
 import { cn } from "@/lib/utils";
@@ -30,15 +31,15 @@ const SPACES = [
     t: "Étudiants et diplômés",
     photo: etudiantsPhoto,
     alt: "Étudiante concentrée sur son ordinateur portable dans un amphithéâtre, entourée d'autres participants",
-    items: ["Profil et CV sécurisés", "Entretiens par domaine", "Recommandations de métiers et plan de progression", "Candidatures et suivi"],
+    items: ["Un profil et un CV qui restent privés", "Des entretiens pour prouver vos compétences", "Des métiers et un plan de progression adaptés", "Des candidatures suivies jusqu'à la réponse"],
     cta: { href: "/inscription", label: "Créer mon profil" },
   },
   {
     icon: Search,
-    t: "Équipe YEN",
+    t: "Formateurs et équipe YEN",
     photo: communautePhoto,
     alt: "Trois jeunes hommes souriants portant le t-shirt YEN de l'Africa Engineering Summit",
-    items: ["Répertoire des talents filtrable", "Preuves de compétences et analyses explicables", "Présélection et suivi des placements", "Rapports d'insertion"],
+    items: ["Correction des études de cas avec une grille", "Compétences de chaque apprenant, preuves à l'appui", "Présélection des talents pour les offres", "Suivi des placements et de l'insertion"],
     cta: { href: "/connexion", label: "Accéder à mon espace" },
   },
   {
@@ -46,8 +47,43 @@ const SPACES = [
     t: "Partenaires",
     photo: partenairesPhoto,
     alt: "Panel de quatre intervenants sur scène, entre les affiches de l'Africa Engineering Summit et de Youth Engineers Network",
-    items: ["Publication d'offres validées par YEN", "Accès limité aux profils partagés", "Suivi des recrutements", "Retours sur les compétences"],
+    items: ["Des offres publiées après validation par YEN", "Des candidats présélectionnés, compétences prouvées", "Un suivi du recrutement jusqu'à la décision", "Vos retours sur les compétences observées"],
     cta: { href: "/inscription?type=partenaire", label: "Demander un espace partenaire" },
+  },
+];
+
+/** Réponses vérifiées dans le fonctionnement réel de la plateforme (rien d'inventé : ni tarif, ni chiffre). */
+const FAQ = [
+  {
+    q: "Qui peut créer un profil ?",
+    a: "Les étudiants et diplômés accompagnés par YEN. L'inscription se fait avec votre adresse e-mail, en moins d'une minute, sans mot de passe à retenir.",
+  },
+  {
+    q: "À quoi servent les entretiens ?",
+    a: "À démontrer vos compétences : questionnaires corrigés automatiquement, études de cas corrigées par un évaluateur YEN, de 15 à 40 minutes chacun. Pour un recruteur, une compétence démontrée compte bien plus qu'une compétence seulement déclarée.",
+  },
+  {
+    q: "Et si je ne réussis pas un entretien ?",
+    a: "Vous voyez ce que vous maîtrisez déjà et ce qu'il reste à revoir, puis vous pouvez réessayer après un court délai. Un premier essai est une étape, pas un verdict.",
+  },
+  {
+    q: "Qui voit mes informations ?",
+    a: "Vos documents restent privés. L'équipe YEN consulte votre profil pour vous accompagner ; une organisation partenaire ne le voit qu'avec votre accord, et sans vos coordonnées.",
+  },
+  {
+    q: "Le score de compatibilité décide-t-il à ma place ?",
+    a: "Non. Il estime l'adéquation entre votre profil et une offre en expliquant ses raisons. La décision reste toujours humaine.",
+  },
+  {
+    q: "Je représente une organisation : comment recruter ?",
+    a: (
+      <>
+        Demandez un espace partenaire : l&apos;équipe YEN vérifie votre organisation, puis vous publiez vos offres et recevez des candidats présélectionnés.{" "}
+        <Link href="/partenaires" className="font-medium text-electric-700 hover:underline">
+          Découvrir l&apos;espace partenaires
+        </Link>
+      </>
+    ),
   },
 ];
 
@@ -121,12 +157,12 @@ export default async function HomePage() {
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pt-16 pb-28 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr] lg:px-8 lg:pt-28 lg:pb-36">
           <div data-reveal-children>
             {/* titre affiché d'emblée, sans animation d'entrée : c'est l'élément principal du premier écran */}
+            <p className="mb-4 text-sm font-semibold text-gold-300">Pour les jeunes ingénieurs et techniciens accompagnés par YEN</p>
             <h1 data-reveal="none" className="hero-title text-[2.1rem] leading-[1.12] font-bold tracking-tight text-balance sm:text-5xl lg:text-[3.4rem]">
-              Identifier les talents, renforcer les compétences, <span className="text-gold-300">ouvrir l&apos;accès au stage et à l&apos;emploi.</span>
+              Prouvez ce que vous savez faire, <span className="text-gold-300">décrochez votre stage ou votre emploi.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-navy-100">
-              YEN Career Bridge réunit les profils, les preuves de compétences et les opportunités professionnelles des étudiants et diplômés accompagnés par YEN,
-              pour des mises en relation fondées sur ce que chacun sait réellement faire.
+              Passez des entretiens dans votre domaine, faites reconnaître vos compétences et soyez présenté(e) aux organisations partenaires de YEN.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <ButtonLink href="/inscription" variant="accent" size="lg" className="group w-full sm:w-auto">
@@ -136,6 +172,12 @@ export default async function HomePage() {
                 Comment ça marche
               </ButtonLink>
             </div>
+            <p className="mt-4 text-sm text-navy-200">
+              Moins d&apos;une minute, sans mot de passe.{" "}
+              <Link href="/partenaires" className="font-medium whitespace-nowrap text-white underline decoration-white/40 underline-offset-4 hover:decoration-white">
+                Vous recrutez&nbsp;? Espace partenaires
+              </Link>
+            </p>
             {domains.length > 0 && (
               <dl className="mt-12 grid max-w-xl grid-cols-3 gap-4 border-t border-white/10 pt-6">
                 {[
@@ -339,6 +381,14 @@ export default async function HomePage() {
         </ButtonLink>
       </section>
 
+      {/* Questions fréquentes */}
+      <section data-reveal="none" className="mx-auto max-w-3xl px-4 pb-20 sm:px-6 lg:pb-24">
+        <SectionTitle eyebrow="Questions fréquentes" title="Avant de vous lancer" />
+        <div data-reveal="up" className="mt-8">
+          <Faq items={FAQ} />
+        </div>
+      </section>
+
       {/* Appel à l'action */}
       <section data-reveal="none" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
         <div data-reveal="zoom">
@@ -349,9 +399,12 @@ export default async function HomePage() {
                   <h2 className="text-2xl font-bold sm:text-3xl">Vous êtes accompagné(e) par YEN&nbsp;?</h2>
                   <p className="mt-2 max-w-xl text-white/90">Créez votre profil, faites reconnaître vos compétences et suivez vos candidatures.</p>
                 </div>
-                <ButtonLink href="/inscription" variant="accent" size="lg" className="group">
-                  Commencer <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-                </ButtonLink>
+                <div>
+                  <ButtonLink href="/inscription" variant="accent" size="lg" className="group">
+                    Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                  </ButtonLink>
+                  <p className="mt-3 text-sm text-white/80">Moins d&apos;une minute, sans mot de passe.</p>
+                </div>
               </div>
               <div className="relative order-first aspect-[16/9] sm:aspect-[21/9] lg:order-none lg:aspect-auto lg:min-h-72">
                 <Image

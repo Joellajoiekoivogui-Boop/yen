@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Pages publiques", () => {
   for (const [path, heading] of [
-    ["/", /Identifier les talents/],
+    ["/", /Prouvez ce que vous savez faire/],
     ["/presentation", /YEN Career Bridge/],
     ["/fonctionnement", /Du profil à l'insertion/],
     ["/domaines", /Domaines d'ingénierie/],
@@ -32,6 +32,19 @@ test.describe("Pages publiques", () => {
     await page.goto("/");
     await expect(page.getByText(/témoignage/i)).toHaveCount(0);
     await expect(page.getByText(/Démo · fictif|donnée de démonstration/i)).toHaveCount(0);
+  });
+
+  test("accueil : public visé, effort annoncé, accès partenaires et questions fréquentes", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("Pour les jeunes ingénieurs et techniciens accompagnés par YEN")).toBeVisible();
+    await expect(page.getByText("Moins d'une minute, sans mot de passe.").first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Vous recrutez/ })).toHaveAttribute("href", "/partenaires");
+    // questions repliées, ouvertes à la demande
+    const question = page.getByText("Et si je ne réussis pas un entretien ?");
+    await question.scrollIntoViewIfNeeded();
+    await expect(page.getByText(/Un premier essai est une étape, pas un verdict/)).toBeHidden();
+    await question.click();
+    await expect(page.getByText(/Un premier essai est une étape, pas un verdict/)).toBeVisible();
   });
 
   test("pas de défilement horizontal", async ({ page }) => {

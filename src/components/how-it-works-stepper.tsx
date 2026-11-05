@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { setMotionPaused, useMotionPaused } from "@/components/motion/motion-toggle";
-import { HOW_IT_WORKS_STEPS } from "@/lib/content/how-it-works";
+import { HOW_IT_WORKS_PHASES, HOW_IT_WORKS_STEPS } from "@/lib/content/how-it-works";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
@@ -113,13 +113,14 @@ export function HowItWorksStepper() {
       >
         <div key={active} className="relative">
           <p className="animate-slide-down text-sm font-semibold tracking-wide text-gold-300 uppercase">
-            Étape {active + 1} sur {steps.length}
+            {HOW_IT_WORKS_PHASES[current.phase]} · étape {active + 1} sur {steps.length}
           </p>
           <span className="mt-5 grid size-16 animate-pop-in place-items-center rounded-2xl bg-gold-400 text-navy-950">
             <CurrentIcon className="size-8" aria-hidden />
           </span>
           <h3 className="mt-6 animate-[reveal-up_0.7s_var(--ease-out-expo)_0.1s_backwards] text-2xl font-bold sm:text-3xl">{current.t}</h3>
           <p className="mt-3 max-w-lg animate-[reveal-up_0.7s_var(--ease-out-expo)_0.2s_backwards] leading-relaxed text-navy-100">{current.d}</p>
+          {current.duration && <p className="mt-3 animate-[reveal-up_0.7s_var(--ease-out-expo)_0.25s_backwards] text-sm font-medium text-gold-300">{current.duration}</p>}
           <div className="mt-8 flex gap-1.5" aria-hidden>
             {steps.map((s, i) => (
               <span key={s.t} className={cn("h-1.5 rounded-full transition-all duration-500 ease-out-expo", i === active ? "w-8 bg-gold-400" : "w-1.5 bg-white/25")} />

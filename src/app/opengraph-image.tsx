@@ -18,7 +18,7 @@ export default async function OpenGraphImage() {
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 72, fontWeight: 700, letterSpacing: -1.5 }}>YEN Career Bridge</div>
           <div style={{ marginTop: 18, fontSize: 32, color: COLORS.navy100, maxWidth: 900 }}>
-            Identifier les talents, renforcer les compétences et faciliter l&apos;accès au stage et à l&apos;emploi.
+            Prouvez ce que vous savez faire, décrochez votre stage ou votre emploi.
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
