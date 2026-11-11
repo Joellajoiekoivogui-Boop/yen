@@ -112,7 +112,8 @@ Supabase Auth (`@supabase/ssr`), entièrement côté serveur : aucun client Supa
   adresse IP en 15 minutes) ; renvoi après le délai minimal de Supabase ; adresse en attente gardée dans un cookie
   httpOnly d'une heure (jamais dans l'URL).
 - **Préinscription d'une adresse par un tiers** : un tiers peut créer un compte avec l'adresse d'une autre personne
-  et son propre mot de passe, sans pouvoir le confirmer. À la première confirmation de l'adresse, un mot de passe
+  et son propre mot de passe, sans pouvoir le confirmer. À la première confirmation de l'adresse (lien, code ou
+  connexion avec Google ; `features/auth/prehijack.ts`), un mot de passe
   qui n'a pas été choisi dans le même navigateur (formulaire avec mot de passe) est remplacé par un mot de passe
   aléatoire : le mot de passe du tiers ne fonctionne jamais. Conséquence pour une personne inscrite avec un mot
   de passe qui confirme son adresse sur un autre appareil : elle se connecte par e-mail, ou choisit un nouveau mot

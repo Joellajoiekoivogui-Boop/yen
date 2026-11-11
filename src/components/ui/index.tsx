@@ -248,14 +248,20 @@ export function ScorePill({ score, confidence, caption }: { score: number; confi
  * ------------------------------------------------------------------------- */
 export function Table({ className, ...props }: ComponentProps<"table">) {
   return (
-    // région focalisable : le tableau défile au clavier sur petit écran
-    <div className="overflow-x-auto rounded-md focus-visible:ring-2 focus-visible:ring-electric-500 focus-visible:outline-none" tabIndex={0} role="region" aria-label="Tableau">
+    // zone focalisable : le tableau défile au clavier sur petit écran (groupe, et non région :
+    // plusieurs tableaux sur une page ne créent pas autant de repères de navigation identiques)
+    <div className="overflow-x-auto rounded-md focus-visible:ring-2 focus-visible:ring-electric-500 focus-visible:outline-none" tabIndex={0} role="group" aria-label="Tableau">
       <table className={cn("w-full min-w-[640px] border-collapse text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-electric-50/40", className)} {...props} />
     </div>
   );
 }
-export function Th({ className, ...props }: ComponentProps<"th">) {
-  return <th scope="col" className={cn("border-b border-border bg-slate-50/80 px-3 py-2.5 text-xs font-semibold tracking-wide text-slate-600 uppercase", className)} {...props} />;
+export function Th({ className, children, ...props }: ComponentProps<"th">) {
+  return (
+    <th scope="col" className={cn("border-b border-border bg-slate-50/80 px-3 py-2.5 text-xs font-semibold tracking-wide text-slate-600 uppercase", className)} {...props}>
+      {/* colonne de boutons sans titre visible : nommée pour les lecteurs d'écran */}
+      {children ?? <span className="sr-only">Actions</span>}
+    </th>
+  );
 }
 export function Td({ className, ...props }: ComponentProps<"td">) {
   return <td className={cn("border-b border-border px-3 py-2.5 align-top text-slate-700", className)} {...props} />;

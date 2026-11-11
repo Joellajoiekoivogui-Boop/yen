@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { neutralizeUnprovenPassword } from "@/features/auth/prehijack";
 import { getSession, homePathFor } from "@/lib/auth/session";
 import { redirectToPath } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/server";
@@ -45,6 +46,8 @@ export async function GET(request: NextRequest) {
     await supabase.auth.signOut();
     return redirect("/compte-desactive");
   }
+  // première confirmation de l'adresse par Google : un mot de passe posé avant par un tiers ne doit pas rester valable
+  await neutralizeUnprovenPassword(supabase, null);
   await completeGoogleProfile(supabase, ctx, url.searchParams.get("cgu") === "1");
   return redirect(next ?? homePathFor(ctx));
 }

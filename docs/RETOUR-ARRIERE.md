@@ -7,6 +7,7 @@ d'avant sans rien casser. Pour l'utiliser, il suffit de dire : « reviens en arr
 |---|---|---|
 | `avant-equipe-ux` | 5 novembre 2026 | Site en ligne avant le travail de l'équipe UX : tableau de bord, entretiens, résultats et correction tels qu'avant (commit `72bf7a6`) |
 | `avant-ux-vitrine` | 5 novembre 2026 | Site vitrine avant le travail de l'équipe UX (accueil, fonctionnement), espaces candidat et évaluateur déjà améliorés (commit `5583d4b`) |
+| `avant-corrections-audit` | 11 novembre 2026 | Site avant les corrections de l'audit complet : accessibilité des tableaux, protection Google, robustesse de l'IA, mises à jour de sécurité (commit `163591a`) |
 
 Le point de retour est une **branche GitHub** du même nom. Le proxy de cette session refuse les étiquettes
 (tags) ; la branche joue le même rôle et reste sur GitHub.
@@ -25,7 +26,7 @@ Pas de `git reset --hard` ni d'écrasement forcé de `main` : rien n'est supprim
 ## En urgence : retour immédiat dans Vercel
 
 Dans Vercel, projet *yen-b3vs* : **Deployments**. Sur le déploiement du commit du point de retour
-(`72bf7a6` pour `avant-equipe-ux`, `5583d4b` pour `avant-ux-vitrine`), menu « … » puis **Instant Rollback**.
+(`72bf7a6` pour `avant-equipe-ux`, `5583d4b` pour `avant-ux-vitrine`, `163591a` pour `avant-corrections-audit`), menu « … » puis **Instant Rollback**.
 Le site d'avant est remis en ligne en quelques secondes, sans toucher au code. Faire ensuite le retour dans le code (ci-dessus) pour que le prochain
 déploiement ne réinstalle pas la version annulée.
 

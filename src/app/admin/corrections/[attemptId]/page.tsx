@@ -11,6 +11,9 @@ import { suggestGradeAction } from "@/features/ai/actions";
 import { isAIConfigured } from "@/features/ai/provider";
 import { ReviewForm } from "./review-form";
 
+// Les analyses d'IA lancées depuis cette page peuvent durer plusieurs minutes (délai d'un appel × 2 tentatives).
+export const maxDuration = 300;
+
 export default async function CorrectionPage(props: PageProps<"/admin/corrections/[attemptId]">) {
   const { attemptId } = await props.params;
   if (!isUuid(attemptId)) notFound();

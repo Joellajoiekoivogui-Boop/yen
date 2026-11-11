@@ -390,7 +390,7 @@ export async function assistantReply(candidateId: string, messages: ChatMessage[
   const b = await loadBundleOrThrow(admin, candidateId);
   const sources = buildSources(b, null);
   const system = `${ASSISTANT_SYSTEM}\n\nProfil du candidat connecté :\n${renderSources(sources)}`;
-  const res = await requireAIProvider().chat(system, messages.slice(-12), { maxTokens: 2000 });
+  const res = await requireAIProvider().chat(system, messages.slice(-12));
   return res.text || "Je n'ai pas pu formuler de réponse. Reformulez votre question.";
 }
 

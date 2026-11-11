@@ -1,6 +1,5 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { clientIp, dbErrorMessage, fail, logAudit, parseInput, runAction, type ActionResult } from "@/lib/action";
 import { clearLoginFailures, clearOtpFailures, loginRetryAfter, otpRetryAfter, recordLoginFailure, recordOtpFailure, takeEmailRequest } from "@/lib/security/attempts";
@@ -23,6 +22,7 @@ import {
   signInSchema,
   verifyEmailCodeSchema,
 } from "./schemas";
+import { neutralizeUnprovenPassword } from "./prehijack";
 import { forgetPendingEmail, pendingVerification, rememberPendingEmail } from "./verification-cookie";
 
 const NOT_CONFIGURED = "La plateforme n'est pas encore connectée à sa base de données (configuration Supabase manquante).";
@@ -216,26 +216,10 @@ export async function signUpWithEmailAction(values: Record<string, unknown>): Pr
   });
 }
 
-/**
- * Après une vérification réussie : session ouverte, sauf compte désactivé.
- *
- * Préinscription par un tiers : quelqu'un peut créer un compte avec l'adresse d'une autre personne et un
- * mot de passe de son choix, sans pouvoir le confirmer. Si la vraie titulaire confirme ensuite l'adresse
- * (lien ou code), ce mot de passe deviendrait valable. Donc, à la toute première confirmation, un mot de
- * passe qui n'a pas été choisi dans ce navigateur pour cette adresse est remplacé par un mot de passe
- * aléatoire, inconnu de tous : la connexion se fait alors par e-mail (ou « Mot de passe oublié »).
- */
+/** Après une vérification réussie : session ouverte, sauf compte désactivé (et mot de passe d'un tiers neutralisé, voir prehijack.ts). */
 async function afterEmailVerified(supabase: Awaited<ReturnType<typeof createClient>>, next: unknown): Promise<ActionResult<{ redirectTo: string }>> {
   const pending = await pendingVerification();
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
-  const confirmedAt = user?.email_confirmed_at ? Date.parse(user.email_confirmed_at) : 0;
-  const firstConfirmation = Date.now() - confirmedAt < 2 * 60_000;
-  const ownPassword = pending.mode === "password" && pending.email === user?.email?.toLowerCase();
-  if (user && firstConfirmation && !ownPassword) {
-    const { error } = await supabase.auth.updateUser({ password: randomBytes(32).toString("base64url") });
-    if (error) console.error("[vérification] mot de passe non remplacé", error.code, error.status);
-  }
+  await neutralizeUnprovenPassword(supabase, pending.mode === "password" ? pending.email : null);
   await forgetPendingEmail();
   const ctx = await getSession();
   if (ctx && !ctx.profile.is_active) {

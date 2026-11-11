@@ -27,6 +27,9 @@ import {
   AnalysisReviewForm, ApplicationStatusForm, AssociateForm, EvidenceForm, FollowUpForm, InfoRequestForm, InterviewForm, NoteForm, ShareForm, VerifyProjectForm,
 } from "./staff-actions";
 
+// Les analyses d'IA lancées depuis cette page peuvent durer plusieurs minutes (délai d'un appel × 2 tentatives).
+export const maxDuration = 300;
+
 const TABS = [
   ["apercu", "Dossier complet"], ["cv", "CV"], ["formation", "Formation et certificats"], ["experiences", "Expériences"], ["declarees", "Compétences déclarées"],
   ["demontrees", "Compétences démontrées"], ["tests", "Résultats des tests"], ["projets", "Projets"], ["analyse", "Analyse IA"], ["metiers", "Métiers compatibles"],

@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isAIConfigured } from "@/features/ai/provider";
 import { AssistantChat } from "./chat";
 
+// Les analyses d'IA lancées depuis cette page peuvent durer plusieurs minutes (délai d'un appel × 2 tentatives).
+export const maxDuration = 300;
+
 export const metadata: Metadata = { title: "Assistant IA" };
 
 export default async function AssistantPage() {

@@ -50,7 +50,8 @@ class AnthropicProvider implements AIProvider {
   private client: Anthropic;
 
   constructor(apiKey: string, readonly model: string, timeoutMs: number) {
-    this.client = new Anthropic({ apiKey, timeout: timeoutMs, maxRetries: 2 });
+    // une seule nouvelle tentative : délai × 2 doit rester sous la durée maximale d'une fonction (300 s)
+    this.client = new Anthropic({ apiKey, timeout: timeoutMs, maxRetries: 1 });
   }
 
   async generateJson<S extends z.ZodType>(req: JsonRequest<S>) {
@@ -69,7 +70,7 @@ class AnthropicProvider implements AIProvider {
         output_config: { effort: req.effort ?? "medium", format: betaZodOutputFormat(req.schema) },
         messages: [{ role: "user", content }],
       });
-      if (response.stop_reason === "refusal") throw new AIProviderError("Le modèle a refusé de traiter cette demande.");
+      if (response.stop_reason === "refusal") throw this.refusal(response, "Le modèle a refusé de traiter cette demande.");
       if (response.stop_reason === "max_tokens") throw new AIProviderError("La réponse du modèle a été tronquée (limite de longueur atteinte).", true);
       if (response.parsed_output == null) throw new AIProviderError("La réponse du modèle ne respecte pas le format attendu.", true);
       return { data: response.parsed_output as z.infer<S>, model: response.model };
@@ -82,23 +83,33 @@ class AnthropicProvider implements AIProvider {
     try {
       const response = await this.client.beta.messages.create({
         model: this.model,
-        max_tokens: opts.maxTokens ?? 4000,
+        // la réflexion du modèle compte dans cette limite : assez de marge pour qu'il reste de la place pour la réponse
+        max_tokens: opts.maxTokens ?? 8000,
         system,
         betas: ["server-side-fallback-2026-07-01"],
         fallbacks: "default",
         output_config: { effort: "low" },
         messages,
       });
-      if (response.stop_reason === "refusal") throw new AIProviderError("Le modèle a refusé de répondre à cette demande.");
+      if (response.stop_reason === "refusal") throw this.refusal(response, "Le modèle a refusé de répondre à cette demande.");
       const text = response.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n").trim();
+      // limite atteinte avant tout texte (réflexion trop longue) : erreur claire plutôt qu'une réponse vide
+      if (!text && response.stop_reason === "max_tokens") throw new AIProviderError("La réponse a été interrompue avant d'être rédigée. Reformulez votre question plus simplement.", true);
       return { text, model: response.model };
     } catch (e) {
       throw this.mapError(e);
     }
   }
 
+  /** Refus du modèle : la catégorie (jamais le contenu) est journalisée pour pouvoir compter les refus à tort. */
+  private refusal(response: { model: string; stop_details?: { category?: string | null } | null }, message: string): AIProviderError {
+    console.warn("[ia] refus du modèle", response.model, response.stop_details?.category ?? "sans catégorie");
+    return new AIProviderError(message);
+  }
+
   private mapError(e: unknown): Error {
     if (e instanceof AIProviderError) return e;
+    if (e instanceof Anthropic.APIConnectionTimeoutError) return new AIProviderError("L'analyse a pris trop de temps et a été interrompue. Réessayez dans un instant.", true);
     if (e instanceof Anthropic.AuthenticationError) return new AIProviderError("Clé API du fournisseur d'IA invalide.");
     if (e instanceof Anthropic.RateLimitError) return new AIProviderError("Limite de requêtes du fournisseur d'IA atteinte. Réessayez plus tard.", true);
     if (e instanceof Anthropic.BadRequestError) return new AIProviderError("Requête refusée par le fournisseur d'IA (document trop volumineux ou format non pris en charge).");

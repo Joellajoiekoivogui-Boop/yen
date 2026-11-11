@@ -13,6 +13,9 @@ import { isAIConfigured } from "@/features/ai/provider";
 import type { ProgressPlan } from "@/features/ai/schemas";
 import { gapAnalysis } from "@/features/ai/services";
 
+// Les analyses d'IA lancées depuis cette page peuvent durer plusieurs minutes (délai d'un appel × 2 tentatives).
+export const maxDuration = 300;
+
 export const metadata: Metadata = { title: "Mon plan de progression" };
 
 export default async function ProgressPage() {

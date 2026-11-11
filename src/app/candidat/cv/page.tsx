@@ -12,6 +12,9 @@ import type { CvExtraction, CvImprovement } from "@/features/ai/schemas";
 import { deleteCvVersionAction, restoreCvVersionAction } from "@/features/cv/actions";
 import { CvUploadForm, ExtractionReview } from "./cv-client";
 
+// Les analyses d'IA lancées depuis cette page peuvent durer plusieurs minutes (délai d'un appel × 2 tentatives).
+export const maxDuration = 300;
+
 export const metadata: Metadata = { title: "Mon CV" };
 
 const scanBadge: Record<string, { label: string; tone: "green" | "blue" | "amber" | "red" | "neutral" }> = {
