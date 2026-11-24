@@ -157,7 +157,6 @@ export default async function HomePage() {
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pt-16 pb-28 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr] lg:px-8 lg:pt-28 lg:pb-36">
           <div data-reveal-children>
             {/* titre affiché d'emblée, sans animation d'entrée : c'est l'élément principal du premier écran */}
-            <p className="mb-4 text-sm font-semibold text-gold-300">Pour les jeunes ingénieurs et techniciens accompagnés par YEN</p>
             <h1 data-reveal="none" className="hero-title text-[2.1rem] leading-[1.12] font-bold tracking-tight text-balance sm:text-5xl lg:text-[3.4rem]">
               Prouvez ce que vous savez faire, <span className="text-gold-300">décrochez votre stage ou votre emploi.</span>
             </h1>
