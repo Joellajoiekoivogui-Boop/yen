@@ -172,7 +172,6 @@ export default async function HomePage() {
               </ButtonLink>
             </div>
             <p className="mt-4 text-sm text-navy-200">
-              Moins d&apos;une minute, sans mot de passe.{" "}
               <Link href="/partenaires" className="font-medium whitespace-nowrap text-white underline decoration-white/40 underline-offset-4 hover:decoration-white">
                 Vous recrutez&nbsp;? Espace partenaires
               </Link>
@@ -402,7 +401,6 @@ export default async function HomePage() {
                   <ButtonLink href="/inscription" variant="accent" size="lg" className="group">
                     Créer mon profil <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                   </ButtonLink>
-                  <p className="mt-3 text-sm text-white/80">Moins d&apos;une minute, sans mot de passe.</p>
                 </div>
               </div>
               <div className="relative order-first aspect-[16/9] sm:aspect-[21/9] lg:order-none lg:aspect-auto lg:min-h-72">

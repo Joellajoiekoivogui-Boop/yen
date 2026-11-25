@@ -34,9 +34,8 @@ test.describe("Pages publiques", () => {
     await expect(page.getByText(/Démo · fictif|donnée de démonstration/i)).toHaveCount(0);
   });
 
-  test("accueil : effort annoncé, accès partenaires et questions fréquentes", async ({ page }) => {
+  test("accueil : accès partenaires et questions fréquentes", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText("Moins d'une minute, sans mot de passe.").first()).toBeVisible();
     await expect(page.getByRole("link", { name: /Vous recrutez/ })).toHaveAttribute("href", "/partenaires");
     // questions repliées, ouvertes à la demande
     const question = page.getByText("Et si je ne réussis pas un entretien ?");
